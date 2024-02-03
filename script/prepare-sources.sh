@@ -22,7 +22,9 @@ cd "$_BUILD_DIR"
 [[ -d "$_GDB_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GDB_ARCHIVE" --no-same-owner
 [[ -d "$_MAKE_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MAKE_ARCHIVE" --no-same-owner
 
-if [[ "$_COMPAT_LEVEL" == "5.1" || "$_COMPAT_LEVEL" == "5.2" ]]; then
-  # skeeto/w64devkit#58: disable UTF-8 manifest for XP
-  echo >"$_GCC_DIR/gcc/config/i386/winnt-utf8.manifest"
-fi
+case "$_WIN32_WINNT" in
+  0x0501|0x0502)
+    # skeeto/w64devkit#58: disable UTF-8 manifest for XP
+    echo >"$_GCC_DIR/gcc/config/i386/winnt-utf8.manifest"
+    ;;
+esac

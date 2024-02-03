@@ -2,6 +2,8 @@
 
 set -euxo pipefail
 
+export REV="1"
+
 export BINUTILS_VER="2.41"
 export MINGW_VER="11.0.1"
 export GCC_VER="13.2.0"
@@ -13,7 +15,6 @@ export MAKE_VER="4.4.1"
 
 export _ARCH=""
 export _CLEAN=0
-export _COMPAT_LEVEL="5.1"
 export _CRT="msvcrt"
 export _SKIP_DEPS=0
 while [[ $# -gt 0 ]]; do
@@ -25,11 +26,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --clean)
       _CLEAN=1
-      shift
-      ;;
-    --compat-level)
-      _COMPAT_LEVEL="$2"
-      shift
       shift
       ;;
     --crt)
@@ -63,40 +59,16 @@ case "$_ARCH" in
     ;;
 esac
 
-case "$_COMPAT_LEVEL" in
-  5.1)
+case "$_CRT" in
+  msvcrt|msvcr80|msvcr90|msvcr100)
     if [[ "$_ARCH" == "64" ]]; then
       export _WIN32_WINNT="0x0502"
     else
       export _WIN32_WINNT="0x0501"
     fi
     ;;
-  5.2)
-    export _WIN32_WINNT="0x0502"
-    ;;
-  6.0)
+  msvcr110|msvcr120|ucrt)
     export _WIN32_WINNT="0x0600"
-    ;;
-  6.1)
-    export _WIN32_WINNT="0x0601"
-    ;;
-  6.2)
-    export _WIN32_WINNT="0x0602"
-    ;;
-  6.3)
-    export _WIN32_WINNT="0x0603"
-    ;;
-  10.0)
-    export _WIN32_WINNT="0x0A00"
-    ;;
-  *)
-    echo "Please specify --compat-level 5.1, 5.2, 6.0, 6.1, 6.2, 6.3, or 10.0"
-    exit 1
-    ;;
-esac
-
-case "$_CRT" in
-  msvcrt|msvcr80|msvcr90|msvcr100|msvcr110|msvcr120|ucrt)
     ;;
   *)
     echo "Please specify --crt msvcrt or --crt ucrt"
@@ -105,7 +77,7 @@ case "$_CRT" in
 esac
 
 export _PROJECT_ROOT="$PWD"
-export _RROFILE="nt$_COMPAT_LEVEL-$_ARCH-$_CRT"
+export _RROFILE="mingw$_ARCH-$_CRT"
 export _ASSETS_DIR="$_PROJECT_ROOT/assets"
 export _BUILD_DIR="$_PROJECT_ROOT/build/$_RROFILE"
 export _X_DIR="$_BUILD_DIR/x-tools"
@@ -158,7 +130,7 @@ function prepare-dirs() {
 
 function package() {
   pushd "$_PKG_DIR"
-  7z a -t7z -mf=BCJ2 -m0=LZMA:d=32m -ms=on "$_DIST_DIR/$_RROFILE.7z" mingw$_ARCH
+  7z a -t7z -mf=BCJ2 -m0=LZMA:d=32m -ms=on "$_DIST_DIR/$_RROFILE-$GCC_VER-r$REV" mingw$_ARCH
   popd
 }
 
