@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-export REV="1"
+export REV="2"
 
 export BINUTILS_VER="2.41"
 export MINGW_VER="11.0.1"
@@ -130,7 +130,7 @@ function prepare-dirs() {
 
 function package() {
   pushd "$_PKG_DIR"
-  7z a -t7z -mf=BCJ2 -m0=LZMA:d=32m -ms=on "$_DIST_DIR/$_RROFILE-$GCC_VER-r$REV" mingw$_ARCH
+  7z a -t7z -mf=BCJ2 -m0=LZMA:d=32m -ms=on "$_DIST_DIR/$_RROFILE-$GCC_VER-r$REV.7z" mingw$_ARCH
   popd
 }
 
