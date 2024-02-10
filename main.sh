@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-export REV="2"
+export REV="3"
 
 export BINUTILS_VER="2.41"
 export MINGW_VER="11.0.1"
@@ -60,15 +60,16 @@ case "$_ARCH" in
 esac
 
 case "$_CRT" in
-  msvcrt|msvcr80|msvcr90|msvcr100)
+  msvcrt)
     if [[ "$_ARCH" == "64" ]]; then
       export _WIN32_WINNT="0x0502"
     else
       export _WIN32_WINNT="0x0501"
     fi
+    GDB_VER="10.2"
     ;;
-  msvcr110|msvcr120|ucrt)
-    export _WIN32_WINNT="0x0600"
+  ucrt)
+    export _WIN32_WINNT="0x0601"
     ;;
   *)
     echo "Please specify --crt msvcrt or --crt ucrt"
