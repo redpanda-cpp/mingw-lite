@@ -31,6 +31,9 @@ title "Building MinGW winpthreads"
 
 ln -s "$_PKG_DIR$_PREFIX" "$_PREFIX"
 
+title "Building MinGW libiconv"
+"$_SCRIPT_DIR/mingw/iconv.sh"
+
 title "Building MinGW GCC"
 "$_SCRIPT_DIR/mingw/gcc.sh"
 
