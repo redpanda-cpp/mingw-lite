@@ -26,7 +26,7 @@ mkdir -p "$build_dir" && cd "$build_dir"
   --enable-version-specific-runtime-libs \
   --disable-dependency-tracking \
   --disable-multilib \
-  --disable-nls \
+  --enable-nls \
   --disable-win32-registry \
   --enable-mingw-wildcard \
   CFLAGS_FOR_TARGET="-Os" \
