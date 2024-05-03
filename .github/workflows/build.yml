@@ -7,8 +7,11 @@ jobs:
     name: Build
     strategy:
       matrix:
-        arch: [32, 64]
-        crt: [msvcrt, ucrt]
+        profile:
+          - 64-ucrt
+          - 32-ucrt
+          - 64-msvcrt
+          - 32-msvcrt
     runs-on: ubuntu-20.04
 
     steps:
@@ -20,12 +23,12 @@ jobs:
 
       - name: Build
         run: |
-          podman run --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:20.04 /mnt/main.sh --arch ${{ matrix.arch }} --crt ${{ matrix.crt }}
+          podman run --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:20.04 ./main.sh --profile ${{ matrix.profile }}
 
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
-          name: MinGW${{ matrix.arch }} (${{ matrix.crt }})
+          name: mingw${{ matrix.profile }}
           path: dist/*.7z
 
       - name: Release

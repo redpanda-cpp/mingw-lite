@@ -2,39 +2,20 @@
 
 set -euxo pipefail
 
-export REV="4"
-
-export BINUTILS_VER="2.41"
-export MINGW_VER="11.0.1"
-export GCC_VER="13.2.0"
-export GMP_VER="6.3.0"
-export MPFR_VER="4.2.1"
-export MPC_VER="1.3.1"
-export ICONV_VER="1.17"
-export GDB_VER="14.1"
-export MAKE_VER="4.4.1"
-
-export _ARCH=""
 export _CLEAN=0
-export _CRT="msvcrt"
+export _PROFILE=""
 export _SKIP_DEPS=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --arch)
-      _ARCH="$2"
-      shift
-      shift
-      ;;
-    --clean)
+    -c|--clean)
       _CLEAN=1
       shift
       ;;
-    --crt)
-      _CRT="$2"
-      shift
-      shift
+    -p|--profile)
+      _PROFILE="$2"
+      shift 2
       ;;
-    --skip-deps)
+    -nd|--no-deps)
       _SKIP_DEPS=1
       shift
       ;;
@@ -45,57 +26,34 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-case "$_ARCH" in
-  32)
-    export _TARGET="i686-w64-mingw32"
-    export _CRT_CONFIG_FLAGS="--enable-lib32 --disable-lib64"
-    export _WIN32_WINNT="0x0501"
-    ;;
-  64)
-    export _TARGET="x86_64-w64-mingw32"
-    export _CRT_CONFIG_FLAGS="--disable-lib32 --enable-lib64"
-    export _WIN32_WINNT="0x0502"
-    ;;
-  *)
-    echo "Please specify --arch 32 or --arch 64"
-    exit 1
-    ;;
-esac
-
-case "$_CRT" in
-  msvcrt)
-    # last version compatible with xp/vista x64
-    GDB_VER="10.2"
-    ;;
-  ucrt)
-    ;;
-  *)
-    echo "Please specify --crt msvcrt or --crt ucrt"
-    exit 1
-    ;;
-esac
+if [[ -f "profile/$_PROFILE.bash" ]]; then
+  . "profile/$_PROFILE.bash"
+else
+  echo "Invalid profile: $_PROFILE"
+  exit 1
+fi
 
 export _PROJECT_ROOT="$PWD"
-export _RROFILE="mingw$_ARCH-$_CRT"
 export _ASSETS_DIR="$_PROJECT_ROOT/assets"
-export _BUILD_DIR="$_PROJECT_ROOT/build/$_RROFILE"
+export _BUILD_DIR="$_PROJECT_ROOT/build/mingw$_PROFILE"
 export _X_DIR="$_BUILD_DIR/x-tools"
 export _DEP_DIR="$_BUILD_DIR/deps"
 export _DIST_DIR="$_PROJECT_ROOT/dist"
-export _PKG_DIR="$_PROJECT_ROOT/pkg/$_RROFILE"
+export _PKG_DIR="$_PROJECT_ROOT/pkg/mingw$_PROFILE"
+export _PKG_ARCHIVE="mingw$_PROFILE-$_GCC_VER-r$_REV"
 export _SCRIPT_DIR="$_PROJECT_ROOT/script"
 export _SRC_DIR="$_PROJECT_ROOT/src"
 export _PREFIX="/mingw$_ARCH"
 
-export _BINUTILS_DIR="binutils-$BINUTILS_VER"
-export _MINGW_DIR="mingw-w64-v$MINGW_VER"
-export _GCC_DIR="gcc-$GCC_VER"
-export _GMP_DIR="gmp-$GMP_VER"
-export _MPFR_DIR="mpfr-$MPFR_VER"
-export _MPC_DIR="mpc-$MPC_VER"
-export _ICONV_DIR="libiconv-$ICONV_VER"
-export _GDB_DIR="gdb-$GDB_VER"
-export _MAKE_DIR="make-$MAKE_VER"
+export _BINUTILS_DIR="binutils-$_BINUTILS_VER"
+export _MINGW_DIR="mingw-w64-v$_MINGW_VER"
+export _GCC_DIR="gcc-$_GCC_VER"
+export _GMP_DIR="gmp-$_GMP_VER"
+export _MPFR_DIR="mpfr-$_MPFR_VER"
+export _MPC_DIR="mpc-$_MPC_VER"
+export _ICONV_DIR="libiconv-$_ICONV_VER"
+export _GDB_DIR="gdb-$_GDB_VER"
+export _MAKE_DIR="make-$_MAKE_VER"
 
 export _BINUTILS_ARCHIVE="$_BINUTILS_DIR.tar.xz"
 export _MINGW_ARCHIVE="$_MINGW_DIR.tar.bz2"
@@ -115,10 +73,11 @@ function install-deps() {
 }
 
 function clean() {
-  rm "$_PREFIX" || true
+  [[ -d "$_PREFIX" ]] && rm "$_PREFIX"
   [[ $_CLEAN -eq 0 ]] && return
-  rm -rf "$_BUILD_DIR" || true
-  rm -rf "$_PKG_DIR" || true
+  [[ -d "$_BUILD_DIR" ]] && rm -rf "$_BUILD_DIR"
+  [[ -d "$_PKG_DIR" ]] && rm -rf "$_PKG_DIR"
+  true
 }
 
 function prepare-dirs() {
@@ -131,7 +90,7 @@ function prepare-dirs() {
 
 function package() {
   pushd "$_PKG_DIR"
-  7z a -t7z -mf=BCJ2 -m0=LZMA:d=32m -ms=on "$_DIST_DIR/$_RROFILE-$GCC_VER-r$REV.7z" mingw$_ARCH
+  7z a -t7z -mf=BCJ2 -m0=LZMA:d=32m -ms=on "$_DIST_DIR/$_PKG_ARCHIVE.7z" mingw$_ARCH
   popd
 }
 
