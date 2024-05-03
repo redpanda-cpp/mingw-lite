@@ -15,16 +15,17 @@ cd "$_ASSETS_DIR"
 
 cd "$_BUILD_DIR"
 [[ -d "$_BINUTILS_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_BINUTILS_ARCHIVE" --no-same-owner
-[[ -d "$_MINGW_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MINGW_ARCHIVE" --no-same-owner
-[[ -d "$_GCC_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GCC_ARCHIVE" --no-same-owner
+if [[ ! -d "$_MINGW_DIR" ]]; then
+  bsdtar -xf "$_ASSETS_DIR/$_MINGW_ARCHIVE" --no-same-owner
+  [[ $_WINPTHREADS_USE_VEH -eq 0 ]] && patch -d "$_MINGW_DIR" -Np1 <"$_PATCH_DIR/winpthreads-disable-veh.patch"
+fi
+if [[ ! -d "$_GCC_DIR" ]]; then
+  bsdtar -xf "$_ASSETS_DIR/$_GCC_ARCHIVE" --no-same-owner
+  [[ $_UTF8_MANIFEST -eq 0 ]] && echo >"$_GCC_DIR/gcc/config/i386/winnt-utf8.manifest"
+fi
 [[ -d "$_GMP_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GMP_ARCHIVE" --no-same-owner
 [[ -d "$_MPFR_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MPFR_ARCHIVE" --no-same-owner
 [[ -d "$_MPC_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MPC_ARCHIVE" --no-same-owner
 [[ -d "$_ICONV_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_ICONV_ARCHIVE" --no-same-owner
 [[ -d "$_GDB_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GDB_ARCHIVE" --no-same-owner
 [[ -d "$_MAKE_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MAKE_ARCHIVE" --no-same-owner
-
-cd "$_GCC_DIR"
-if [[ $_UTF8_MANIFEST -eq 0 ]]; then
-    echo >gcc/config/i386/winnt-utf8.manifest
-fi

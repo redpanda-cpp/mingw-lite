@@ -12,6 +12,7 @@ jobs:
           - 32-ucrt
           - 64-msvcrt
           - 32-msvcrt
+          - 32-win2000
     runs-on: ubuntu-20.04
 
     steps:

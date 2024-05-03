@@ -1,0 +1,22 @@
+diff --unified --recursive --text mingw-w64-v10.0.0.orig/mingw-w64-libraries/winpthreads/src/thread.c mingw-w64-v10.0.0/mingw-w64-libraries/winpthreads/src/thread.c
+--- mingw-w64-v10.0.0.orig/mingw-w64-libraries/winpthreads/src/thread.c
++++ mingw-w64-v10.0.0/mingw-w64-libraries/winpthreads/src/thread.c
+@@ -54,9 +54,6 @@
+ static size_t idListMax = 0;
+ static pthread_t idListNextId = 0;
+ 
+-#if !defined(_MSC_VER)
+-#define USE_VEH_FOR_MSC_SETTHREADNAME
+-#endif
+ #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+ /* forbidden RemoveVectoredExceptionHandler/AddVectoredExceptionHandler APIs */
+ #undef USE_VEH_FOR_MSC_SETTHREADNAME
+@@ -109,7 +106,7 @@
+    /* Without a debugger we *must* have an exception handler,
+     * otherwise raising an exception will crash the process.
+     */
+-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
++#if defined (USE_VEH_FOR_MSC_SETTHREADNAME)
+    if ((!IsDebuggerPresent ()) && (SetThreadName_VEH_handle == NULL))
+ #else
+    if (!IsDebuggerPresent ())
