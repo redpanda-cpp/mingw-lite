@@ -9,6 +9,9 @@ export _MINGW_VER="10.0.0"
 # override base
 export _WINPTHREADS_USE_VEH=0
 
+# override base
+export _STDCXX_USE_ALIGNED_MALLOC=0
+
 # override arch
 export _WIN32_WINNT="0x0500"
 

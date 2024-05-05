@@ -1,4 +1,4 @@
-export _REV="5"
+export _REV="6"
 
 export _BINUTILS_VER="2.41"
 export _MINGW_VER="11.0.1"
@@ -12,3 +12,4 @@ export _MAKE_VER="4.4.1"
 
 export _UTF8_MANIFEST=1
 export _WINPTHREADS_USE_VEH=1
+export _STDCXX_USE_ALIGNED_MALLOC=1

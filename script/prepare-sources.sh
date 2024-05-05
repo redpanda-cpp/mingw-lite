@@ -22,6 +22,7 @@ fi
 if [[ ! -d "$_GCC_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_GCC_ARCHIVE" --no-same-owner
   [[ $_UTF8_MANIFEST -eq 0 ]] && echo >"$_GCC_DIR/gcc/config/i386/winnt-utf8.manifest"
+  [[ $_STDCXX_USE_ALIGNED_MALLOC -eq 0 ]] && patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/stdcxx-disable-aligned-malloc.patch"
 fi
 [[ -d "$_GMP_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GMP_ARCHIVE" --no-same-owner
 [[ -d "$_MPFR_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MPFR_ARCHIVE" --no-same-owner
