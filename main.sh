@@ -70,7 +70,7 @@ function install-deps() {
   [[ $_SKIP_DEPS -eq 1 ]] && return
   apt update
   DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y \
-    build-essential ca-certificates curl gawk libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 p7zip-full texinfo
+    build-essential ca-certificates curl file gawk libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 p7zip-full texinfo
 }
 
 function clean() {
