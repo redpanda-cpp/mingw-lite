@@ -1,33 +1,13 @@
-diff --unified --recursive --text gcc-13.2.0.orig/libstdc++-v3/configure gcc-13.2.0/libstdc++-v3/configure
---- gcc-13.2.0.orig/libstdc++-v3/configure
-+++ gcc-13.2.0/libstdc++-v3/configure
-@@ -60409,18 +60409,6 @@
+diff --unified --recursive --text gcc-13.2.0.orig/libstdc++-v3/config.h.in gcc-13.2.0/libstdc++-v3/config.h.in
+--- gcc-13.2.0.orig/libstdc++-v3/config.h.in
++++ gcc-13.2.0/libstdc++-v3/config.h.in
+@@ -540,9 +540,6 @@
+ /* Define to 1 if you have the `_acosl' function. */
+ #undef HAVE__ACOSL
  
-   CXXFLAGS="$ac_save_CXXFLAGS"
+-/* Define to 1 if you have the `_aligned_malloc' function. */
+-#undef HAVE__ALIGNED_MALLOC
+-
+ /* Define to 1 if you have the `_asinf' function. */
+ #undef HAVE__ASINF
  
--    for ac_func in aligned_alloc posix_memalign memalign _aligned_malloc
--do :
--  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
--ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
--if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
--  cat >>confdefs.h <<_ACEOF
--#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
--_ACEOF
--
--fi
--done
--
-     for ac_func in _wfopen
- do :
-   ac_fn_c_check_func "$LINENO" "_wfopen" "ac_cv_func__wfopen"
-diff --unified --recursive --text gcc-13.2.0.orig/libstdc++-v3/crossconfig.m4 gcc-13.2.0/libstdc++-v3/crossconfig.m4
---- gcc-13.2.0.orig/libstdc++-v3/crossconfig.m4
-+++ gcc-13.2.0/libstdc++-v3/crossconfig.m4
-@@ -194,7 +194,6 @@
-     GLIBCXX_CHECK_LINKER_FEATURES
-     GLIBCXX_CHECK_MATH_SUPPORT
-     GLIBCXX_CHECK_STDLIB_SUPPORT
--    AC_CHECK_FUNCS(aligned_alloc posix_memalign memalign _aligned_malloc)
-     AC_CHECK_FUNCS(_wfopen)
-     GCC_CHECK_TLS
-     ;;
