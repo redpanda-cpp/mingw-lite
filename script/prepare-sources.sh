@@ -14,7 +14,10 @@ cd "$_ASSETS_DIR"
 [[ -f "$_MAKE_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/make/$_MAKE_ARCHIVE"
 
 cd "$_BUILD_DIR"
-[[ -d "$_BINUTILS_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_BINUTILS_ARCHIVE" --no-same-owner
+if [[ ! -d "$_BINUTILS_DIR" ]]; then
+  bsdtar -xf "$_ASSETS_DIR/$_BINUTILS_ARCHIVE" --no-same-owner
+  patch -d "$_BINUTILS_DIR" -Np1 <"$_PATCH_DIR/binutils-fix-path-corruption.patch"
+fi
 if [[ ! -d "$_MINGW_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_MINGW_ARCHIVE" --no-same-owner
   [[ $_WINPTHREADS_USE_VEH -eq 0 ]] && patch -d "$_MINGW_DIR" -Np1 <"$_PATCH_DIR/winpthreads-disable-veh.patch"
