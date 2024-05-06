@@ -1,0 +1,79 @@
+diff --unified --recursive --text gcc-13.2.0.orig/gcc/gcc-main.cc gcc-13.2.0/gcc/gcc-main.cc
+--- gcc-13.2.0.orig/gcc/gcc-main.cc
++++ gcc-13.2.0/gcc/gcc-main.cc
+@@ -38,9 +38,50 @@
+ 
+ extern int main (int, char **);
+ 
++#ifdef __MINGW32__
++
++extern "C" {
++  unsigned __stdcall GetACP();
++  unsigned __stdcall GetConsoleCP();
++  unsigned __stdcall GetConsoleOutputCP();
++  int __stdcall SetConsoleCP(unsigned);
++  int __stdcall SetConsoleOutputCP(unsigned);
++}
++
++struct __console_cp_init_t
++{
++  unsigned saved_input_cp;
++  unsigned saved_output_cp;
++
++  __console_cp_init_t()
++    : saved_input_cp(GetConsoleCP())
++    , saved_output_cp(GetConsoleOutputCP())
++  {
++    unsigned cp = GetACP();
++    printf("[debug] setting console code page to %u\n", cp);
++    SetConsoleCP(cp);
++    SetConsoleOutputCP(cp);
++  }
++
++  ~__console_cp_init_t()
++  {
++    printf("[debug] restoring console code page to %u\n", saved_input_cp);
++    SetConsoleCP(saved_input_cp);
++    SetConsoleOutputCP(saved_output_cp);
++  }
++};
++
++#else
++
++using __console_cp_init_t = int;
++
++#endif /* __MINGW32__ */
++
+ int
+ main (int argc, char **argv)
+ {
++  __console_cp_init_t __console_cp_init;
++
+   driver d (false, /* can_finalize */
+ 	    false); /* debug */
+ 
+diff --unified --recursive --text gcc-13.2.0.orig/gcc/pretty-print.cc gcc-13.2.0/gcc/pretty-print.cc
+--- gcc-13.2.0.orig/gcc/pretty-print.cc
++++ gcc-13.2.0/gcc/pretty-print.cc
+@@ -70,6 +70,7 @@
+       the third character into *head.
+    2. If the sequence begins with a character X in [0x80,0x9F], returns
+       (X-0x40) and stores a pointer to the second character into *head.
++   * Case 2 is imcompatible with UTF-8, here we ignore it.
+    Stores the number of ESC character(s) in *prefix_len.
+    Returns 0 if no such sequence can be found.  */
+ static int
+@@ -94,13 +95,6 @@
+ 	  *head = r + 1;
+ 	  return c;
+ 	}
+-      if (0x80 <= c && c <= 0x9F)
+-	{
+-	  /* Found (case 2).  */
+-	  *prefix_len = 1;
+-	  *head = r + 1;
+-	  return c - 0x40;
+-	}
+       ++r;
+       escaped = c == 0x1B;
+     }

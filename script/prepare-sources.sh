@@ -24,6 +24,7 @@ if [[ ! -d "$_MINGW_DIR" ]]; then
 fi
 if [[ ! -d "$_GCC_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_GCC_ARCHIVE" --no-same-owner
+  patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/gcc-fix-console-cp.patch"
   [[ $_UTF8_MANIFEST -eq 0 ]] && echo >"$_GCC_DIR/gcc/config/i386/winnt-utf8.manifest"
   [[ $_STDCXX_USE_ALIGNED_MALLOC -eq 0 ]] && patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/stdcxx-disable-aligned-malloc.patch"
 fi
