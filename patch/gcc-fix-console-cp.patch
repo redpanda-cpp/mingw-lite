@@ -1,38 +1,31 @@
 diff --unified --recursive --text gcc-13.2.0.orig/gcc/gcc-main.cc gcc-13.2.0/gcc/gcc-main.cc
 --- gcc-13.2.0.orig/gcc/gcc-main.cc
 +++ gcc-13.2.0/gcc/gcc-main.cc
-@@ -38,9 +38,50 @@
+@@ -38,9 +38,43 @@
  
  extern int main (int, char **);
  
 +#ifdef __MINGW32__
 +
-+extern "C" {
-+  unsigned __stdcall GetACP();
-+  unsigned __stdcall GetConsoleCP();
-+  unsigned __stdcall GetConsoleOutputCP();
-+  int __stdcall SetConsoleCP(unsigned);
-+  int __stdcall SetConsoleOutputCP(unsigned);
-+}
++# define WIN32_LEAN_AND_MEAN
++# include <windows.h>
 +
 +struct __console_cp_init_t
 +{
-+  unsigned saved_input_cp;
-+  unsigned saved_output_cp;
++  UINT saved_input_cp;
++  UINT saved_output_cp;
 +
 +  __console_cp_init_t()
 +    : saved_input_cp(GetConsoleCP())
 +    , saved_output_cp(GetConsoleOutputCP())
 +  {
-+    unsigned cp = GetACP();
-+    printf("[debug] setting console code page to %u\n", cp);
++    UINT cp = GetACP();
 +    SetConsoleCP(cp);
 +    SetConsoleOutputCP(cp);
 +  }
 +
 +  ~__console_cp_init_t()
 +  {
-+    printf("[debug] restoring console code page to %u\n", saved_input_cp);
 +    SetConsoleCP(saved_input_cp);
 +    SetConsoleOutputCP(saved_output_cp);
 +  }
