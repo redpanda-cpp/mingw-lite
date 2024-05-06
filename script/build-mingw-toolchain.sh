@@ -29,6 +29,11 @@ title "Building MinGW CRT"
 title "Building MinGW winpthreads"
 "$_SCRIPT_DIR/mingw/winpthreads.sh"
 
+if [[ "$_THREAD" == "mcf" ]]; then
+  title "Building MinGW MCF Gthread"
+  "$_SCRIPT_DIR/mingw/mcf.sh"
+fi
+
 ln -s "$_PKG_DIR$_PREFIX" "$_PREFIX"
 
 title "Building MinGW libiconv"

@@ -48,6 +48,7 @@ export _PREFIX="/mingw$_ARCH"
 
 export _BINUTILS_DIR="binutils-$_BINUTILS_VER"
 export _MINGW_DIR="mingw-w64-v$_MINGW_VER"
+export _MCFGTHREAD_DIR="mcfgthread-$_MCFGTHREAD_VER"
 export _GCC_DIR="gcc-$_GCC_VER"
 export _GMP_DIR="gmp-$_GMP_VER"
 export _MPFR_DIR="mpfr-$_MPFR_VER"
@@ -58,6 +59,7 @@ export _MAKE_DIR="make-$_MAKE_VER"
 
 export _BINUTILS_ARCHIVE="$_BINUTILS_DIR.tar.xz"
 export _MINGW_ARCHIVE="$_MINGW_DIR.tar.bz2"
+export _MCFGTHREAD_ARCHIVE="$_MCFGTHREAD_DIR.tar.gz"
 export _GCC_ARCHIVE="$_GCC_DIR.tar.xz"
 export _GMP_ARCHIVE="$_GMP_DIR.tar.xz"
 export _MPFR_ARCHIVE="$_MPFR_DIR.tar.xz"
@@ -70,7 +72,7 @@ function install-deps() {
   [[ $_SKIP_DEPS -eq 1 ]] && return
   apt update
   DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y \
-    build-essential ca-certificates curl file gawk gettext libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 p7zip-full texinfo
+    build-essential ca-certificates curl file gawk gettext libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 meson p7zip-full texinfo
 }
 
 function clean() {

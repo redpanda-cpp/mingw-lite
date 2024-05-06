@@ -13,7 +13,7 @@ mkdir -p "$build_dir" && cd "$build_dir"
   --with-pic \
   --enable-languages=c,c++ \
   --enable-libgomp \
-  --enable-threads=posix \
+  --enable-threads="$_THREAD" \
   --enable-version-specific-runtime-libs \
   --disable-dependency-tracking \
   --disable-nls \

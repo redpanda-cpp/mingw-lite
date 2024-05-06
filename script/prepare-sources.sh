@@ -5,6 +5,9 @@ set -euxo pipefail
 cd "$_ASSETS_DIR"
 [[ -f "$_BINUTILS_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/binutils/$_BINUTILS_ARCHIVE"
 [[ -f "$_MINGW_ARCHIVE" ]] || curl -LO "https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/$_MINGW_ARCHIVE"
+if [[ "$_THREAD" == "mcf" ]]; then
+  [[ -f "$_MCFGTHREAD_ARCHIVE" ]] || curl -L -o "$_MCFGTHREAD_ARCHIVE" "https://github.com/lhmouse/mcfgthread/archive/refs/tags/v$_MCFGTHREAD_VER.tar.gz"
+fi
 [[ -f "$_GCC_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/gcc/gcc-$_GCC_VER/$_GCC_ARCHIVE"
 [[ -f "$_GMP_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/gmp/$_GMP_ARCHIVE"
 [[ -f "$_MPFR_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/mpfr/$_MPFR_ARCHIVE"
@@ -21,6 +24,10 @@ fi
 if [[ ! -d "$_MINGW_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_MINGW_ARCHIVE" --no-same-owner
   [[ $_WINPTHREADS_USE_VEH -eq 0 ]] && patch -d "$_MINGW_DIR" -Np1 <"$_PATCH_DIR/winpthreads-disable-veh.patch"
+fi
+if [[ "$_THREAD" == "mcf" && ! -d "$_MCFGTHREAD_DIR" ]]; then
+  bsdtar -xf "$_ASSETS_DIR/$_MCFGTHREAD_ARCHIVE" --no-same-owner
+  ln -s meson.options "$_MCFGTHREAD_DIR/meson_options.txt"
 fi
 if [[ ! -d "$_GCC_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_GCC_ARCHIVE" --no-same-owner

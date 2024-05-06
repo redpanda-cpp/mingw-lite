@@ -9,6 +9,8 @@ jobs:
       fail-fast: false
       matrix:
         profile:
+          - 64-mcf
+          - 32-mcf
           - 64-ucrt
           - 32-ucrt
           - 64-msvcrt
