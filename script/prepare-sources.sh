@@ -13,6 +13,7 @@ fi
 [[ -f "$_MPFR_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/mpfr/$_MPFR_ARCHIVE"
 [[ -f "$_MPC_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/mpc/$_MPC_ARCHIVE"
 [[ -f "$_ICONV_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/libiconv/$_ICONV_ARCHIVE"
+[[ -f "$_GETTEXT_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/gettext/$_GETTEXT_ARCHIVE"
 [[ -f "$_GDB_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/gdb/$_GDB_ARCHIVE"
 [[ -f "$_MAKE_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/make/$_MAKE_ARCHIVE"
 
@@ -43,5 +44,6 @@ fi
 [[ -d "$_MPFR_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MPFR_ARCHIVE" --no-same-owner
 [[ -d "$_MPC_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MPC_ARCHIVE" --no-same-owner
 [[ -d "$_ICONV_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_ICONV_ARCHIVE" --no-same-owner
+[[ -d "$_GETTEXT_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GETTEXT_ARCHIVE" --no-same-owner
 [[ -d "$_GDB_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GDB_ARCHIVE" --no-same-owner
 [[ -d "$_MAKE_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MAKE_ARCHIVE" --no-same-owner

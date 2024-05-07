@@ -20,6 +20,7 @@ mkdir -p "$build_dir" && cd "$build_dir"
   --with-mpfr-include="$_DEP_DIR/include" \
   --with-mpfr-lib="$_DEP_DIR/lib" \
   --with-libiconv-prefix="$_DEP_DIR" \
+  --with-libintl-prefix="$_DEP_DIR" \
   --enable-languages=c,c++ \
   --enable-libgomp \
   --enable-threads="$_THREAD" \

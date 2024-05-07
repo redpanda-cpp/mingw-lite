@@ -8,6 +8,7 @@ export _GMP_VER="6.3.0"
 export _MPFR_VER="4.2.1"
 export _MPC_VER="1.3.1"
 export _ICONV_VER="1.17"
+export _GETTEXT_VER="0.22.5"
 export _GDB_VER="14.2"
 export _MAKE_VER="4.4.1"
 

@@ -39,6 +39,9 @@ fi
 title "Building MinGW libiconv"
 "$_SCRIPT_DIR/mingw/iconv.sh"
 
+title "Building MinGW gettext"
+"$_SCRIPT_DIR/mingw/gettext.sh"
+
 title "Building MinGW GCC"
 "$_SCRIPT_DIR/mingw/gcc.sh"
 

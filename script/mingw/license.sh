@@ -29,6 +29,8 @@ fi
 install -Dm644 "$_BUILD_DIR/$_ICONV_DIR/COPYING" "$license_dir/libiconv.txt"
 install -Dm644 "$_BUILD_DIR/$_ICONV_DIR/COPYING.LIB" "$license_dir/libiconv-lib.txt"
 
+install -Dm644 "$_BUILD_DIR/$_GETTEXT_DIR/gettext-runtime/intl/COPYING.LIB" "$license_dir/gettext-lib.txt"
+
 install -Dm644 "$_BUILD_DIR/$_GCC_DIR/COPYING" "$license_dir/gcc.txt"
 install -Dm644 "$_BUILD_DIR/$_GCC_DIR/COPYING.LIB" "$license_dir/gcc-lib.txt"
 install -Dm644 "$_BUILD_DIR/$_GCC_DIR/COPYING.RUNTIME" "$license_dir/gcc-runtime.txt"
