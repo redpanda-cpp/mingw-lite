@@ -47,3 +47,6 @@ title "Building MinGW GDB"
 
 title "Building MinGW Make"
 "$_SCRIPT_DIR/mingw/make.sh"
+
+title "Copying licenses"
+"$_SCRIPT_DIR/mingw/license.sh"
