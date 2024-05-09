@@ -24,6 +24,7 @@ mkdir -p "$build_dir" && cd "$build_dir"
   --enable-languages=c,c++ \
   --enable-libgomp \
   --enable-threads="$_THREAD" \
+  $( [[ "$_EXCEPTION" == "dwarf" ]] && echo --disable-sjlj-exceptions --with-dwarf2 ) \
   --enable-version-specific-runtime-libs \
   --disable-dependency-tracking \
   --disable-multilib \
