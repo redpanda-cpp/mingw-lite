@@ -24,6 +24,7 @@ if [[ ! -d "$_BINUTILS_DIR" ]]; then
 fi
 if [[ ! -d "$_MINGW_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_MINGW_ARCHIVE" --no-same-owner
+  patch -d "$_MINGW_DIR" -Np1 <"$_PATCH_DIR/crt-fix-missing-function.patch"
   [[ $_WINPTHREADS_USE_VEH -eq 0 ]] && patch -d "$_MINGW_DIR" -Np1 <"$_PATCH_DIR/winpthreads-disable-veh.patch"
 fi
 if [[ "$_THREAD" == "mcf" && ! -d "$_MCFGTHREAD_DIR" ]]; then

@@ -4,10 +4,6 @@
 . profile/common/thread-posix.bash
 
 # override base
-# mingw-w64#966: workaround for upstream regression
-export _MINGW_VER="10.0.0"
-
-# override base
 export _WINPTHREADS_USE_VEH=0
 
 # override base
