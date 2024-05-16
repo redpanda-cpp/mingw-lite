@@ -1,4 +1,4 @@
 export _THREAD="mcf"
 
 # override arch
-export _WIN32_WINN="0x0601"
+export _WIN32_WINNT="0x0601"
