@@ -1,7 +1,7 @@
-export _REV="2"
+export _REV="3"
 
 export _BINUTILS_VER="2.42"
-export _MINGW_VER="11.0.1"
+export _MINGW_VER="12.0.0"
 export _MCFGTHREAD_VER="1.7-ga.1"
 export _GCC_VER="14.1.0"
 export _GMP_VER="6.3.0"
