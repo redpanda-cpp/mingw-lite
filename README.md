@@ -17,8 +17,8 @@ Available profiles:
 | ------- | ---- | --- | ------- | --------- | ---- | ------ |
 | 64-mcf | x86_64 | UCRT | mcf | seh | NT 6.1 | NT 6.1 |
 | 32-mcf | i686 | UCRT | mcf | dwarf | NT 6.1 | NT 6.1 |
-| 64-ucrt | x86_64 | UCRT | posix | seh | NT 6.0 | NT 5.2 |
-| 32-ucrt | i686 | UCRT | posix | dwarf | NT 6.0 | NT 5.1 |
+| 64-ucrt | x86_64 | UCRT | posix | seh | NT 6.1 | NT 5.2 |
+| 32-ucrt | i686 | UCRT | posix | dwarf | NT 6.1 | NT 5.1 |
 | 64-msvcrt | x86_64 | MSVCRT | posix | seh | NT 5.2 | NT 5.2 |
 | 32-msvcrt | i686 | MSVCRT | posix | dwarf | NT 5.1 | NT 5.1 |
 | 32-win2000 | i686 | MSVCRT | posix | dwarf | NT 5.0 | NT 5.0 |

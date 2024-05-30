@@ -12,6 +12,6 @@ export _GCCLIB_USE_ALIGNED_MALLOC=0
 # override arch
 export _WIN32_WINNT="0x0500"
 
-# override crt, which overrides base
+# override base
 # last version compatible with 2000
 export _GDB_VER="8.2.1"

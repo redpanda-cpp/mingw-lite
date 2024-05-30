@@ -46,5 +46,8 @@ fi
 [[ -d "$_MPC_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MPC_ARCHIVE" --no-same-owner
 [[ -d "$_ICONV_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_ICONV_ARCHIVE" --no-same-owner
 [[ -d "$_GETTEXT_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GETTEXT_ARCHIVE" --no-same-owner
-[[ -d "$_GDB_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_GDB_ARCHIVE" --no-same-owner
+if [[ ! -d "$_GDB_DIR" ]]; then
+  bsdtar -xf "$_ASSETS_DIR/$_GDB_ARCHIVE" --no-same-owner
+  [[ "$_WIN32_WINNT" -lt 0x0601 ]] && patch -d "$_GDB_DIR" -Np1 <"$_PATCH_DIR/gdb-fix-xp-vista-x64.patch"
+fi
 [[ -d "$_MAKE_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MAKE_ARCHIVE" --no-same-owner
