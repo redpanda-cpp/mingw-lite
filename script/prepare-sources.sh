@@ -49,5 +49,9 @@ fi
 if [[ ! -d "$_GDB_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_GDB_ARCHIVE" --no-same-owner
   [[ "$_WIN32_WINNT" -lt 0x0601 ]] && patch -d "$_GDB_DIR" -Np1 <"$_PATCH_DIR/gdb-fix-xp-vista-x64.patch"
+  if [[ "$_WIN32_WINNT" -lt 0x0501 ]]; then
+    cp "$_PATCH_DIR/gdb-nt50-win32thunk.h" "$_GDB_DIR/gdb/win32thunk.h"
+    patch -d "$_GDB_DIR" -Np1 <"$_PATCH_DIR/gdb-nt50-win32thunk.patch"
+  fi
 fi
 [[ -d "$_MAKE_DIR" ]] || bsdtar -xf "$_ASSETS_DIR/$_MAKE_ARCHIVE" --no-same-owner

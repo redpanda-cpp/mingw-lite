@@ -1,0 +1,156 @@
+diff --unified --recursive --text gdb-14.2.orig/gdb/mingw-hdep.c gdb-14.2/gdb/mingw-hdep.c
+--- gdb-14.2.orig/gdb/mingw-hdep.c
++++ gdb-14.2/gdb/mingw-hdep.c
+@@ -24,7 +24,7 @@
+ #include "gdbsupport/gdb_select.h"
+ #include "inferior.h"
+ 
+-#include <windows.h>
++#include "win32thunk.h"
+ #include <signal.h>
+ 
+ /* Return an absolute file name of the running GDB, if possible, or
+@@ -382,7 +382,7 @@
+   DWORD len = 0;
+   while (true)
+     {
+-      len = GetConsoleProcessList (results.data (), results.size ());
++      len = Win32Thunk::GetConsoleProcessList (results.data (), results.size ());
+       /* Note that LEN == 0 is a failure, but we can treat it the same
+ 	 as a "no".  */
+       if (len <= results.size ())
+diff --unified --recursive --text gdb-14.2.orig/gdb/nat/windows-nat.c gdb-14.2/gdb/nat/windows-nat.c
+--- gdb-14.2.orig/gdb/nat/windows-nat.c
++++ gdb-14.2/gdb/nat/windows-nat.c
+@@ -572,7 +572,7 @@
+     {
+       /* This fails on 32bit Windows because it has no SysWOW64 directory,
+ 	 and in this case a path conversion isn't necessary.  */
+-      UINT len = GetSystemWow64DirectoryA (syswow_dir, sizeof (syswow_dir));
++      UINT len = Win32Thunk::GetSystemWow64DirectoryA (syswow_dir, sizeof (syswow_dir));
+       if (len > 0)
+ 	{
+ 	  /* Check that we have passed a large enough buffer.  */
+diff --unified --recursive --text gdb-14.2.orig/gdb/nat/windows-nat.h gdb-14.2/gdb/nat/windows-nat.h
+--- gdb-14.2.orig/gdb/nat/windows-nat.h
++++ gdb-14.2/gdb/nat/windows-nat.h
+@@ -19,7 +19,7 @@
+ #ifndef NAT_WINDOWS_NAT_H
+ #define NAT_WINDOWS_NAT_H
+ 
+-#include <windows.h>
++#include "win32thunk.h"
+ #include <psapi.h>
+ #include <vector>
+ 
+diff --unified --recursive --text gdb-14.2.orig/gdb/ser-tcp.c gdb-14.2/gdb/ser-tcp.c
+--- gdb-14.2.orig/gdb/ser-tcp.c
++++ gdb-14.2/gdb/ser-tcp.c
+@@ -39,7 +39,7 @@
+ #include "gdbsupport/gdb_sys_time.h"
+ 
+ #ifdef USE_WIN32API
+-#include <ws2tcpip.h>
++#include "win32thunk.h"
+ #ifndef ETIMEDOUT
+ #define ETIMEDOUT WSAETIMEDOUT
+ #endif
+@@ -290,7 +290,7 @@
+   if (parsed.port_str.empty ())
+     error (_("Missing port on hostname '%s'"), name);
+ 
+-  int r = getaddrinfo (parsed.host_str.c_str (),
++  int r = Win32Thunk::getaddrinfo (parsed.host_str.c_str (),
+ 		       parsed.port_str.c_str (),
+ 		       &hint, &ainfo);
+ 
+diff --unified --recursive --text gdb-14.2.orig/gdbserver/gdbreplay.cc gdb-14.2/gdbserver/gdbreplay.cc
+--- gdb-14.2.orig/gdbserver/gdbreplay.cc
++++ gdb-14.2/gdbserver/gdbreplay.cc
+@@ -53,7 +53,7 @@
+ #endif
+ 
+ #if USE_WIN32API
+-#include <ws2tcpip.h>
++#include "win32thunk.h"
+ #endif
+ 
+ #include "gdbsupport/netstuff.h"
+@@ -154,7 +154,7 @@
+     }
+ #endif
+ 
+-  int r = getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
++  int r = Win32Thunk::getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
+ 		       &hint, &ainfo);
+ 
+   if (r != 0)
+@@ -230,7 +230,7 @@
+       setsockopt (remote_desc_in, IPPROTO_TCP, TCP_NODELAY,
+ 		  (char *) &tmp, sizeof (tmp));
+ 
+-      if (getnameinfo ((struct sockaddr *) &sockaddr, sockaddrsize,
++      if (Win32Thunk::getnameinfo ((struct sockaddr *) &sockaddr, sockaddrsize,
+ 		       orig_host, sizeof (orig_host),
+ 		       orig_port, sizeof (orig_port),
+ 		       NI_NUMERICHOST | NI_NUMERICSERV) == 0)
+diff --unified --recursive --text gdb-14.2.orig/gdbserver/remote-utils.cc gdb-14.2/gdbserver/remote-utils.cc
+--- gdb-14.2.orig/gdbserver/remote-utils.cc
++++ gdb-14.2/gdbserver/remote-utils.cc
+@@ -65,7 +65,7 @@
+ #include <sys/stat.h>
+ 
+ #if USE_WIN32API
+-#include <ws2tcpip.h>
++#include "win32thunk.h"
+ #endif
+ 
+ #ifndef HAVE_SOCKLEN_T
+@@ -182,7 +182,7 @@
+   /* Convert IP address to string.  */
+   char orig_host[GDB_NI_MAX_ADDR], orig_port[GDB_NI_MAX_PORT];
+ 
+-  int r = getnameinfo ((struct sockaddr *) &sockaddr, len,
++  int r = Win32Thunk::getnameinfo ((struct sockaddr *) &sockaddr, len,
+ 		       orig_host, sizeof (orig_host),
+ 		       orig_port, sizeof (orig_port),
+ 		       NI_NUMERICHOST | NI_NUMERICSERV);
+@@ -260,7 +260,7 @@
+     }
+ #endif
+ 
+-  int r = getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
++  int r = Win32Thunk::getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
+ 		       &hint, &ainfo);
+ 
+   if (r != 0)
+@@ -387,7 +387,7 @@
+       if (getsockname (listen_desc, (struct sockaddr *) &sockaddr, &len) < 0)
+ 	perror_with_name ("Can't determine port");
+ 
+-      int r = getnameinfo ((struct sockaddr *) &sockaddr, len,
++      int r = Win32Thunk::getnameinfo ((struct sockaddr *) &sockaddr, len,
+ 			   NULL, 0,
+ 			   listen_port, sizeof (listen_port),
+ 			   NI_NUMERICSERV);
+diff --unified --recursive --text gdb-14.2.orig/gdbsupport/netstuff.cc gdb-14.2/gdbsupport/netstuff.cc
+--- gdb-14.2.orig/gdbsupport/netstuff.cc
++++ gdb-14.2/gdbsupport/netstuff.cc
+@@ -21,7 +21,7 @@
+ #include <algorithm>
+ 
+ #ifdef USE_WIN32API
+-#include <ws2tcpip.h>
++#include "win32thunk.h"
+ #else
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+@@ -34,7 +34,7 @@
+ 
+ scoped_free_addrinfo::~scoped_free_addrinfo ()
+ {
+-  freeaddrinfo (m_res);
++  Win32Thunk::freeaddrinfo (m_res);
+ }
+ 
+ /* See gdbsupport/netstuff.h.  */
