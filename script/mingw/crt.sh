@@ -15,4 +15,4 @@ mkdir -p "$build_dir" && cd "$build_dir"
   CFLAGS="-Os" \
   LDFLAGS="-s"
 make -j$(nproc)
-make DESTDIR="$_PKG_DIR" install
+make install

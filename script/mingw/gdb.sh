@@ -12,4 +12,4 @@ mkdir -p "$build_dir" && cd "$build_dir"
   CXXFLAGS="-Os -DPDC_WIDE -I$_DEP_DIR/include" \
   LDFLAGS="-s -L$_DEP_DIR/lib"
 make MAKEINFO=true -j$(nproc)
-make DESTDIR="$_PKG_DIR" install
+make install

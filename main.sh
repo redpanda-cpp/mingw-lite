@@ -35,16 +35,15 @@ fi
 
 export _PROJECT_ROOT="$PWD"
 export _ASSETS_DIR="$_PROJECT_ROOT/assets"
-export _BUILD_DIR="$_PROJECT_ROOT/build/mingw$_PROFILE"
-export _X_DIR="$_BUILD_DIR/x-tools"
+export _BUILD_DIR="/tmp/build/mingw$_PROFILE"
+export _X_DIR="/opt/x-mingw$_PROFILE"
 export _DEP_DIR="$_BUILD_DIR/deps"
 export _DIST_DIR="$_PROJECT_ROOT/dist"
 export _PATCH_DIR="$_PROJECT_ROOT/patch"
-export _PKG_DIR="$_PROJECT_ROOT/pkg/mingw$_PROFILE"
 export _PKG_ARCHIVE="mingw$_PROFILE-$_GCC_VER-r$_REV"
+export _X_ARCHIVE="x-mingw$_PROFILE-$_GCC_VER-r$_REV"
 export _SCRIPT_DIR="$_PROJECT_ROOT/script"
-export _SRC_DIR="$_PROJECT_ROOT/src"
-export _PREFIX="/mingw$_ARCH"
+export _PREFIX="/opt/mingw$_PROFILE"
 
 export _BINUTILS_DIR="binutils-$_BINUTILS_VER"
 export _MINGW_DIR="mingw-w64-v$_MINGW_VER"
@@ -74,29 +73,30 @@ function install-deps() {
   [[ $_SKIP_DEPS -eq 1 ]] && return
   apt update
   DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y \
-    build-essential ca-certificates curl file gawk gettext libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 meson p7zip-full texinfo
+    build-essential ca-certificates curl file gawk gettext libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 meson p7zip-full texinfo zstd
 }
 
 function clean() {
-  [[ -d "$_PREFIX" ]] && rm "$_PREFIX"
   [[ $_CLEAN -eq 0 ]] && return
   [[ -d "$_BUILD_DIR" ]] && rm -rf "$_BUILD_DIR"
-  [[ -d "$_PKG_DIR" ]] && rm -rf "$_PKG_DIR"
+  [[ -d "$_X_DIR" ]] && rm -rf "$_X_DIR"
+  [[ -d "$_PREFIX" ]] && rm -rf "$_PREFIX"
   true
 }
 
 function prepare-dirs() {
   mkdir -p "$_ASSETS_DIR"
   mkdir -p "$_BUILD_DIR"
+  mkdir -p "$_X_DIR"
   mkdir -p "$_DIST_DIR"
-  mkdir -p "$_PKG_DIR"
-  mkdir -p "$_SRC_DIR"
 }
 
 function package() {
-  pushd "$_PKG_DIR"
-  7z a -t7z -mf=BCJ2 -m0=LZMA:d=32m -ms=on "$_DIST_DIR/$_PKG_ARCHIVE.7z" mingw$_ARCH
+  pushd /opt
+  7z a -t7z -mf=BCJ2 -mx9 -m0=LZMA:d=64m -ms=on "$_DIST_DIR/$_PKG_ARCHIVE.7z" "mingw$_PROFILE"
   popd
+  # good balance of speed and size (zstd 1.5)
+  bsdtar -c "$_X_DIR" | zstd --zstd=strat=5,wlog=27,hlog=25,slog=6 -f -o "$_DIST_DIR/$_X_ARCHIVE.tar.zst"
 }
 
 install-deps

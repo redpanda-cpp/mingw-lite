@@ -6,7 +6,6 @@ build_dir="$_BUILD_DIR/$_GCC_DIR/x-build"
 mkdir -p "$build_dir" && cd "$build_dir"
 ../configure \
   --prefix="$_X_DIR" \
-  --with-sysroot="$_X_DIR" \
   --target="$_TARGET" \
   --enable-static \
   --disable-shared \

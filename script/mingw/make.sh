@@ -11,4 +11,4 @@ mkdir -p "$build_dir" && cd "$build_dir"
   CFLAGS="-Os" \
   LDFLAGS="-s"
 make -j$(nproc)
-cp make.exe "$_PKG_DIR$_PREFIX/bin/mingw32-make.exe"
+cp make.exe "$_PREFIX/bin/mingw32-make.exe"

@@ -15,24 +15,24 @@ jobs:
           - 32-ucrt
           - 64-msvcrt
           - 32-msvcrt
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Fetch container image
         run: |
-          podman pull docker.io/amd64/ubuntu:20.04
+          podman pull docker.io/amd64/ubuntu:24.04
 
       - name: Build
         run: |
-          podman run --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:20.04 ./main.sh --profile ${{ matrix.profile }}
+          podman run --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:24.04 ./main.sh --profile ${{ matrix.profile }}
 
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
           name: mingw${{ matrix.profile }}
-          path: dist/*.7z
+          path: dist
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -40,3 +40,4 @@ jobs:
         with:
           files: |
             dist/*.7z
+            dist/*.tar.zst

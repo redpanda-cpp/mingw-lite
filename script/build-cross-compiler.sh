@@ -12,8 +12,6 @@ title "Building cross binutils"
 title "Building cross headers"
 "$_SCRIPT_DIR/cross/headers.sh"
 
-[[ -L "$_X_DIR/mingw" ]] || ln -s "$_TARGET" "$_X_DIR/mingw"
-
 title "Building cross GCC (phase 1)"
 "$_SCRIPT_DIR/cross/gcc-p1.sh"
 

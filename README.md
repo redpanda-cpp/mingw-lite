@@ -5,7 +5,7 @@ Extremely fast MinGW GCC build scripts for easy experiments.
 ## Build
 
 ```bash
-podman run -it --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:20.04
+podman run -it --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:24.04
 
 # in the container
 ./main.sh -p <profile>
@@ -24,5 +24,14 @@ Available profiles:
 
 Notes:
 
-- The build scripts write build files to host file system.
+- To expose build directories for debugging:
+  ```bash
+  mkdir -p build pkg
+
+  podman run -it --rm \
+    -v $PWD:/mnt -w /mnt \
+    -v $PWD/build:/tmp/build \
+    -v $PWD/pkg:/opt \
+    docker.io/amd64/ubuntu:24.04
+  ```
 - For profiles with HOST set to NT 5.2 or earlier, the UTF-8 manifest is removed from GCC.

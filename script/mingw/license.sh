@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-license_dir="$_PKG_DIR/$_PREFIX/license"
+license_dir="$_PREFIX/license"
 
 install -Dm644 "$_BUILD_DIR/$_BINUTILS_DIR/COPYING" "$license_dir/binutils.txt"
 install -Dm644 "$_BUILD_DIR/$_BINUTILS_DIR/COPYING.LIB" "$license_dir/binutils-lib.txt"

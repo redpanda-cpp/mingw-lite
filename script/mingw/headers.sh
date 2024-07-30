@@ -10,4 +10,4 @@ mkdir -p "$build_dir" && cd "$build_dir"
   --with-default-msvcrt="$_CRT" \
   --with-default-win32-winnt="$_WIN32_WINNT"
 make -j$(nproc)
-make DESTDIR="$_PKG_DIR" install
+make install

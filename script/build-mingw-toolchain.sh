@@ -34,8 +34,6 @@ if [[ "$_THREAD" == "mcf" ]]; then
   "$_SCRIPT_DIR/mingw/mcf.sh"
 fi
 
-[[ -L "$_PREFIX" ]] || ln -s "$_PKG_DIR$_PREFIX" "$_PREFIX"
-
 title "Building MinGW libiconv"
 "$_SCRIPT_DIR/mingw/iconv.sh"
 

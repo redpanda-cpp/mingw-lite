@@ -1,4 +1,4 @@
-export _REV="3"
+export _REV="4"
 
 export _BINUTILS_VER="2.42"
 export _MINGW_VER="12.0.0"
