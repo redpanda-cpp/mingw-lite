@@ -8,8 +8,15 @@ Extremely fast MinGW GCC build scripts for easy experiments.
 podman run -it --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:24.04
 
 # in the container
-./main.sh -p <profile>
+./main.sh -b <branch> -p <profile>
 ```
+
+Available branches:
+
+| Branch | GCC version | GCC status |
+| ------- | ----------- | ---------- |
+| 14 | 14.2.0 | latest |
+| 15 | 15-20240804 | development |
 
 Available profiles:
 

@@ -2,11 +2,16 @@
 
 set -euxo pipefail
 
+export _BRANCH=""
 export _CLEAN=0
 export _PROFILE=""
 export _SKIP_DEPS=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    -b|--branch)
+      _BRANCH="$2"
+      shift 2
+      ;;
     -c|--clean)
       _CLEAN=1
       shift
@@ -26,24 +31,24 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -f "profile/$_PROFILE.bash" ]]; then
-  . "profile/$_PROFILE.bash"
+if [[ -f "profile/$_BRANCH/$_PROFILE.bash" ]]; then
+  . "profile/$_BRANCH/$_PROFILE.bash"
 else
-  echo "Invalid profile: $_PROFILE"
+  echo "Invalid profile: $_BRANCH/$_PROFILE"
   exit 1
 fi
 
 export _PROJECT_ROOT="$PWD"
 export _ASSETS_DIR="$_PROJECT_ROOT/assets"
-export _BUILD_DIR="/tmp/build/mingw$_PROFILE"
-export _X_DIR="/opt/x-mingw$_PROFILE"
+export _BUILD_DIR="/tmp/build/mingw$_PROFILE-$_BRANCH"
+export _X_DIR="/opt/x-mingw$_PROFILE-$_BRANCH"
 export _DEP_DIR="$_BUILD_DIR/deps"
 export _DIST_DIR="$_PROJECT_ROOT/dist"
 export _PATCH_DIR="$_PROJECT_ROOT/patch"
 export _PKG_ARCHIVE="mingw$_PROFILE-$_GCC_VER-r$_REV"
 export _X_ARCHIVE="x-mingw$_PROFILE-$_GCC_VER-r$_REV"
 export _SCRIPT_DIR="$_PROJECT_ROOT/script"
-export _PREFIX="/opt/mingw$_PROFILE"
+export _PREFIX="/opt/mingw$_PROFILE-$_BRANCH"
 
 export _BINUTILS_DIR="binutils-$_BINUTILS_VER"
 export _MINGW_DIR="mingw-w64-v$_MINGW_VER"
@@ -73,7 +78,7 @@ function install-deps() {
   [[ $_SKIP_DEPS -eq 1 ]] && return
   apt update
   DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y \
-    build-essential ca-certificates curl file gawk gettext libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 meson p7zip-full texinfo zstd
+    bison build-essential ca-certificates curl file flex gawk gettext libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 meson p7zip-full texinfo zstd
 }
 
 function clean() {
@@ -93,7 +98,7 @@ function prepare-dirs() {
 
 function package() {
   pushd /opt
-  7z a -t7z -mf=BCJ2 -mx9 -m0=LZMA:d=64m -ms=on "$_DIST_DIR/$_PKG_ARCHIVE.7z" "mingw$_PROFILE"
+  7z a -t7z -mf=BCJ2 -mx9 -m0=LZMA:d=64m -ms=on "$_DIST_DIR/$_PKG_ARCHIVE.7z" "mingw$_PROFILE-$_BRANCH"
   popd
   # good balance of speed and size (zstd 1.5)
   bsdtar -c "$_X_DIR" | zstd --zstd=strat=5,wlog=27,hlog=25,slog=6 -f -o "$_DIST_DIR/$_X_ARCHIVE.tar.zst"

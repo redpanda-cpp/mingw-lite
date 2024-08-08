@@ -1,9 +1,9 @@
 export _REV="0"
 
-export _BINUTILS_VER="2.42"
+export _BINUTILS_VER="2.43"
 export _MINGW_VER="12.0.0"
 export _MCFGTHREAD_VER="1.8-ga.3"
-export _GCC_VER="14.2.0"
+export _GCC_VER="15-20240804"
 export _GMP_VER="6.3.0"
 export _MPFR_VER="4.2.1"
 export _MPC_VER="1.3.1"

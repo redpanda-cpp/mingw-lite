@@ -2,25 +2,39 @@
 
 set -euxo pipefail
 
+function fn-version-ge() {
+  printf '%s\n%s\n' "$2" "$1" | sort --check=quiet --version-sort
+}
+
 cd "$_ASSETS_DIR"
-[[ -f "$_BINUTILS_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/binutils/$_BINUTILS_ARCHIVE"
+[[ -f "$_BINUTILS_ARCHIVE" ]] || curl -LO "http://ftpmirror.gnu.org/gnu/binutils/$_BINUTILS_ARCHIVE"
 [[ -f "$_MINGW_ARCHIVE" ]] || curl -LO "https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/$_MINGW_ARCHIVE"
 if [[ "$_THREAD" == "mcf" ]]; then
   [[ -f "$_MCFGTHREAD_ARCHIVE" ]] || curl -L -o "$_MCFGTHREAD_ARCHIVE" "https://github.com/lhmouse/mcfgthread/archive/refs/tags/v$_MCFGTHREAD_VER.tar.gz"
 fi
-[[ -f "$_GCC_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/gcc/gcc-$_GCC_VER/$_GCC_ARCHIVE"
-[[ -f "$_GMP_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/gmp/$_GMP_ARCHIVE"
-[[ -f "$_MPFR_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/mpfr/$_MPFR_ARCHIVE"
-[[ -f "$_MPC_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/mpc/$_MPC_ARCHIVE"
-[[ -f "$_ICONV_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/libiconv/$_ICONV_ARCHIVE"
-[[ -f "$_GETTEXT_ARCHIVE" ]] || curl -LO "https://ftp.gnu.org/gnu/gettext/$_GETTEXT_ARCHIVE"
-[[ -f "$_GDB_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/gdb/$_GDB_ARCHIVE"
-[[ -f "$_MAKE_ARCHIVE" ]] || curl -LO "http://ftp.gnu.org/gnu/make/$_MAKE_ARCHIVE"
+if [[ ! -f "$_GCC_ARCHIVE" ]]; then
+  if fn-version-ge "$_GCC_VER" "15"; then
+    curl -LO "https://gcc.gnu.org/pub/gcc/snapshots/$_GCC_VER/$_GCC_ARCHIVE"
+  else
+    curl -LO "http://ftpmirror.gnu.org/gnu/gcc/gcc-$_GCC_VER/$_GCC_ARCHIVE"
+  fi
+fi
+[[ -f "$_GMP_ARCHIVE" ]] || curl -LO "https://ftpmirror.gnu.org/gnu/gmp/$_GMP_ARCHIVE"
+[[ -f "$_MPFR_ARCHIVE" ]] || curl -LO "https://ftpmirror.gnu.org/gnu/mpfr/$_MPFR_ARCHIVE"
+[[ -f "$_MPC_ARCHIVE" ]] || curl -LO "https://ftpmirror.gnu.org/gnu/mpc/$_MPC_ARCHIVE"
+[[ -f "$_ICONV_ARCHIVE" ]] || curl -LO "https://ftpmirror.gnu.org/gnu/libiconv/$_ICONV_ARCHIVE"
+[[ -f "$_GETTEXT_ARCHIVE" ]] || curl -LO "https://ftpmirror.gnu.org/gnu/gettext/$_GETTEXT_ARCHIVE"
+[[ -f "$_GDB_ARCHIVE" ]] || curl -LO "http://ftpmirror.gnu.org/gnu/gdb/$_GDB_ARCHIVE"
+[[ -f "$_MAKE_ARCHIVE" ]] || curl -LO "http://ftpmirror.gnu.org/gnu/make/$_MAKE_ARCHIVE"
 
 cd "$_BUILD_DIR"
 if [[ ! -d "$_BINUTILS_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_BINUTILS_ARCHIVE" --no-same-owner
-  patch -d "$_BINUTILS_DIR" -Np1 <"$_PATCH_DIR/binutils-fix-path-corruption.patch"
+  if fn-version-ge "$_BINUTILS_VER" "2.43"; then
+    patch -d "$_BINUTILS_DIR" -Np1 <"$_PATCH_DIR/binutils/2.43-fix-path-corruption.patch"
+  else
+    patch -d "$_BINUTILS_DIR" -Np1 <"$_PATCH_DIR/binutils/2.42-fix-path-corruption.patch"
+  fi
 fi
 if [[ ! -d "$_MINGW_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_MINGW_ARCHIVE" --no-same-owner
@@ -33,10 +47,11 @@ if [[ "$_THREAD" == "mcf" && ! -d "$_MCFGTHREAD_DIR" ]]; then
 fi
 if [[ ! -d "$_GCC_DIR" ]]; then
   bsdtar -xf "$_ASSETS_DIR/$_GCC_ARCHIVE" --no-same-owner
-  patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/gcc-fix-console-cp.patch"
-  patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/gcc-fix-localedir.patch"
+  patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/gcc/fix-console-cp.patch"
+  patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/gcc/fix-localedir.patch"
   [[ $_UTF8_MANIFEST -eq 0 ]] && echo >"$_GCC_DIR/gcc/config/i386/winnt-utf8.manifest"
   [[ $_GCCLIB_USE_ALIGNED_MALLOC -eq 0 ]] && patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/gcclib-disable-aligned-malloc.patch"
+  fn-version-ge "$_GCC_VER" "15" && patch -d "$_GCC_DIR" -Np1 <"$_PATCH_DIR/gcc/15-fix-mingw-libs.patch"
 
   # do not translate "error: " and "warning: "
   sed -i -E '/^msgid "(error|warning): "/,+1 d' "$_GCC_DIR"/gcc/po/*.po
