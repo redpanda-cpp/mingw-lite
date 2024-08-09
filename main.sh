@@ -3,9 +3,10 @@
 set -euxo pipefail
 
 export _BRANCH=""
+export _BUILD_X_MINGW=1
 export _CLEAN=0
+export _INSTALL_DEPS=1
 export _PROFILE=""
-export _SKIP_DEPS=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -b|--branch)
@@ -20,8 +21,12 @@ while [[ $# -gt 0 ]]; do
       _PROFILE="$2"
       shift 2
       ;;
+    -nx|--no-cross)
+      _BUILD_X_MINGW=0
+      shift
+      ;;
     -nd|--no-deps)
-      _SKIP_DEPS=1
+      _INSTALL_DEPS=0
       shift
       ;;
     *)
@@ -75,7 +80,7 @@ export _GDB_ARCHIVE="$_GDB_DIR.tar.xz"
 export _MAKE_ARCHIVE="$_MAKE_DIR.tar.gz"
 
 function install-deps() {
-  [[ $_SKIP_DEPS -eq 1 ]] && return
+  [[ $_INSTALL_DEPS -eq 0 ]] && return
   apt update
   DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y \
     bison build-essential ca-certificates curl file flex gawk gettext libarchive-tools libgmp-dev libmpc-dev libmpfr-dev m4 meson p7zip-full texinfo zstd
@@ -84,7 +89,7 @@ function install-deps() {
 function clean() {
   [[ $_CLEAN -eq 0 ]] && return
   [[ -d "$_BUILD_DIR" ]] && rm -rf "$_BUILD_DIR"
-  [[ -d "$_X_DIR" ]] && rm -rf "$_X_DIR"
+  [[ $_BUILD_X_MINGW -eq 1 && -d "$_X_DIR" ]] && rm -rf "$_X_DIR"
   [[ -d "$_PREFIX" ]] && rm -rf "$_PREFIX"
   true
 }
@@ -108,6 +113,6 @@ install-deps
 clean
 prepare-dirs
 script/prepare-sources.sh
-script/build-cross-compiler.sh
+[[ $_BUILD_X_MINGW -eq 1 ]] && script/build-cross-compiler.sh
 script/build-mingw-toolchain.sh
 package
