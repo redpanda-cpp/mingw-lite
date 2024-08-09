@@ -8,6 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        branch: [15, 14]
         profile:
           - 64-mcf
           - 32-mcf
@@ -15,29 +16,41 @@ jobs:
           - 32-ucrt
           - 64-msvcrt
           - 32-msvcrt
+        include:
+          - prerelease: false
+          - prerelease: true
+            branch: 15
+          - make_latest: false
+          - make_latest: true
+            branch: 14
     runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Fetch container image
+        if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
         run: |
           podman pull docker.io/amd64/ubuntu:24.04
 
       - name: Build
+        if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
         run: |
-          podman run --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:24.04 ./main.sh --profile ${{ matrix.profile }}
+          podman run --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:24.04 ./main.sh --branch ${{ matrix.branch }} --profile ${{ matrix.profile }}
 
       - name: Upload
         uses: actions/upload-artifact@v2
+        if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
         with:
           name: mingw${{ matrix.profile }}
           path: dist
 
       - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag' && startsWith(github.ref_name, matrix.branch)
         with:
+          prerelease: ${{ matrix.prerelease }}
+          make_latest: ${{ matrix.make_latest }}
           files: |
             dist/*.7z
             dist/*.tar.zst
