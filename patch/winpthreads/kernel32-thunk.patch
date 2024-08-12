@@ -1,0 +1,26 @@
+diff --git a/mingw-w64-libraries/winpthreads/src/cond.c b/mingw-w64-libraries/winpthreads/src/cond.c
+index d50f85b40..9d051dc5f 100644
+--- a/mingw-w64-libraries/winpthreads/src/cond.c
++++ b/mingw-w64-libraries/winpthreads/src/cond.c
+@@ -38,6 +38,8 @@
+ 
+ #include "pthread_compat.h"
+ 
++#include "win32-thunk.h"
++
+ int __pthread_shallcancel (void);
+ 
+ static int do_sema_b_wait (HANDLE sema, int nointerrupt, DWORD timeout,CRITICAL_SECTION *cs, LONG *val);
+diff --git a/mingw-w64-libraries/winpthreads/src/thread.c b/mingw-w64-libraries/winpthreads/src/thread.c
+index e3edbae8a..92f6dd724 100644
+--- a/mingw-w64-libraries/winpthreads/src/thread.c
++++ b/mingw-w64-libraries/winpthreads/src/thread.c
+@@ -31,6 +31,8 @@
+ #include "misc.h"
+ #include "winpthread_internal.h"
+ 
++#include "win32-thunk.h"
++
+ static _pthread_v *__pthread_self_lite (void);
+ 
+ void (**_pthread_key_dest)(void *) = NULL;

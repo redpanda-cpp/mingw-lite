@@ -1,0 +1,82 @@
+diff --git a/libstdc++-v3/config/io/basic_file_stdio.cc b/libstdc++-v3/config/io/basic_file_stdio.cc
+index 9b529490f08..d1eea8c09d3 100644
+--- a/libstdc++-v3/config/io/basic_file_stdio.cc
++++ b/libstdc++-v3/config/io/basic_file_stdio.cc
+@@ -71,6 +71,11 @@
+ # include <io.h>     // For _get_osfhandle
+ #endif
+ 
++#ifdef _WIN32
++#include <windows.h>
++#include <string>
++#endif
++
+ namespace
+ {
+   // Map ios_base::openmode flags to a string for use in fopen().
+@@ -274,25 +279,49 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+     const char* __c_mode = fopen_mode(__mode);
+     if (__c_mode && !this->is_open())
+       {
+-	wchar_t __wc_mode[4] = { };
+-	int __i = 0;
+-	do
++	static bool is_nt = ({
++	  OSVERSIONINFOA osvi = {sizeof (OSVERSIONINFOA)};
++	  GetVersionExA(&osvi);
++	  osvi.dwPlatformId == VER_PLATFORM_WIN32_NT;
++	});
++	if (is_nt)
+ 	  {
+-	    switch(__c_mode[__i]) {
+-	    case 'a': __wc_mode[__i] = L'a'; break;
+-	    case 'b': __wc_mode[__i] = L'b'; break;
+-	    case 'r': __wc_mode[__i] = L'r'; break;
+-	    case 'w': __wc_mode[__i] = L'w'; break;
+-	    case '+': __wc_mode[__i] = L'+'; break;
+-	    default: return __ret;
+-	    }
++	    wchar_t __wc_mode[4] = { };
++	    int __i = 0;
++	    do
++	      {
++		switch(__c_mode[__i]) {
++		case 'a': __wc_mode[__i] = L'a'; break;
++		case 'b': __wc_mode[__i] = L'b'; break;
++		case 'r': __wc_mode[__i] = L'r'; break;
++		case 'w': __wc_mode[__i] = L'w'; break;
++		case '+': __wc_mode[__i] = L'+'; break;
++		default: return __ret;
++		}
++	      }
++	    while (__c_mode[++__i]);
++
++	    if ((_M_cfile = _wfopen(__name, __wc_mode)))
++	      {
++		_M_cfile_created = true;
++		__ret = this;
++	      }
+ 	  }
+-	while (__c_mode[++__i]);
+-
+-	if ((_M_cfile = _wfopen(__name, __wc_mode)))
++	else
+ 	  {
+-	    _M_cfile_created = true;
+-	    __ret = this;
++	    int len = WideCharToMultiByte(CP_ACP, 0, __name, -1,
++					  NULL, 0, NULL, NULL);
++	    if (len == 0)
++	      return __ret;
++	    string aname(len, '\0');
++	    WideCharToMultiByte(CP_ACP, 0, __name, -1,
++				&aname[0], len, NULL, NULL);
++
++	    if ((_M_cfile = fopen(aname.c_str(), __c_mode)))
++	      {
++		_M_cfile_created = true;
++		__ret = this;
++	      }
+ 	  }
+       }
+     return __ret;

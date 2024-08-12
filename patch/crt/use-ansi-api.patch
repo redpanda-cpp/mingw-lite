@@ -1,0 +1,11 @@
+diff --git a/mingw-w64-crt/include/msvcrt.h b/mingw-w64-crt/include/msvcrt.h
+index c6f105224..efa818131 100644
+--- a/mingw-w64-crt/include/msvcrt.h
++++ b/mingw-w64-crt/include/msvcrt.h
+@@ -6,5 +6,5 @@
+ 
+ static inline HANDLE __mingw_get_msvcrt_handle(void)
+ {
+-    return GetModuleHandleW(L"msvcrt.dll");
++    return GetModuleHandleA("msvcrt.dll");
+ }

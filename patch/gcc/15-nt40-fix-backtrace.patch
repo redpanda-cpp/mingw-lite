@@ -1,0 +1,51 @@
+diff --git a/libbacktrace/pecoff.c b/libbacktrace/pecoff.c
+index 15a73ff0b2a..c2563b46e8b 100644
+--- a/libbacktrace/pecoff.c
++++ b/libbacktrace/pecoff.c
+@@ -1022,12 +1022,31 @@ backtrace_initialize (struct backtrace_state *state,
+     return 0;
+ 
+ #ifdef HAVE_TLHELP32_H
+-  do
+-    {
+-      snapshot = CreateToolhelp32Snapshot (TH32CS_SNAPMODULE, 0);
+-    }
+-  while (snapshot == INVALID_HANDLE_VALUE
+-	 && GetLastError () == ERROR_BAD_LENGTH);
++  typedef typeof (&CreateToolhelp32Snapshot) CreateToolhelp32Snapshot_t;
++  typedef typeof (&Module32First) Module32First_t;
++  typedef typeof (&Module32Next) Module32Next_t;
++  CreateToolhelp32Snapshot_t pCreateToolhelp32Snapshot = 0;
++  Module32First_t pModule32First = 0;
++  Module32Next_t pModule32Next = 0;
++  int initCreateToolhelp32Snapshot = 0;
++
++  if (!initCreateToolhelp32Snapshot) {
++    HMODULE kernel32 = GetModuleHandleA("kernel32.dll");
++    pCreateToolhelp32Snapshot = (CreateToolhelp32Snapshot_t)GetProcAddress(
++      kernel32, "CreateToolhelp32Snapshot");
++    pModule32First = (Module32First_t)GetProcAddress(kernel32, "Module32First");
++    pModule32Next = (Module32Next_t)GetProcAddress(kernel32, "Module32Next");
++    if (!pModule32First || !pModule32Next)
++      pCreateToolhelp32Snapshot = 0;
++    initCreateToolhelp32Snapshot = 1;
++  }
++
++  if (pCreateToolhelp32Snapshot)
++    do {
++      snapshot = pCreateToolhelp32Snapshot (TH32CS_SNAPMODULE, 0);
++    } while (snapshot == INVALID_HANDLE_VALUE && GetLastError () == ERROR_BAD_LENGTH);
++  else
++    snapshot = INVALID_HANDLE_VALUE;
+ 
+   if (snapshot != INVALID_HANDLE_VALUE)
+     {
+@@ -1035,7 +1054,7 @@ backtrace_initialize (struct backtrace_state *state,
+       BOOL ok;
+       entry.dwSize = sizeof (MODULEENTRY32);
+ 
+-      for (ok = Module32First (snapshot, &entry); ok; ok = Module32Next (snapshot, &entry))
++      for (ok = pModule32First (snapshot, &entry); ok; ok = pModule32Next (snapshot, &entry))
+ 	{
+ 	  if (strcmp (filename, entry.szExePath) == 0)
+ 	    continue;

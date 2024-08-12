@@ -64,7 +64,7 @@ def _patch(path: Path, patch: Path):
     '-i', patch,
   ], cwd = path)
   if res.returncode != 0:
-    message = 'Patch fail: applying %s to %s' % (patch.name, dir.name)
+    message = 'Patch fail: applying %s to %s' % (patch.name, path.name)
     logging.critical(message)
     raise Exception(message)
 
@@ -81,6 +81,10 @@ def _binutils(ver: str, info: ProfileInfo, paths: ProjectPaths):
       _patch(paths.binutils, paths.patch / 'binutils' / '2.43-fix-path-corruption.patch')
     else:
       _patch(paths.binutils, paths.patch / 'binutils' / '2.42-fix-path-corruption.patch')
+
+    # Ignore long path
+    if info.host_winnt <= 0x03FF:
+      _patch(paths.binutils, paths.patch / 'binutils' / 'ignore-long-path.patch')
 
     _patch_done(paths.binutils)
 
@@ -124,15 +128,38 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
     if info.target_winnt <= 0x0500:
       _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc.patch')
 
+    # Fix libbacktrace (NT 5.0)
+    if info.host_winnt <= 0x0500 and Version(ver) >= Version('15'):
+      _patch(paths.gcc, paths.patch / 'gcc' / '15-nt50-fix-backtrace.patch')
+
+    # Fix libbacktrace (NT 4.0)
+    if info.host_winnt <= 0x0400 and Version(ver) >= Version('15'):
+      _patch(paths.gcc, paths.patch / 'gcc' / '15-nt40-fix-backtrace.patch')
+
+    # `<filesystem>` fallbacks
+    if info.target_winnt <= 0x0400:
+      if Version(ver) >= Version('15'):
+        _patch(paths.gcc, paths.patch / 'gcc' / '15-filesystem-fallback.patch')
+      else:
+        _patch(paths.gcc, paths.patch / 'gcc' / '14-filesystem-fallback.patch')
+
+    # `<print>` fallbacks to ANSI API
+    if info.target_winnt <= 0x03FF and Version(ver) >= Version('14'):
+      _patch(paths.gcc, paths.patch / 'gcc' / '14-print-ansi-fallback.patch')
+
+    # `<fstream>` fallbacks to ANSI API
+    if info.target_winnt <= 0x03FF:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fstream-ansi-fallback.patch')
+
     _patch_done(paths.gcc)
 
 def _gdb(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.gdb_arx.name}'
   _validate_and_download(paths.gdb_arx, url)
   if _check_and_extract(paths.gdb, paths.gdb_arx):
-    # Fix XP Vista x64
+    # Fix thread
     if info.host_winnt <= 0x0600:
-      _patch(paths.gdb, paths.patch / 'gdb' / 'fix-xp-vista-x64.patch')
+      _patch(paths.gdb, paths.patch / 'gdb' / 'fix-thread.patch')
 
     if info.host_winnt <= 0x0500:
       copyfile(paths.patch / 'gdb' / 'win32-thunk.h', paths.gdb / 'gdb' / 'win32-thunk.h')
@@ -142,13 +169,22 @@ def _gdb(ver: str, info: ProfileInfo, paths: ProjectPaths):
       # IPv6 thunk
       _patch(paths.gdb, paths.patch / 'gdb' / 'ipv6-thunk.patch')
 
+    # Fix VC6 CRT compatibility
+    if info.host_winnt <= 0x0400:
+      _patch(paths.gdb, paths.patch / 'gdb' / 'vc6-crt-compat.patch')
+
     _patch_done(paths.gdb)
 
 def _gettext(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gettext/{paths.gettext_arx.name}'
   _validate_and_download(paths.gettext_arx, url)
-  _check_and_extract(paths.gettext, paths.gettext_arx)
-  _patch_done(paths.gettext)
+  if _check_and_extract(paths.gettext, paths.gettext_arx):
+    # Kernel32 thunk
+    if info.host_winnt <= 0x03FF:
+      copyfile(paths.patch / 'gettext' / 'win32-thunk.h', paths.gettext / 'gettext-runtime' / 'intl' / 'gnulib-lib' / 'win32-thunk.h')
+      _patch(paths.gettext, paths.patch / 'gettext' / 'kernel32-thunk.patch')
+
+    _patch_done(paths.gettext)
 
 def _gmp(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gmp/{paths.gmp_arx.name}'
@@ -182,9 +218,26 @@ def _mingw(ver: str, info: ProfileInfo, paths: ProjectPaths):
     if info.target_winnt <= 0x0502:
       _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function.patch')
 
+    # CRT: Allow skip space check in `ftruncate64`
+    if info.host_winnt <= 0x0400:
+      _patch(paths.mingw, paths.patch / 'crt' / 'ftruncate64-allow-skip-space-check.patch')
+
+    # CRT: Use ANSI API
+    if info.target_winnt <= 0x03FF:
+      _patch(paths.mingw, paths.patch / 'crt' / 'use-ansi-api.patch')
+
     # winpthreads: Disable VEH
     if info.target_winnt <= 0x0500:
       _patch(paths.mingw, paths.patch / 'winpthreads' / 'disable-veh.patch')
+
+    # winpthreads: Fix thread
+    if info.target_winnt <= 0x03FF:
+      _patch(paths.mingw, paths.patch / 'winpthreads' / 'fix-thread.patch')
+
+    # winpthreads: Kernel32 thunk
+    if info.target_winnt <= 0x03FF:
+      copyfile(paths.patch / 'winpthreads' / 'win32-thunk.h', paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'src' / 'win32-thunk.h')
+      _patch(paths.mingw, paths.patch / 'winpthreads' / 'kernel32-thunk.patch')
 
     _patch_done(paths.mingw)
 

@@ -1,0 +1,30 @@
+diff --git a/libbacktrace/pecoff.c b/libbacktrace/pecoff.c
+index 15a73ff0b2a..ca25a98d941 100644
+--- a/libbacktrace/pecoff.c
++++ b/libbacktrace/pecoff.c
+@@ -970,10 +970,21 @@ dll_notification (ULONG reason,
+   if (reason != LDR_DLL_NOTIFICATION_REASON_LOADED)
+     return;
+ 
+-  if (!GetModuleHandleExW ((GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+-			    | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT),
+-			   (wchar_t*) notification_data->dll_base,
+-			   &module_handle))
++  typedef typeof (&GetModuleHandleExW) GetModuleHandleExW_t;
++  static GetModuleHandleExW_t pGetModuleHandleExW = 0;
++  static int initGetModuleHandleExW = 0;
++
++  if (!initGetModuleHandleExW) {
++    pGetModuleHandleExW = (GetModuleHandleExW_t)GetProcAddress(
++      GetModuleHandleA("kernel32.dll"), "GetModuleHandleExW");
++    initGetModuleHandleExW = 1;
++  }
++
++  if (!pGetModuleHandleExW
++      || !pGetModuleHandleExW ((GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
++				| GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT),
++			       (wchar_t*) notification_data->dll_base,
++			       &module_handle))
+     return;
+ 
+   if (!GetModuleFileNameA ((HMODULE) module_handle, module_name, MAX_PATH - 1))

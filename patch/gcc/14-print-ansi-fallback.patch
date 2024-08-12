@@ -1,0 +1,42 @@
+diff --git a/libstdc++-v3/src/c++23/print.cc b/libstdc++-v3/src/c++23/print.cc
+index 8ba71405967..f355a0dd018 100644
+--- a/libstdc++-v3/src/c++23/print.cc
++++ b/libstdc++-v3/src/c++23/print.cc
+@@ -335,10 +335,33 @@ namespace
+ 	return ec;
+       }
+ 
+-    unsigned long nchars = 0;
+-    WriteConsoleW(term, wstr.data(), wstr.size(), &nchars, nullptr);
+-    if (nchars != wstr.size())
+-      return {(int)GetLastError(), system_category()};
++    static bool is_nt = ({
++      OSVERSIONINFOA osvi = {sizeof (OSVERSIONINFOA)};
++      GetVersionExA(&osvi);
++      osvi.dwPlatformId == VER_PLATFORM_WIN32_NT;
++    });
++    if (is_nt)
++      {
++	unsigned long nchars = 0;
++	WriteConsoleW(term, wstr.data(), wstr.size(), &nchars, nullptr);
++	if (nchars != wstr.size())
++	  return {(int)GetLastError(), system_category()};
++      }
++    else
++      {
++	unsigned long nchars = 0;
++	auto lpcwstr = (const wchar_t*)wstr.data();
++	nchars = WideCharToMultiByte(CP_ACP, 0, lpcwstr, wstr.size(),
++				     nullptr, 0, nullptr, nullptr);
++	if (!nchars)
++	  return {(int)GetLastError(), system_category()};
++	string astr(nchars, '\0');
++	WideCharToMultiByte(CP_ACP, 0, lpcwstr, wstr.size(),
++			    astr.data(), astr.size(), nullptr, nullptr);
++	WriteConsoleA(term, astr.data(), astr.size(), &nchars, nullptr);
++	if (nchars != astr.size())
++	  return {(int)GetLastError(), system_category()};
++      }
+ #elifdef _GLIBCXX_HAVE_UNISTD_H
+     string out;
+     if (!to_valid_utf8(str, out))

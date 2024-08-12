@@ -215,8 +215,20 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'posix',
 
     host_winnt = 0x0500,
-    target_winnt = 0x0400,
+    target_winnt = 0x0500,
   ),
+
+  '32-legacy': ProfileInfo(
+    arch = '32',
+    target = 'i486-w64-mingw32',
+
+    crt = 'msvcrt',
+    exception = 'dwarf',
+    thread = 'posix',
+
+    host_winnt = 0x03FF,
+    target_winnt = 0x03FF,
+  )
 }
 
 def get_full_profile(config: argparse.Namespace) -> FullProfile:

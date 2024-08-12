@@ -11,11 +11,14 @@ jobs:
         branch: [15, 14]
         profile:
           - 64-mcf
-          - 32-mcf
           - 64-ucrt
-          - 32-ucrt
           - 64-msvcrt
+
+          - 32-mcf
+          - 32-ucrt
           - 32-msvcrt
+
+          - 32-legacy
         include:
           - prerelease: false
           - prerelease: true
