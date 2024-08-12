@@ -1,10 +1,7 @@
 . profile/common/base-14.bash
 . profile/common/arch-32.bash
-. profile/common/crt-vc6.bash
-. profile/common/thread-posix.bash
 
-# override base
-export _WINPTHREADS_USE_VEH=0
-
-# override base
-export _GCCLIB_USE_ALIGNED_MALLOC=0
+export _CRT="ucrt"
+export _THREAD="posix"
+export _WIN32_WINNT=0x0400
+export _HOST_WINNT=0x0500

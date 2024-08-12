@@ -20,11 +20,11 @@ export PATH="$_X_DIR/bin:$PATH"
 title "Building cross CRT"
 "$_SCRIPT_DIR/cross/crt.sh"
 
-title "Building MinGW winpthreads"
+title "Building cross winpthreads"
 "$_SCRIPT_DIR/cross/winpthreads.sh"
 
 if [[ "$_THREAD" == "mcf" ]]; then
-  title "Building MinGW MCF Gthread"
+  title "Building cross MCF Gthread"
   "$_SCRIPT_DIR/cross/mcf.sh"
 fi
 

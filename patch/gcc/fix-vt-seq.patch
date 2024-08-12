@@ -1,0 +1,25 @@
+diff --unified --recursive --text gcc-13.2.0.orig/gcc/pretty-print.cc gcc-13.2.0/gcc/pretty-print.cc
+--- gcc-13.2.0.orig/gcc/pretty-print.cc
++++ gcc-13.2.0/gcc/pretty-print.cc
+@@ -70,6 +70,7 @@
+       the third character into *head.
+    2. If the sequence begins with a character X in [0x80,0x9F], returns
+       (X-0x40) and stores a pointer to the second character into *head.
++   * Case 2 is imcompatible with UTF-8, here we ignore it.
+    Stores the number of ESC character(s) in *prefix_len.
+    Returns 0 if no such sequence can be found.  */
+ static int
+@@ -94,13 +95,6 @@
+ 	  *head = r + 1;
+ 	  return c;
+ 	}
+-      if (0x80 <= c && c <= 0x9F)
+-	{
+-	  /* Found (case 2).  */
+-	  *prefix_len = 1;
+-	  *head = r + 1;
+-	  return c - 0x40;
+-	}
+       ++r;
+       escaped = c == 0x1B;
+     }

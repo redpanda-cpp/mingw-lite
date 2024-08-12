@@ -11,7 +11,3 @@ export _ICONV_VER="1.17"
 export _GETTEXT_VER="0.22.5"
 export _GDB_VER="15.1"
 export _MAKE_VER="4.4.1"
-
-export _UTF8_MANIFEST=1
-export _WINPTHREADS_USE_VEH=1
-export _GCCLIB_USE_ALIGNED_MALLOC=1

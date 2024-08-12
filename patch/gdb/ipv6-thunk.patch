@@ -1,48 +1,3 @@
-diff --unified --recursive --text gdb-14.2.orig/gdb/mingw-hdep.c gdb-14.2/gdb/mingw-hdep.c
---- gdb-14.2.orig/gdb/mingw-hdep.c
-+++ gdb-14.2/gdb/mingw-hdep.c
-@@ -24,7 +24,7 @@
- #include "gdbsupport/gdb_select.h"
- #include "inferior.h"
- 
--#include <windows.h>
-+#include "win32thunk.h"
- #include <signal.h>
- 
- /* Return an absolute file name of the running GDB, if possible, or
-@@ -382,7 +382,7 @@
-   DWORD len = 0;
-   while (true)
-     {
--      len = GetConsoleProcessList (results.data (), results.size ());
-+      len = Win32Thunk::GetConsoleProcessList (results.data (), results.size ());
-       /* Note that LEN == 0 is a failure, but we can treat it the same
- 	 as a "no".  */
-       if (len <= results.size ())
-diff --unified --recursive --text gdb-14.2.orig/gdb/nat/windows-nat.c gdb-14.2/gdb/nat/windows-nat.c
---- gdb-14.2.orig/gdb/nat/windows-nat.c
-+++ gdb-14.2/gdb/nat/windows-nat.c
-@@ -572,7 +572,7 @@
-     {
-       /* This fails on 32bit Windows because it has no SysWOW64 directory,
- 	 and in this case a path conversion isn't necessary.  */
--      UINT len = GetSystemWow64DirectoryA (syswow_dir, sizeof (syswow_dir));
-+      UINT len = Win32Thunk::GetSystemWow64DirectoryA (syswow_dir, sizeof (syswow_dir));
-       if (len > 0)
- 	{
- 	  /* Check that we have passed a large enough buffer.  */
-diff --unified --recursive --text gdb-14.2.orig/gdb/nat/windows-nat.h gdb-14.2/gdb/nat/windows-nat.h
---- gdb-14.2.orig/gdb/nat/windows-nat.h
-+++ gdb-14.2/gdb/nat/windows-nat.h
-@@ -19,7 +19,7 @@
- #ifndef NAT_WINDOWS_NAT_H
- #define NAT_WINDOWS_NAT_H
- 
--#include <windows.h>
-+#include "win32thunk.h"
- #include <psapi.h>
- #include <vector>
- 
 diff --unified --recursive --text gdb-14.2.orig/gdb/ser-tcp.c gdb-14.2/gdb/ser-tcp.c
 --- gdb-14.2.orig/gdb/ser-tcp.c
 +++ gdb-14.2/gdb/ser-tcp.c
@@ -51,7 +6,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdb/ser-tcp.c gdb-14.2/gdb/ser-t
  
  #ifdef USE_WIN32API
 -#include <ws2tcpip.h>
-+#include "win32thunk.h"
++#include "win32-thunk.h"
  #ifndef ETIMEDOUT
  #define ETIMEDOUT WSAETIMEDOUT
  #endif
@@ -72,7 +27,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/gdbreplay.cc gdb-14.2/
  
  #if USE_WIN32API
 -#include <ws2tcpip.h>
-+#include "win32thunk.h"
++#include "win32-thunk.h"
  #endif
  
  #include "gdbsupport/netstuff.h"
@@ -102,7 +57,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/remote-utils.cc gdb-14
  
  #if USE_WIN32API
 -#include <ws2tcpip.h>
-+#include "win32thunk.h"
++#include "win32-thunk.h"
  #endif
  
  #ifndef HAVE_SOCKLEN_T
@@ -141,7 +96,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdbsupport/netstuff.cc gdb-14.2/
  
  #ifdef USE_WIN32API
 -#include <ws2tcpip.h>
-+#include "win32thunk.h"
++#include "win32-thunk.h"
  #else
  #include <netinet/in.h>
  #include <arpa/inet.h>

@@ -1,1 +1,0 @@
-export _THREAD="posix"
