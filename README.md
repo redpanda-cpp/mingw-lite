@@ -8,7 +8,8 @@ Extremely fast MinGW GCC build scripts for easy experiments.
 podman run -it --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:24.04
 
 # in the container
-./main.sh -b <branch> -p <profile>
+./support/dep-debian.sh
+./main.py -b <branch> -p <profile>
 ```
 
 Available branches:
