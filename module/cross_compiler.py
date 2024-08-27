@@ -34,6 +34,46 @@ def _headers(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   make_default('headers', build_dir, jobs)
   make_install('headers', build_dir)
 
+def _gmp(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  build_dir = paths.gmp / 'x-build'
+  ensure(build_dir)
+  configure('gmp', build_dir, [
+    f'--prefix={paths.x_dep}',
+    '--disable-assembly',
+    '--enable-static',
+    '--disable-shared',
+    *cflags_build(),
+  ])
+  make_default('gmp', build_dir, jobs)
+  make_install('gmp', build_dir)
+
+def _mpfr(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  build_dir = paths.mpfr / 'x-build'
+  ensure(build_dir)
+  configure('mpfr', build_dir, [
+    f'--prefix={paths.x_dep}',
+    f'--with-gmp={paths.x_dep}',
+    '--enable-static',
+    '--disable-shared',
+    *cflags_build(),
+  ])
+  make_default('mpfr', build_dir, jobs)
+  make_install('mpfr', build_dir)
+
+def _mpc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  build_dir = paths.mpc / 'x-build'
+  ensure(build_dir)
+  configure('mpc', build_dir, [
+    f'--prefix={paths.x_dep}',
+    f'--with-gmp={paths.x_dep}',
+    f'--with-mpfr={paths.x_dep}',
+    '--enable-static',
+    '--disable-shared',
+    *cflags_build(),
+  ])
+  make_default('mpc', build_dir, jobs)
+  make_install('mpc', build_dir)
+
 def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.gcc / 'x-build'
   exception_flags = [
@@ -47,6 +87,9 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--enable-static',
     '--disable-shared',
     '--with-pic',
+    f'--with-gmp={paths.x_dep}',
+    f'--with-mpfr={paths.x_dep}',
+    f'--with-mpc={paths.x_dep}',
     '--enable-languages=c,c++',
     '--enable-libgomp',
     f'--enable-threads={info.thread}',
@@ -143,6 +186,12 @@ def build_cross_compiler(ver: BranchVersions, paths: ProjectPaths, info: Profile
   _binutils(ver.binutils, paths, info, config.jobs)
 
   _headers(ver.mingw, paths, info, config.jobs)
+
+  _gmp(ver.gmp, paths, info, config.jobs)
+
+  _mpfr(ver.mpfr, paths, info, config.jobs)
+
+  _mpc(ver.mpc, paths, info, config.jobs)
 
   gcc = _gcc(ver.gcc, paths, info, config.jobs)
   gcc.__next__()

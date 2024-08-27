@@ -13,6 +13,7 @@ class ProjectPaths:
 
   build: Path
   dep: Path
+  x_dep: Path
 
   prefix: Path
   x_prefix: Path
@@ -59,6 +60,7 @@ class ProjectPaths:
 
     self.build = Path(f'/tmp/build/{dir}')
     self.dep = self.build / 'deps'
+    self.x_dep = self.build / 'x-deps'
 
     self.prefix = Path(f'/opt/{dir}')
     self.x_prefix = Path(f'/opt/x-{dir}')

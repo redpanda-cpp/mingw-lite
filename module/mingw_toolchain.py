@@ -42,8 +42,7 @@ def _mpfr(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   configure('mpfr', build_dir, [
     f'--prefix={paths.dep}',
     f'--host={info.target}',
-    f'--with-gmp-include={paths.dep}/include',
-    f'--with-gmp-lib={paths.dep}/lib',
+    f'--with-gmp={paths.dep}',
     '--enable-static',
     '--disable-shared',
     *cflags_host(),
@@ -57,10 +56,8 @@ def _mpc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   configure('mpc', build_dir, [
     f'--prefix={paths.dep}',
     f'--host={info.target}',
-    f'--with-gmp-include={paths.dep}/include',
-    f'--with-gmp-lib={paths.dep}/lib',
-    f'--with-mpfr-include={paths.dep}/include',
-    f'--with-mpfr-lib={paths.dep}/lib',
+    f'--with-gmp={paths.dep}',
+    f'--with-mpfr={paths.dep}',
     '--enable-static',
     '--disable-shared',
     *cflags_host(),
