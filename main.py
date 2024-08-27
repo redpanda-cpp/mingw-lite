@@ -87,8 +87,8 @@ def package(paths: ProjectPaths):
     '7z', 'a', '-t7z',
     '-mf=BCJ2', '-mx9', '-ms=on', '-m0=LZMA:d=64m',
     paths.arx,
-    paths.x_prefix.name,
-  ], check = True, cwd = paths.x_prefix.parent)
+    paths.prefix.name,
+  ], check = True, cwd = paths.prefix.parent)
 
 def main():
   config = parse_args()

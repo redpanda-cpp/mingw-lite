@@ -6,7 +6,7 @@ import subprocess
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchVersions, ProfileInfo
-from module.util import cflags_build, cflags_host, cflags_target, configure, ensure, make_default, make_install
+from module.util import cflags_build, cflags_host, cflags_target, configure, ensure, make_custom, make_default, make_install
 
 def _binutils(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.binutils / 'build'
@@ -20,7 +20,7 @@ def _binutils(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     *cflags_host(),
   ])
   make_default('binutils', build_dir, jobs)
-  make_install('binutils', build_dir)
+  make_custom('binutils', build_dir, ['MAKEINFO=true', f'tooldir={paths.prefix}', 'install'], jobs = 1)
 
 def _gmp(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.gmp / 'build'
@@ -87,8 +87,8 @@ def _crt(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   ]
   ensure(build_dir)
   configure('mingw-w64-crt', build_dir, [
-    f'--prefix={paths.prefix}/{info.target}',
-    f'--with-sysroot={paths.prefix}/{info.target}',
+    f'--prefix={paths.prefix}',
+    f'--with-sysroot={paths.prefix}',
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
     f'--with-default-win32-winnt=0x{info.target_winnt:04X}',
@@ -103,8 +103,8 @@ def _winpthreads(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'build'
   ensure(build_dir)
   configure('winpthreads', build_dir, [
-    f'--prefix={paths.prefix}/{info.target}',
-    f'--with-sysroot={paths.prefix}/{info.target}',
+    f'--prefix={paths.prefix}',
+    f'--with-sysroot={paths.prefix}',
     f'--host={info.target}',
     '--enable-static',
     '--disable-shared',
@@ -137,9 +137,9 @@ def _mcfgthread(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     message = 'Build failed: mcfgthread ninja returned %d' % ret.returncode
     logging.critical(message)
     raise Exception(message)
-  copyfile(build_dir / 'libmcfgthread.a', paths.prefix / info.target / 'lib' / 'libmcfgthread.a')
+  copyfile(build_dir / 'libmcfgthread.a', paths.prefix / 'lib' / 'libmcfgthread.a')
 
-  include_dir = paths.prefix / info.target / 'include' / 'mcfgthread'
+  include_dir = paths.prefix / 'include' / 'mcfgthread'
   ensure(include_dir)
   header_files = [
     *paths.mcfgthread.glob('mcfgthread/*.h'),
@@ -185,7 +185,6 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   ensure(build_dir)
   configure('gcc', build_dir, [
     f'--prefix={paths.prefix}',
-    f'--with-sysroot={paths.prefix}/{info.target}',
     '--with-native-system-header-dir=/include',
     f'--target={info.target}',
     f'--host={info.target}',
@@ -242,46 +241,51 @@ def _gmake(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   copyfile(build_dir / 'make.exe', paths.prefix / 'bin' / 'mingw32-make.exe')
 
 def _licenses(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
-  license_dir = paths.prefix / 'license'
+  license_dir = paths.prefix / 'share' / 'licenses'
   ensure(license_dir)
 
-  copyfile(paths.binutils / 'COPYING', license_dir / 'binutils.txt')
-  copyfile(paths.binutils / 'COPYING.LIB', license_dir / 'binutils-lib.txt')
-  copyfile(paths.binutils / 'COPYING3', license_dir / 'binutils3.txt')
-  copyfile(paths.binutils / 'COPYING3.LIB', license_dir / 'binutils3-lib.txt')
+  ensure(license_dir / 'binutils')
+  for file in ['README', 'COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
+    copyfile(paths.binutils / 'COPYING3', license_dir / 'binutils' / 'COPYING3')
 
-  copyfile(paths.gcc / 'COPYING', license_dir / 'gcc.txt')
-  copyfile(paths.gcc / 'COPYING.LIB', license_dir / 'gcc-lib.txt')
-  copyfile(paths.gcc / 'COPYING.RUNTIME', license_dir / 'gcc-runtime.txt')
-  copyfile(paths.gcc / 'COPYING3', license_dir / 'gcc3.txt')
-  copyfile(paths.gcc / 'COPYING3.LIB', license_dir / 'gcc3-lib.txt')
+  ensure(license_dir / 'gcc')
+  for file in ['README', 'COPYING', 'COPYING3', 'COPYING.RUNTIME', 'COPYING.LIB', 'COPYING3.LIB']:
+    copyfile(paths.gcc / file, license_dir / 'gcc' / file)
 
-  copyfile(paths.gdb / 'COPYING', license_dir / 'gdb.txt')
-  copyfile(paths.gdb / 'COPYING.LIB', license_dir / 'gdb-lib.txt')
-  copyfile(paths.gdb / 'COPYING3', license_dir / 'gdb3.txt')
-  copyfile(paths.gdb / 'COPYING3.LIB', license_dir / 'gdb3-lib.txt')
+  ensure(license_dir / 'gdb')
+  for file in ['README', 'COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
+    copyfile(paths.gdb / file, license_dir / 'gdb' / file)
 
-  copyfile(paths.gettext / 'gettext-runtime' / 'intl' / 'COPYING.LIB', license_dir / 'gettext-lib.txt')
+  ensure(license_dir / 'gettext-runtime-intl')
+  copyfile(paths.gettext / 'gettext-runtime' / 'intl' / 'COPYING.LIB', license_dir / 'gettext-runtime-intl' / 'COPYING.LIB')
 
-  copyfile(paths.gmp / 'COPYING', license_dir / 'gmp.txt')
-  copyfile(paths.gmp / 'COPYINGv2', license_dir / 'gmpv2.txt')
-  copyfile(paths.gmp / 'COPYING.LESSERv3', license_dir / 'gmp-lesserv3.txt')
+  ensure(license_dir / 'gmp')
+  for file in ['README', 'COPYINGv2', 'COPYINGv3', 'COPYING.LESSERv3']:
+    copyfile(paths.gmp / file, license_dir / 'gmp' / file)
 
-  copyfile(paths.iconv / 'COPYING', license_dir / 'iconv.txt')
-  copyfile(paths.iconv / 'COPYING.LIB', license_dir / 'iconv-lib.txt')
+  ensure(license_dir / 'iconv')
+  copyfile(paths.iconv / 'COPYING.LIB', license_dir / 'iconv' / 'COPYING.LIB')
 
-  copyfile(paths.make / 'COPYING', license_dir / 'make.txt')
+  ensure(license_dir / 'make')
+  copyfile(paths.make / 'COPYING', license_dir / 'make' / 'COPYING')
 
   if info.thread == 'mcf':
-    copyfile(paths.mcfgthread / 'LICENSE.TXT', license_dir / 'mcfgthread.txt')
+    ensure(license_dir / 'mcfgthread')
+    copyfile(paths.mcfgthread / 'LICENSE.TXT', license_dir / 'mcfgthread' / 'LICENSE.TXT')
+    for file in ['gcc-exception-3.1.en.txt', 'gpl-3.0.txt', 'lgpl-3.0.txt']:
+      copyfile(paths.mcfgthread / 'licenses' / file, license_dir / 'mcfgthread' / file)
 
-  copyfile(paths.mingw / 'COPYING', license_dir / 'mingw-w64.txt')
-  copyfile(paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'COPYING', license_dir / 'winpthreads.txt')
+  ensure(license_dir / 'mingw-w64')
+  copyfile(paths.mingw / 'COPYING', license_dir / 'mingw-w64' / 'COPYING')
 
-  copyfile(paths.mpc / 'COPYING.LESSER', license_dir / 'mpc-lesser.txt')
+  ensure(license_dir / 'mingw-w64-libraries-winpthreads')
+  copyfile(paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'COPYING', license_dir / 'mingw-w64-libraries-winpthreads' / 'COPYING')
 
-  copyfile(paths.mpfr / 'COPYING', license_dir / 'mpfr.txt')
-  copyfile(paths.mpfr / 'COPYING.LESSER', license_dir / 'mpfr-lesser.txt')
+  ensure(license_dir / 'mpc')
+  copyfile(paths.mpc / 'COPYING.LESSER', license_dir / 'mpc' / 'COPYING.LESSER')
+
+  ensure(license_dir / 'mpfr')
+  copyfile(paths.mpfr / 'COPYING.LESSER', license_dir / 'mpfr' / 'COPYING.LESSER')
 
 def build_mingw_toolchain(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, config: argparse.Namespace):
   _binutils(ver.binutils, paths, info, config.jobs)
