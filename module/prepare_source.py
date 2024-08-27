@@ -124,10 +124,6 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
     if info.target_winnt < 0x0501:
       _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc.patch')
 
-    # development snapshot temporary fix
-    if Version(ver) >= Version('15'):
-      _patch(paths.gcc, paths.patch / 'gcc' / '15-fix-mingw-libs.patch')
-
     _patch_done(paths.gcc)
 
 def _gdb(ver: str, info: ProfileInfo, paths: ProjectPaths):
