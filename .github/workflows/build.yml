@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v2
         if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
         with:
-          name: mingw${{ matrix.profile }}
+          name: mingw${{ matrix.profile }}-${{ matrix.branch }}
           path: dist
 
       - name: Release
