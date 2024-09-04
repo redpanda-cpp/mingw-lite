@@ -65,8 +65,8 @@ class ProjectPaths:
     self.prefix = Path(f'/opt/{dir}')
     self.x_prefix = Path(f'/opt/x-{dir}')
 
-    self.arx = self.dist / f'{dir}.7z'
-    self.x_arx = self.dist / f'x-{dir}.tar.zst'
+    self.arx = self.dist / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.7z'
+    self.x_arx = self.dist / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
 
     binutils = f'binutils-{ver.binutils}'
     self.binutils = self.build / binutils
