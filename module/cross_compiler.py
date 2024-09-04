@@ -83,6 +83,8 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   ensure(build_dir)
   configure('gcc', build_dir, [
     f'--prefix={paths.x_prefix}',
+    f'--libexecdir={paths.x_prefix / 'lib'}',
+    f'--with-gcc-major-version-only',
     f'--target={info.target}',
     '--enable-static',
     '--disable-shared',

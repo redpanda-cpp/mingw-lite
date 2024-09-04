@@ -185,7 +185,8 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   ensure(build_dir)
   configure('gcc', build_dir, [
     f'--prefix={paths.prefix}',
-    '--with-native-system-header-dir=/include',
+    f'--libexecdir={paths.prefix / 'lib'}',
+    f'--with-gcc-major-version-only',
     f'--target={info.target}',
     f'--host={info.target}',
     '--enable-static',
