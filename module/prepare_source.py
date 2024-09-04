@@ -121,7 +121,7 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
         f.truncate(0)
 
     # Disable `_aligned_malloc`
-    if info.target_winnt < 0x0501:
+    if info.target_winnt <= 0x0500:
       _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc.patch')
 
     _patch_done(paths.gcc)
@@ -131,10 +131,10 @@ def _gdb(ver: str, info: ProfileInfo, paths: ProjectPaths):
   _validate_and_download(paths.gdb_arx, url)
   if _check_and_extract(paths.gdb, paths.gdb_arx):
     # Fix XP Vista x64
-    if info.host_winnt < 0x0601:
+    if info.host_winnt <= 0x0600:
       _patch(paths.gdb, paths.patch / 'gdb' / 'fix-xp-vista-x64.patch')
 
-    if info.host_winnt < 0x0501:
+    if info.host_winnt <= 0x0500:
       copyfile(paths.patch / 'gdb' / 'win32-thunk.h', paths.gdb / 'gdb' / 'win32-thunk.h')
       # Kernel32 thunk
       _patch(paths.gdb, paths.patch / 'gdb' / 'kernel32-thunk.patch')
@@ -179,11 +179,11 @@ def _mingw(ver: str, info: ProfileInfo, paths: ProjectPaths):
   _validate_and_download(paths.mingw_arx, url)
   if _check_and_extract(paths.mingw, paths.mingw_arx):
     # CRT: Fix missing function
-    if info.target_winnt < 0x0600:
+    if info.target_winnt <= 0x0502:
       _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function.patch')
 
     # winpthreads: Disable VEH
-    if info.target_winnt < 0x0501:
+    if info.target_winnt <= 0x0500:
       _patch(paths.mingw, paths.patch / 'winpthreads' / 'disable-veh.patch')
 
     _patch_done(paths.mingw)
