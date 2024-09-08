@@ -122,7 +122,7 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
       # Remove UTF-8 manifest
       manifest = paths.gcc / 'gcc' / 'config' / 'i386' / 'winnt-utf8.manifest'
       with manifest.open('wb') as f:
-        f.truncate(0)
+        f.write(b'\n')
 
     # Disable `_aligned_malloc`
     if info.target_winnt <= 0x0500:
