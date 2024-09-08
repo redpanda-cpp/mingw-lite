@@ -119,10 +119,7 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
       # Fix console code page
       _patch(paths.gcc, paths.patch / 'gcc' / 'fix-console-cp.patch')
     else:
-      # Remove UTF-8 manifest
-      manifest = paths.gcc / 'gcc' / 'config' / 'i386' / 'winnt-utf8.manifest'
-      with manifest.open('wb') as f:
-        f.write(b'\n')
+      pass  # disable UTF-8 manifest later
 
     # Disable `_aligned_malloc`
     if info.target_winnt <= 0x0500:

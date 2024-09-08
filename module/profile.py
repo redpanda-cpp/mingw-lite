@@ -96,7 +96,7 @@ class FullProfile:
 BRANCHES: Dict[str, BranchVersions] = {
   '14': BranchVersions(
     gcc = '14.2.0',
-    rev = '2',
+    rev = '3',
 
     binutils = '2.42',
     gdb = '15.1',

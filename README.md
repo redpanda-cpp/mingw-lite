@@ -66,7 +66,6 @@ Notes:
 | GCC | Fix locale directory | Any | [niXman/mingw-builds#666](https://github.com/niXman/mingw-builds/issues/666) |
 | GCC | Parser-friendly diagnostics | Any | Keep the phrases “error:” and “warning:” unlocalized to make diagnostic messages parser-friendly. |
 | GCC | Fix console code page | (H) Vista+ | Corresponding to UTF-8 manifest. |
-| GCC | Remove UTF-8 manifest | (H) XP- | [skeeto/w64devkit#58](https://github.com/skeeto/w64devkit/issues/58) |
 | GCC | Disable `_aligned_malloc` | 2000- | libstdc++ and gomp prefer it but provide fallbacks. |
 | GCC | Fix libbacktrace (NT 5.0) | ≥ 15, (H) 2000- | Missing library loader APIs. |
 | GCC | Fix libbacktrace (NT 4.0) | ≥ 15, (H) NT- | Missing tool help APIs. Actually not required on 9x. |

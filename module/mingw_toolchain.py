@@ -1,5 +1,6 @@
 import argparse
 import logging
+from packaging.version import Version
 from shutil import copyfile
 import subprocess
 
@@ -178,11 +179,18 @@ def _gettext(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
 
 def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.gcc / 'build'
+  ensure(build_dir)
+
   exception_flags = [
     '--with-dwarf2',
     '--disable-sjlj-exceptions',
   ] if info.exception == 'dwarf' else []
-  ensure(build_dir)
+  manifest_flags = []
+  if info.host_winnt <= 0x0502 and Version(ver).major >= 13:
+    manifest_flags = [
+      '--disable-win32-utf8-manifest',
+    ]
+
   configure('gcc', build_dir, [
     f'--prefix={paths.prefix}',
     f'--libexecdir={paths.prefix / 'lib'}',
@@ -206,6 +214,7 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--disable-multilib',
     '--enable-nls',
     '--disable-win32-registry',
+    *manifest_flags,
     '--enable-mingw-wildcard',
     *cflags_build('_FOR_BUILD'),
     *cflags_host(),
