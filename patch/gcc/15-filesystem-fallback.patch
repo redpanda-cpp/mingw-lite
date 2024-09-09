@@ -1,5 +1,5 @@
 diff --git a/libstdc++-v3/src/c++17/fs_ops.cc b/libstdc++-v3/src/c++17/fs_ops.cc
-index 9606afa9f1f..37f53186aac 100644
+index 946fefd9e44..342967c7c6e 100644
 --- a/libstdc++-v3/src/c++17/fs_ops.cc
 +++ b/libstdc++-v3/src/c++17/fs_ops.cc
 @@ -108,21 +108,37 @@ fs::absolute(const path& p, error_code& ec)
@@ -78,10 +78,10 @@ index 9606afa9f1f..37f53186aac 100644
 @@ -830,9 +852,14 @@ namespace
    {
      explicit
-     auto_win_file_handle(const wchar_t* p)
+     auto_win_file_handle(const wchar_t* p, std::error_code& ec) noexcept
 -    : handle(CreateFileW(p, 0,
 -			 FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
--			 0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0))
+-			 0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0)),
 +    : handle(posix::is_nt() 
 +	     ? CreateFileW(p, 0,
 +			   FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -89,11 +89,11 @@ index 9606afa9f1f..37f53186aac 100644
 +	     : CreateFileA(posix::narrow(p).c_str(), 0,
 +			   // FILE_SHARE_DELETE is not supported on Windows 9x
 +			   FILE_SHARE_READ | FILE_SHARE_WRITE,
-+			   0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0))
-     { }
- 
-     ~auto_win_file_handle()
-@@ -1292,8 +1319,13 @@ fs::remove(const path& p, error_code& ec) noexcept
++			   0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0)),
+       ec(ec)
+     {
+       if (handle == INVALID_HANDLE_VALUE)
+@@ -1299,8 +1326,13 @@ fs::remove(const path& p, error_code& ec) noexcept
    auto st = symlink_status(p, ec);
    if (exists(st))
      {

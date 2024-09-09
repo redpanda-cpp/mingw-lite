@@ -5,7 +5,7 @@ CHECKSUMS: Dict[str, str] = {
   'binutils-2.43.tar.xz': 'b53606f443ac8f01d1d5fc9c39497f2af322d99e14cea5c0b4b124d630379365',
 
   'gcc-14.2.0.tar.xz': 'a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9',
-  'gcc-15-20240825.tar.xz': '15312bc981a1d4124cb3c703c86b2f161af5308ba577531d7581e2d5afffb411',
+  'gcc-15-20240908.tar.xz': '15eb5261d5ca0f5c3f7125fae9dff58e5c89a1b6c1329abe15d0457baf866d66',
 
   'gdb-15.1.tar.xz': '38254eacd4572134bca9c5a5aa4d4ca564cbbd30c369d881f733fb6b903354f2',
 

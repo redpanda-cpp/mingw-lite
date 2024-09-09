@@ -110,8 +110,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.1',
   ),
   '15': BranchVersions(
-    gcc = '15-20240825',
-    rev = '1',
+    gcc = '15-20240908',
+    rev = '0',
 
     binutils = '2.43',
     gdb = '15.1',

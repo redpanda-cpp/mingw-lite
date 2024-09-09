@@ -16,8 +16,8 @@ Available branches:
 
 | Branch | GCC version | GCC status |
 | ------- | ----------- | ---------- |
-| 14 | 14.2.0 | latest |
-| 15 | 15-20240804 | development |
+| 15 | 15-20240908 | experimental |
+| 14 | 14.2.0 | latest release |
 
 Available profiles:
 
