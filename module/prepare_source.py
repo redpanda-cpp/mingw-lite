@@ -89,7 +89,8 @@ def _binutils(ver: str, info: ProfileInfo, paths: ProjectPaths):
     _patch_done(paths.binutils)
 
 def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
-  if Version(ver) >= Version('15'):
+  v = Version(ver)
+  if v.major >= 15:
     url = f'https://gcc.gnu.org/pub/gcc/snapshots/{ver}/{paths.gcc_arx.name}'
   else:
     url = f'https://ftpmirror.gnu.org/gnu/gcc/gcc-{ver}/{paths.gcc_arx.name}'
@@ -125,28 +126,22 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
     if info.target_winnt <= 0x0500:
       _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc.patch')
 
-    # Fix libbacktrace (NT 5.0)
-    if info.host_winnt <= 0x0500 and Version(ver) >= Version('15'):
-      _patch(paths.gcc, paths.patch / 'gcc' / '15-nt50-fix-backtrace.patch')
+    # Fix libbacktrace
+    if v.major >= 15 and info.host_winnt <= 0x0500:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-backtrace_nt50-15.patch')
+      if info.host_winnt <= 0x0400:
+        _patch(paths.gcc, paths.patch / 'gcc' / 'fix-backtrace_nt40-15.patch')
 
-    # Fix libbacktrace (NT 4.0)
-    if info.host_winnt <= 0x0400 and Version(ver) >= Version('15'):
-      _patch(paths.gcc, paths.patch / 'gcc' / '15-nt40-fix-backtrace.patch')
-
-    # `<filesystem>` fallbacks
+    # libstdc++ Win32 thunk
     if info.target_winnt <= 0x0400:
-      if Version(ver) >= Version('15'):
-        _patch(paths.gcc, paths.patch / 'gcc' / '15-filesystem-fallback.patch')
+      copyfile(paths.patch / 'gcc' / 'win32-thunk.h', paths.gcc / 'libstdc++-v3' / 'libsupc++' / 'win32-thunk.h')
+      if info.target_winnt == 0x0400:
+        _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_nt40.patch')
       else:
-        _patch(paths.gcc, paths.patch / 'gcc' / '14-filesystem-fallback.patch')
-
-    # `<print>` fallbacks to ANSI API
-    if info.target_winnt <= 0x03FF and Version(ver) >= Version('14'):
-      _patch(paths.gcc, paths.patch / 'gcc' / '14-print-ansi-fallback.patch')
-
-    # `<fstream>` fallbacks to ANSI API
-    if info.target_winnt <= 0x03FF:
-      _patch(paths.gcc, paths.patch / 'gcc' / 'fstream-ansi-fallback.patch')
+        if v.major >= 15:
+          _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_win9x-15.patch')
+        else:
+          _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_win9x-14.patch')
 
     _patch_done(paths.gcc)
 

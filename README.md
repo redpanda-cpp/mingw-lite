@@ -29,7 +29,7 @@ Available profiles:
 | | | | | | | |
 | 32-mcf | i686 | ucrt | mcf | dwarf | 7+ | 7+ |
 | 32-ucrt | i686 | ucrt | posix | dwarf | 7+ | XP+ |
-| 32-msvcrt | i686 | msvcrt | posix | dwarf | 2000+ | 2000+ |
+| 32-msvcrt | i686 | msvcrt | posix | dwarf | 2000+ | NT+ |
 | | | | | | | |
 | 32-legacy | i486 | msvcrt | posix | dwarf | NT+ | 9x, NT+ |
 
@@ -67,11 +67,8 @@ Notes:
 | GCC | Parser-friendly diagnostics | Any | Keep the phrases “error:” and “warning:” unlocalized to make diagnostic messages parser-friendly. |
 | GCC | Fix console code page | (H) Vista+ | Corresponding to UTF-8 manifest. |
 | GCC | Disable `_aligned_malloc` | 2000- | libstdc++ and gomp prefer it but provide fallbacks. |
-| GCC | Fix libbacktrace (NT 5.0) | ≥ 15, (H) 2000- | Missing library loader APIs. |
-| GCC | Fix libbacktrace (NT 4.0) | ≥ 15, (H) NT- | Missing tool help APIs. Actually not required on 9x. |
-| GCC | `<filesystem>` fallbacks | NT- | Allow `<filesystem>` to use ANSI API on Windows 9x. Also fixes misc missing APIs on NT 4.0. |
-| GCC | `<print>` fallbacks to ANSI API | ≥ 14, TARGET < NT 4.0 | `<print>` assumes UTF-8 `string`s and thus calls Win32 Unicode API. |
-| GCC | `<fstream>` fallbacks to ANSI API | TARGET < NT 4.0 | To support `basic_fstream(const filesystem::path::value_type *filename, ios_base::openmode mode)`. |
+| GCC | Fix libbacktrace | ≥ 15, (H) 2000- | 2000: missing library loader APIs. NT-: plus tool help APIs (actually not required on 9x). |
+| GCC | libstdc++ Win32 thunk | NT- | NT: thunks for `CreateHardLinkW` and `_wstat64`. 9x: plus Win32 Unicode APIs. |
 | GDB | Fix thread | (H) Vista- | Do not touch threads that are not suspended, which leads to crash on 2003/Vista x64. |
 | GDB | Kernel32 thunk | (H) 2000- | Thunks for `GetConsoleProcessList` and `GetSystemWow64DirectoryA`. |
 | GDB | IPv6 thunk | (H) 2000- | Thunks for `getaddrinfo`, `getnameinfo`, `freeaddrinfo`. |

@@ -29,7 +29,8 @@ def _headers(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--prefix={paths.x_prefix / info.target}',
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
-    f'--with-default-win32-winnt=0x{max(info.host_winnt, 0x0400):04X}',
+    # use target definition since we use same source for both
+    f'--with-default-win32-winnt=0x{max(info.target_winnt, 0x0400):04X}',
   ])
   make_default('headers', build_dir, jobs)
   make_install('headers', build_dir)
@@ -126,7 +127,8 @@ def _crt(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--with-sysroot={paths.x_prefix / info.target}',
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
-    f'--with-default-win32-winnt=0x{max(info.host_winnt, 0x0400):04X}',
+    # use target definition since we use same source for both
+    f'--with-default-win32-winnt=0x{max(info.target_winnt, 0x0400):04X}',
     '--disable-dependency-tracking',
     *multilib_flags,
     *cflags_host(),

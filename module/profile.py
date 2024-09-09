@@ -215,7 +215,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'posix',
 
     host_winnt = 0x0500,
-    target_winnt = 0x0500,
+    target_winnt = 0x0400,
   ),
 
   '32-legacy': ProfileInfo(
