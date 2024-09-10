@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Build
         if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
@@ -42,7 +42,7 @@ jobs:
           podman rm $container
 
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
         with:
           name: mingw${{ matrix.profile }}-${{ matrix.branch }}
