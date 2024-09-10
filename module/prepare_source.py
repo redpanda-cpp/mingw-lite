@@ -77,10 +77,7 @@ def _binutils(ver: str, info: ProfileInfo, paths: ProjectPaths):
   _validate_and_download(paths.binutils_arx, url)
   if _check_and_extract(paths.binutils, paths.binutils_arx):
     # Fix path corruption
-    if Version(ver) >= Version('2.43'):
-      _patch(paths.binutils, paths.patch / 'binutils' / '2.43-fix-path-corruption.patch')
-    else:
-      _patch(paths.binutils, paths.patch / 'binutils' / '2.42-fix-path-corruption.patch')
+    _patch(paths.binutils, paths.patch / 'binutils' / '2.43-fix-path-corruption.patch')
 
     # Ignore long path
     if info.host_winnt <= 0x03FF:

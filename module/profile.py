@@ -98,7 +98,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '14.2.0',
     rev = '3',
 
-    binutils = '2.42',
+    binutils = '2.43.1',
     gdb = '15.1',
     gettext = '0.22.5',
     gmp = '6.3.0',
@@ -113,7 +113,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '15-20240908',
     rev = '0',
 
-    binutils = '2.43',
+    binutils = '2.43.1',
     gdb = '15.1',
     gettext = '0.22.5',
     gmp = '6.3.0',

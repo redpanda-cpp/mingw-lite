@@ -45,6 +45,7 @@ Notes:
     -v $PWD/pkg:/opt \
     docker.io/amd64/ubuntu:24.04
   ```
+- Version “freeze” happens at next 01-01 after GCC’s release.
 - The “32-legacy” profile partially runs on Windows 9x host.
   - GDB does not work.
   - On Windows 95, where dlopen-ing dlls with `.tls` section is impossible, GCC should be called with `-fno-lto` to ensure `ld` would not load LTO plugin. ([KB118816](https://www.betaarchive.com/wiki/index.php/Microsoft_KB_Archive/118816))

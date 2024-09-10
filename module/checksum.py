@@ -1,8 +1,7 @@
 from typing import Dict
 
 CHECKSUMS: Dict[str, str] = {
-  'binutils-2.42.tar.xz': 'f6e4d41fd5fc778b06b7891457b3620da5ecea1006c6a4a41ae998109f85a800',
-  'binutils-2.43.tar.xz': 'b53606f443ac8f01d1d5fc9c39497f2af322d99e14cea5c0b4b124d630379365',
+  'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',
 
   'gcc-14.2.0.tar.xz': 'a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9',
   'gcc-15-20240908.tar.xz': '15eb5261d5ca0f5c3f7125fae9dff58e5c89a1b6c1329abe15d0457baf866d66',

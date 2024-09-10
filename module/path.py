@@ -1,4 +1,5 @@
 import argparse
+from packaging.version import Version
 from pathlib import Path
 from typing import Optional
 
@@ -70,7 +71,10 @@ class ProjectPaths:
 
     binutils = f'binutils-{ver.binutils}'
     self.binutils = self.build / binutils
-    self.binutils_arx = self.assets / f'{binutils}.tar.xz'
+    if Version(ver.binutils) >= Version('2.43'):
+      self.binutils_arx = self.assets / f'{binutils}.tar.zst'
+    else:
+      self.binutils_arx = self.assets / f'{binutils}.tar.xz'
 
     if ver.gettext:
       gettext = f'gettext-{ver.gettext}'
