@@ -5,10 +5,11 @@ Extremely fast MinGW GCC build scripts for easy experiments.
 ## Build
 
 ```bash
-podman run -it --rm -v $PWD:/mnt -w /mnt docker.io/amd64/ubuntu:24.04
+podman build -t mingw-lite/buildenv-ubuntu support/buildenv-ubuntu
+
+podman run -it --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-ubuntu
 
 # in the container
-./support/dep-debian.sh
 ./main.py -b <branch> -p <profile>
 ```
 
@@ -43,7 +44,7 @@ Notes:
     -v $PWD:/mnt -w /mnt \
     -v $PWD/build:/tmp/build \
     -v $PWD/pkg:/opt \
-    docker.io/amd64/ubuntu:24.04
+    mingw-lite/buildenv-ubuntu
   ```
 - Version “freeze” happens at next 01-01 after GCC’s release.
 - The “32-legacy” profile partially runs on Windows 9x host.

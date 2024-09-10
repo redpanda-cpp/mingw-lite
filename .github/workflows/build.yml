@@ -34,12 +34,9 @@ jobs:
       - name: Build
         if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
         run: |
-          podman pull docker.io/amd64/ubuntu:24.04
-          container=$(podman run -dt -v $PWD:/mnt docker.io/amd64/ubuntu:24.04)
-          podman exec -w /mnt $container ./support/dep-debian.sh
-          podman exec -w /mnt $container ./main.py --branch ${{ matrix.branch }} --profile ${{ matrix.profile }}
-          podman kill $container
-          podman rm $container
+          podman build -t mingw-lite/buildenv-ubuntu support/buildenv-ubuntu
+          podman run --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-ubuntu \
+            ./main.py --branch ${{ matrix.branch }} --profile ${{ matrix.profile }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
