@@ -1,0 +1,13 @@
+diff --git a/gcc/config/i386/i386.c b/gcc/config/i386/i386.c
+index dec3aee0048..de97d3c322f 100644
+--- a/gcc/config/i386/i386.c
++++ b/gcc/config/i386/i386.c
+@@ -9665,7 +9662,7 @@ function_arg_advance_32 (CUMULATIVE_ARGS *cum, machine_mode mode,
+ 			 HOST_WIDE_INT words)
+ {
+   int res = 0;
+-  bool error_p = NULL;
++  bool error_p = false;
+ 
+   if (TARGET_IAMCU)
+     {

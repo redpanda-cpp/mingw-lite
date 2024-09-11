@@ -1,7 +1,8 @@
-diff --unified --recursive --text mingw-w64-v10.0.0.orig/mingw-w64-libraries/winpthreads/src/thread.c mingw-w64-v10.0.0/mingw-w64-libraries/winpthreads/src/thread.c
---- mingw-w64-v10.0.0.orig/mingw-w64-libraries/winpthreads/src/thread.c
-+++ mingw-w64-v10.0.0/mingw-w64-libraries/winpthreads/src/thread.c
-@@ -54,9 +54,6 @@
+diff --git a/mingw-w64-libraries/winpthreads/src/thread.c b/mingw-w64-libraries/winpthreads/src/thread.c
+index a9f286ba3..7d8379a2c 100644
+--- a/mingw-w64-libraries/winpthreads/src/thread.c
++++ b/mingw-w64-libraries/winpthreads/src/thread.c
+@@ -54,9 +54,6 @@ static size_t idListCnt = 0;
  static size_t idListMax = 0;
  static pthread_t idListNextId = 0;
  
@@ -11,7 +12,7 @@ diff --unified --recursive --text mingw-w64-v10.0.0.orig/mingw-w64-libraries/win
  #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
  /* forbidden RemoveVectoredExceptionHandler/AddVectoredExceptionHandler APIs */
  #undef USE_VEH_FOR_MSC_SETTHREADNAME
-@@ -109,7 +106,7 @@
+@@ -109,7 +106,7 @@ SetThreadName (DWORD dwThreadID, LPCSTR szThreadName)
     /* Without a debugger we *must* have an exception handler,
      * otherwise raising an exception will crash the process.
      */

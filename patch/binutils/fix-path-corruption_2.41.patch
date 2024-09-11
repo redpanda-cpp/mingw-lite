@@ -1,0 +1,26 @@
+diff --git a/bfd/bfdio.c b/bfd/bfdio.c
+index 22c39a7b0cc..2407e664717 100644
+--- a/bfd/bfdio.c
++++ b/bfd/bfdio.c
+@@ -122,11 +122,7 @@ _bfd_real_fopen (const char *filename, const char *modes)
+    const wchar_t  prefix[] = L"\\\\?\\";
+    const size_t   partPathLen = strlen (filename) + 1;
+ #ifdef __MINGW32__
+-#if !HAVE_DECL____LC_CODEPAGE_FUNC
+-/* This prototype was added to locale.h in version 9.0 of MinGW-w64.  */
+-   _CRTIMP unsigned int __cdecl ___lc_codepage_func (void);
+-#endif
+-   const unsigned int cp = ___lc_codepage_func ();
++   const unsigned int cp = CP_ACP;
+ #else
+    const unsigned int cp = CP_UTF8;
+ #endif
+@@ -142,7 +138,7 @@ _bfd_real_fopen (const char *filename, const char *modes)
+ 
+    /* Convert any UNIX style path separators into the DOS i.e. backslash separator.  */
+    for (ix = 0; ix < partPathLen; ix++)
+-     if (IS_UNIX_DIR_SEPARATOR(filename[ix]))
++     if (IS_UNIX_DIR_SEPARATOR(partPath[ix]))
+        partPath[ix] = '\\';
+ 
+    /* Getting the full path from the provided partial path.

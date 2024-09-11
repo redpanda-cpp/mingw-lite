@@ -1,0 +1,15 @@
+diff --git a/config/mh-mingw b/config/mh-mingw
+index e91367a7112..854a500f696 100644
+--- a/config/mh-mingw
++++ b/config/mh-mingw
+@@ -2,8 +2,8 @@
+ # Vista (see PR33281 for details).
+ BOOT_CFLAGS += -D__USE_MINGW_ACCESS -Wno-pedantic-ms-format
+ BOOT_CXXFLAGS += -D__USE_MINGW_ACCESS -Wno-pedantic-ms-format
+-CFLAGS += -D__USE_MINGW_ACCESS
+-CXXFLAGS += -D__USE_MINGW_ACCESS
++override CFLAGS += -D__USE_MINGW_ACCESS
++override CXXFLAGS += -D__USE_MINGW_ACCESS
+ STAGE1_CXXFLAGS += -D__USE_MINGW_ACCESS
+ STAGE2_CXXFLAGS += -D__USE_MINGW_ACCESS
+ STAGE3_CXXFLAGS += -D__USE_MINGW_ACCESS

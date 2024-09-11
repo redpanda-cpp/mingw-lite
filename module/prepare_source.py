@@ -68,6 +68,25 @@ def _patch(path: Path, patch: Path):
     logging.critical(message)
     raise Exception(message)
 
+def _autoreconf(path: Path):
+  res = subprocess.run([
+    'autoreconf',
+    '-fi',
+  ], cwd = path)
+  if res.returncode != 0:
+    message = 'Autoreconf fail: %s' % path.name
+    logging.critical(message)
+    raise Exception(message)
+
+def _automake(path: Path):
+  res = subprocess.run([
+    'automake',
+  ], cwd = path)
+  if res.returncode != 0:
+    message = 'Automake fail: %s' % path.name
+    logging.critical(message)
+    raise Exception(message)
+
 def _patch_done(path: Path):
   mark = path / '.patched'
   mark.touch()
@@ -76,8 +95,21 @@ def _binutils(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/binutils/{paths.binutils_arx.name}'
   _validate_and_download(paths.binutils_arx, url)
   if _check_and_extract(paths.binutils, paths.binutils_arx):
+    v = Version(ver)
+
+    # Backport
+    if v == Version('2.37'):
+      _patch(paths.binutils, paths.patch / 'binutils' / 'backport_2.37.patch')
+    elif v == Version('2.33.1'):
+      _patch(paths.binutils, paths.patch / 'binutils' / 'backport_2.33.1.patch')
+
     # Fix path corruption
-    _patch(paths.binutils, paths.patch / 'binutils' / '2.43-fix-path-corruption.patch')
+    if v >= Version('2.43'):
+      _patch(paths.binutils, paths.patch / 'binutils' / 'fix-path-corruption_2.43.patch')
+    elif v >= Version('2.41'):
+      _patch(paths.binutils, paths.patch / 'binutils' / 'fix-path-corruption_2.41.patch')
+    elif v >= Version('2.39'):
+      _patch(paths.binutils, paths.patch / 'binutils' / 'fix-path-corruption_2.39.patch')
 
     # Ignore long path
     if info.host_winnt <= 0x03FF:
@@ -93,11 +125,52 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
     url = f'https://ftpmirror.gnu.org/gnu/gcc/gcc-{ver}/{paths.gcc_arx.name}'
   _validate_and_download(paths.gcc_arx, url)
   if _check_and_extract(paths.gcc, paths.gcc_arx):
+    # Backport
+    if v.major == 11:
+      # - poisoned calloc when building with musl
+      _patch(paths.gcc, paths.patch / 'gcc' / 'backport_11.patch')
+    elif v.major == 10:
+      # - mingw define standard PRI macros when building against musl
+      _patch(paths.gcc, paths.patch / 'gcc' / 'backport_10.patch')
+    elif v.major == 9:
+      # - mingw define standard PRI macros when building against musl
+      _patch(paths.gcc, paths.patch / 'gcc' / 'backport_9.patch')
+    elif v.major == 8:
+      # - gcc fails to find cc1plus if built against ucrt due to a behaviour of `_access`
+      _patch(paths.gcc, paths.patch / 'gcc' / 'backport_8.patch')
+    elif v.major == 7:
+      # - someone declared `bool error_p = NULL`, it works until musl 1.2 defines NULL to nullptr
+      _patch(paths.gcc, paths.patch / 'gcc' / 'backport_7.patch')
+    elif v.major == 6:
+      # - someone declared `bool error_p = NULL`, it works until musl 1.2 defines NULL to nullptr
+      # - intl adds `-liconv` without proper libdir
+      _patch(paths.gcc, paths.patch / 'gcc' / 'backport_6.patch')
+    elif v.major == 5:
+      # - someone declared `bool error_p = NULL`, it works until musl 1.2 defines NULL to nullptr
+      _patch(paths.gcc, paths.patch / 'gcc' / 'backport_5.patch')
+
+    # Fix make variable
+    # - gcc 12 use `override CFLAGS +=` to handle PGO build, which breaks workaround for ucrt `access`
+    if v.major >= 14:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-make-variable_14.patch')
+    elif v.major >= 12:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-make-variable_12.patch')
+
+    # Fix libatomic build
+    if v >= Version('4.8') and v.major < 10:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-libatomic-build.patch')
+
     # Fix VT sequence
-    _patch(paths.gcc, paths.patch / 'gcc' / 'fix-vt-seq.patch')
+    if v.major >= 12:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-vt-seq_12.patch')
+    elif v.major >= 8:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-vt-seq_8.patch')
 
     # Fix locale directory
-    _patch(paths.gcc, paths.patch / 'gcc' / 'fix-localedir.patch')
+    if v.major >= 12:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-localedir_12.patch')
+    else:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-localedir_4.8.patch')
 
     # Parser-friendly diagnostics
     po_dir = paths.gcc / 'gcc' / 'po'
@@ -113,15 +186,21 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
       logging.critical(message)
       raise Exception(message)
 
-    if info.host_winnt >= 0x0600:
-      # Fix console code page
-      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-console-cp.patch')
-    else:
-      pass  # disable UTF-8 manifest later
+    if v.major >= 13:
+      if info.host_winnt >= 0x0600:
+        # Fix console code page
+        _patch(paths.gcc, paths.patch / 'gcc' / 'fix-console-cp.patch')
+      else:
+        pass  # disable UTF-8 manifest later
 
     # Disable `_aligned_malloc`
     if info.target_winnt <= 0x0500:
-      _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc.patch')
+      if v.major >= 14:
+        _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc_14.patch')
+      elif v.major >= 9:
+        _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc_9.patch')
+      elif v.major >= 7:
+        _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc_7.patch')
 
     # Fix libbacktrace
     if v.major >= 15 and info.host_winnt <= 0x0500:
@@ -133,7 +212,11 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
     if info.target_winnt <= 0x0400:
       copyfile(paths.patch / 'gcc' / 'win32-thunk.h', paths.gcc / 'libstdc++-v3' / 'libsupc++' / 'win32-thunk.h')
       if info.target_winnt == 0x0400:
-        _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_nt40.patch')
+        if v.major >= 9:
+          _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_nt40.patch')
+        else:
+          # <filesystem> almost unimplemented for Windows, ignore it
+          pass
       else:
         if v.major >= 15:
           _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_win9x-15.patch')
@@ -146,17 +229,31 @@ def _gdb(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.gdb_arx.name}'
   _validate_and_download(paths.gdb_arx, url)
   if _check_and_extract(paths.gdb, paths.gdb_arx):
+    v = Version(ver)
+
+    # Backport
+    if v == Version('8.3.1'):
+      _patch(paths.gdb, paths.patch / 'gdb' / 'backport_8.3.1.patch')
+
     # Fix thread
-    if info.host_winnt <= 0x0600:
+    if v.major >= 12 and info.host_winnt <= 0x0600:
       _patch(paths.gdb, paths.patch / 'gdb' / 'fix-thread.patch')
 
     if info.host_winnt <= 0x0500:
       copyfile(paths.patch / 'gdb' / 'win32-thunk.h', paths.gdb / 'gdb' / 'win32-thunk.h')
       # Kernel32 thunk
-      _patch(paths.gdb, paths.patch / 'gdb' / 'kernel32-thunk.patch')
+      if v.major >= 14:
+        _patch(paths.gdb, paths.patch / 'gdb' / 'kernel32-thunk_14.patch')
+      elif v.major >= 11:
+        _patch(paths.gdb, paths.patch / 'gdb' / 'kernel32-thunk_11.patch')
+      elif v.major >= 10:
+        _patch(paths.gdb, paths.patch / 'gdb' / 'kernel32-thunk_10.patch')
 
       # IPv6 thunk
-      _patch(paths.gdb, paths.patch / 'gdb' / 'ipv6-thunk.patch')
+      if v.major >= 10:
+        _patch(paths.gdb, paths.patch / 'gdb' / 'ipv6-thunk_10.patch')
+      elif v >= Version('8.3'):
+        _patch(paths.gdb, paths.patch / 'gdb' / 'ipv6-thunk_8.3.patch')
 
     # Fix VC6 CRT compatibility
     if info.host_winnt <= 0x0400:
@@ -190,8 +287,18 @@ def _iconv(ver: str, info: ProfileInfo, paths: ProjectPaths):
 def _make(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/make/{paths.make_arx.name}'
   _validate_and_download(paths.make_arx, url)
-  _check_and_extract(paths.make, paths.make_arx)
-  _patch_done(paths.make)
+  if _check_and_extract(paths.make, paths.make_arx):
+    v = Version(ver)
+
+    # Backport
+    if v == Version('4.3'):
+      _patch(paths.make, paths.patch / 'make' / 'backport_4.3.patch')
+
+    # Fix fcntl declaration
+    if v == Version('4.3'):
+      _patch(paths.make, paths.patch / 'make' / 'fix-fcntl-decl.patch')
+
+    _patch_done(paths.make)
 
 def _mcfgthread(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://github.com/lhmouse/mcfgthread/archive/refs/tags/v{ver}.tar.gz'
@@ -203,9 +310,16 @@ def _mingw(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.mingw_arx.name}'
   _validate_and_download(paths.mingw_arx, url)
   if _check_and_extract(paths.mingw, paths.mingw_arx):
+    v = Version(ver)
+
     # CRT: Fix missing function
     if info.target_winnt <= 0x0502:
-      _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function.patch')
+      if v.major >= 12:
+        _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_12.patch')
+      elif v.major >= 7:
+        _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_7.patch')
+      _autoreconf(paths.mingw / 'mingw-w64-crt')
+      _automake(paths.mingw / 'mingw-w64-crt')
 
     # CRT: Allow skip space check in `ftruncate64`
     if info.host_winnt <= 0x0400:
@@ -217,7 +331,10 @@ def _mingw(ver: str, info: ProfileInfo, paths: ProjectPaths):
 
     # winpthreads: Disable VEH
     if info.target_winnt <= 0x0500:
-      _patch(paths.mingw, paths.patch / 'winpthreads' / 'disable-veh.patch')
+      if v.major >= 8:
+        _patch(paths.mingw, paths.patch / 'winpthreads' / 'disable-veh_8.patch')
+      elif v.major >= 5:
+        _patch(paths.mingw, paths.patch / 'winpthreads' / 'disable-veh_5.patch')
 
     # winpthreads: Fix thread
     if info.target_winnt <= 0x03FF:

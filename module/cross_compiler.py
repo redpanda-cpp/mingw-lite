@@ -1,5 +1,6 @@
 import argparse
 import logging
+from packaging.version import Version
 from shutil import copyfile
 import subprocess
 
@@ -7,6 +8,28 @@ from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchVersions, ProfileInfo
 from module.util import cflags_build, cflags_host, configure, ensure, make_custom, make_default, make_install
+
+def _iconv(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  v = Version(ver)
+  build_dir = paths.iconv / 'x-build'
+  ensure(build_dir)
+
+  if v < Version('1.15'):
+    cstd_flags = ['-std=c99']
+  else:
+    cstd_flags = []
+
+  configure('iconv', build_dir, [
+    f'--prefix={paths.x_dep}',
+    # static build
+    '--disable-shared',
+    '--enable-static',
+    # features
+    '--disable-nls',
+    *cflags_build(c_extra = [*cstd_flags]),
+  ])
+  make_default('iconv', build_dir, jobs)
+  make_install('iconv', build_dir)
 
 def _binutils(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.binutils / 'x-build'
@@ -18,10 +41,13 @@ def _binutils(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--disable-plugins',
     '--disable-shared',
     '--enable-static',
+    '--disable-werror',
     # features
     '--disable-install-libbfd',
     '--disable-multilib',
     '--disable-nls',
+    # packages
+    f'--with-libiconv-prefix={paths.x_dep}',
     # libtool eats `-static`
     *cflags_build(ld_extra = ['--static']),
   ])
@@ -30,10 +56,20 @@ def _binutils(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   make_install('binutils', build_dir)
 
 def _headers(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  v = Version(ver)
   build_dir = paths.mingw / 'mingw-w64-headers' / 'x-build'
   ensure(build_dir)
+
+  if v.major >= 3:
+    prefix = paths.x_prefix / info.target
+    sysroot_flags = []
+  else:
+    prefix = paths.x_prefix
+    sysroot_flags = [f'--with-sysroot={prefix}']
+
   configure('headers', build_dir, [
-    f'--prefix={paths.x_prefix / info.target}',
+    f'--prefix={prefix}',
+    *sysroot_flags,
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
     # use target definition since we use same source for both
@@ -83,12 +119,21 @@ def _mpc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   make_install('mpc', build_dir)
 
 def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  v = Version(ver)
   build_dir = paths.gcc / 'x-build'
-  exception_flags = [
-    '--with-dwarf2',
-    '--disable-sjlj-exceptions',
-  ] if info.exception == 'dwarf' else []
   ensure(build_dir)
+
+  if info.exception == 'dwarf':
+    exception_flags = ['--disable-sjlj-exceptions', '--with-dwarf2']
+  else:
+    exception_flags = []
+  if v.major < 7:
+    cstd_flags = ['-std=gnu89']
+    cxxstd_flags = ['-std=gnu++98']
+  else:
+    cstd_flags = []
+    cxxstd_flags = []
+
   configure('gcc', build_dir, [
     f'--prefix={paths.x_prefix}',
     f'--libexecdir={paths.x_prefix / 'lib'}',
@@ -103,7 +148,7 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     # features
     '--disable-dependency-tracking',
     '--enable-languages=c,c++',
-    '--enable-libgomp',
+    '--disable-libgomp',
     '--disable-multilib',
     '--disable-nls',
     f'--enable-threads={info.thread}',
@@ -115,9 +160,15 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--without-libintl',
     f'--with-mpc={paths.x_dep}',
     f'--with-mpfr={paths.x_dep}',
-    # libtool eats `-static`
-    *cflags_build(ld_extra = ['--static']),  # GCC’s HOST is our BUILD (Linux x86_64)
-    *cflags_host('_FOR_TARGET'),  # GCC’s TARGET is our HOST (Windows on which GCC runs)
+    # GCC’s HOST is our BUILD (Linux x86_64)
+    *cflags_build(
+      c_extra = [*cstd_flags],
+      cxx_extra = [*cxxstd_flags],
+      # libtool eats `-static`
+      ld_extra = ['--static'],
+    ),
+    # GCC’s TARGET is our HOST (Windows on which GCC runs)
+    *cflags_host('_FOR_TARGET'),
   ])
   make_custom('gcc (all-gcc)', build_dir, ['all-gcc'], jobs)
   make_custom('gcc (install-gcc)', build_dir, ['install-gcc'], jobs = 1)
@@ -167,6 +218,7 @@ def _winpthreads(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
 def _mcfgthread(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.mcfgthread / 'x-build'
   ensure(build_dir)
+
   ret = subprocess.run([
     'meson',
     'setup',
@@ -201,6 +253,8 @@ def _mcfgthread(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     copyfile(header_file, include_dir / header_file.name)
 
 def build_cross_compiler(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, config: argparse.Namespace):
+  _iconv(ver.iconv, paths, info, config.jobs)
+
   _binutils(ver.binutils, paths, info, config.jobs)
 
   _headers(ver.mingw, paths, info, config.jobs)

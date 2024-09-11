@@ -1,0 +1,17 @@
+diff --git a/libiberty/rust-demangle.c b/libiberty/rust-demangle.c
+index df09b7b8fdd..ac1eb8eb02c 100644
+--- a/libiberty/rust-demangle.c
++++ b/libiberty/rust-demangle.c
+@@ -75,10 +75,10 @@ struct rust_demangler
+   int version;
+ 
+   /* Recursion depth.  */
+-  uint recursion;
++  unsigned recursion;
+   /* Maximum number of times demangle_path may be called recursively.  */
+ #define RUST_MAX_RECURSION_COUNT  1024
+-#define RUST_NO_RECURSION_LIMIT   ((uint) -1)
++#define RUST_NO_RECURSION_LIMIT   ((unsigned) -1)
+ 
+   uint64_t bound_lifetime_depth;
+ };

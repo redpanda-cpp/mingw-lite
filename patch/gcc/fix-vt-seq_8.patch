@@ -1,7 +1,8 @@
-diff --unified --recursive --text gcc-13.2.0.orig/gcc/pretty-print.cc gcc-13.2.0/gcc/pretty-print.cc
---- gcc-13.2.0.orig/gcc/pretty-print.cc
-+++ gcc-13.2.0/gcc/pretty-print.cc
-@@ -70,6 +70,7 @@
+diff --git a/gcc/pretty-print.c b/gcc/pretty-print.c
+index 6243aed3dac..96552db89c7 100644
+--- a/gcc/pretty-print.c
++++ b/gcc/pretty-print.c
+@@ -69,6 +69,7 @@ write_all (HANDLE h, const char *s, size_t n)
        the third character into *head.
     2. If the sequence begins with a character X in [0x80,0x9F], returns
        (X-0x40) and stores a pointer to the second character into *head.
@@ -9,7 +10,7 @@ diff --unified --recursive --text gcc-13.2.0.orig/gcc/pretty-print.cc gcc-13.2.0
     Stores the number of ESC character(s) in *prefix_len.
     Returns 0 if no such sequence can be found.  */
  static int
-@@ -94,13 +95,6 @@
+@@ -93,13 +94,6 @@ find_esc_head (int *prefix_len, const char **head, const char *str)
  	  *head = r + 1;
  	  return c;
  	}

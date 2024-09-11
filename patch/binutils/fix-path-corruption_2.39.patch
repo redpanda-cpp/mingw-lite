@@ -1,0 +1,22 @@
+diff --git a/bfd/bfdio.c b/bfd/bfdio.c
+index a7c7d5bd363..2e64ca6cd8d 100644
+--- a/bfd/bfdio.c
++++ b/bfd/bfdio.c
+@@ -122,7 +122,7 @@ _bfd_real_fopen (const char *filename, const char *modes)
+    const wchar_t  prefix[] = L"\\\\?\\";
+    const size_t   partPathLen = strlen (filename) + 1;
+ #ifdef __MINGW32__
+-   const unsigned int cp = ___lc_codepage_func();
++   const unsigned int cp = CP_ACP;
+ #else
+    const unsigned int cp = CP_UTF8;
+ #endif
+@@ -138,7 +138,7 @@ _bfd_real_fopen (const char *filename, const char *modes)
+ 
+    /* Convert any UNIX style path separators into the DOS i.e. backslash separator.  */
+    for (ix = 0; ix < partPathLen; ix++)
+-     if (IS_UNIX_DIR_SEPARATOR(filename[ix]))
++     if (IS_UNIX_DIR_SEPARATOR(partPath[ix]))
+        partPath[ix] = '\\';
+ 
+    /* Getting the full path from the provided partial path.

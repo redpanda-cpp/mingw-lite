@@ -1,6 +1,7 @@
 import argparse
 import logging
 from packaging.version import Version
+from pathlib import Path
 from shutil import copyfile
 import subprocess
 
@@ -117,6 +118,7 @@ def _winpthreads(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
 def _mcfgthread(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   build_dir = paths.mcfgthread / 'build'
   ensure(build_dir)
+
   ret = subprocess.run([
     'meson',
     'setup',
@@ -178,18 +180,24 @@ def _gettext(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   make_install('gettext', build_dir)
 
 def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  v = Version(ver)
   build_dir = paths.gcc / 'build'
   ensure(build_dir)
+  # some old version checks existence of /mingw/include
+  ensure(Path('/mingw/include'))
 
-  exception_flags = [
-    '--with-dwarf2',
-    '--disable-sjlj-exceptions',
-  ] if info.exception == 'dwarf' else []
-  manifest_flags = []
-  if info.host_winnt <= 0x0502 and Version(ver).major >= 13:
-    manifest_flags = [
-      '--disable-win32-utf8-manifest',
-    ]
+  if info.exception == 'dwarf':
+    exception_flags = ['--disable-sjlj-exceptions', '--with-dwarf2']
+  else:
+    exception_flags = []
+  if info.host_winnt <= 0x0502 and v.major >= 13:
+    manifest_flags = ['--disable-win32-utf8-manifest']
+  else:
+    manifest_flags = []
+  if v.major >= 14:
+    libintl_flags = [f'--with-libintl-prefix={paths.dep}']
+  else:
+    libintl_flags = ['--with-included-gettext']
 
   configure('gcc', build_dir, [
     f'--prefix={paths.prefix}',
@@ -218,9 +226,9 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--with-gmp={paths.dep}',
     '--without-libcc1',
     f'--with-libiconv-prefix={paths.dep}',
-    f'--with-libintl-prefix={paths.dep}',
     f'--with-mpc={paths.dep}',
     f'--with-mpfr={paths.dep}',
+    *libintl_flags,
     *cflags_host(),
     *cflags_target('_FOR_TARGET'),
   ])
@@ -228,15 +236,28 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   make_install('gcc', build_dir)
 
 def _gdb(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  v = Version(ver)
   build_dir = paths.gdb / 'build'
   ensure(build_dir)
+
+  if v.major >= 14:
+    gmp_mpfr_flags = []
+  else:
+    gmp_mpfr_flags = [
+      f'--with-libgmp-prefix={paths.dep}',
+      f'--with-libmpfr-prefix={paths.dep}',
+    ]
+
   configure('gdb', build_dir, [
     f'--prefix={paths.prefix}',
     f'--host={info.target}',
-    f'--with-gmp={paths.dep}',
-    f'--with-mpfr={paths.dep}',
-    f'--with-mpc={paths.dep}',
+    # features
     '--disable-tui',
+    # packages
+    f'--with-gmp={paths.dep}',
+    f'--with-mpc={paths.dep}',
+    f'--with-mpfr={paths.dep}',
+    *gmp_mpfr_flags,
     *cflags_host(common_extra = ['-DPDC_WIDE']),
   ])
   make_default('gdb', build_dir, jobs)
@@ -270,11 +291,16 @@ def _licenses(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
   for file in ['README', 'COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
     copyfile(paths.gdb / file, license_dir / 'gdb' / file)
 
-  ensure(license_dir / 'gettext-runtime-intl')
-  copyfile(paths.gettext / 'gettext-runtime' / 'intl' / 'COPYING.LIB', license_dir / 'gettext-runtime-intl' / 'COPYING.LIB')
+  if Version(ver.gcc).major >= 14:
+    ensure(license_dir / 'gettext-runtime-intl')
+    copyfile(paths.gettext / 'gettext-runtime' / 'intl' / 'COPYING.LIB', license_dir / 'gettext-runtime-intl' / 'COPYING.LIB')
 
   ensure(license_dir / 'gmp')
-  for file in ['README', 'COPYINGv2', 'COPYINGv3', 'COPYING.LESSERv3']:
+  if Version(ver.gmp).major < 6:
+    gmp_files = ['README', 'COPYING', 'COPYING.LIB']
+  else:
+    gmp_files = ['README', 'COPYINGv2', 'COPYINGv3', 'COPYING.LESSERv3']
+  for file in gmp_files:
     copyfile(paths.gmp / file, license_dir / 'gmp' / file)
 
   ensure(license_dir / 'iconv')
@@ -321,7 +347,8 @@ def build_mingw_toolchain(ver: BranchVersions, paths: ProjectPaths, info: Profil
 
   _iconv(ver.iconv, paths, info, config.jobs)
 
-  _gettext(ver.gettext, paths, info, config.jobs)
+  if Version(ver.gcc).major >= 14:
+    _gettext(ver.gettext, paths, info, config.jobs)
 
   _gcc(ver.gcc, paths, info, config.jobs)
 

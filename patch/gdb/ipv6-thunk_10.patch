@@ -1,6 +1,7 @@
-diff --unified --recursive --text gdb-14.2.orig/gdb/ser-tcp.c gdb-14.2/gdb/ser-tcp.c
---- gdb-14.2.orig/gdb/ser-tcp.c
-+++ gdb-14.2/gdb/ser-tcp.c
+diff --git a/gdb/ser-tcp.c b/gdb/ser-tcp.c
+index 019aa4e52ec..f71684785f0 100644
+--- a/gdb/ser-tcp.c
++++ b/gdb/ser-tcp.c
 @@ -39,7 +39,7 @@
  #include "gdbsupport/gdb_sys_time.h"
  
@@ -10,7 +11,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdb/ser-tcp.c gdb-14.2/gdb/ser-t
  #ifndef ETIMEDOUT
  #define ETIMEDOUT WSAETIMEDOUT
  #endif
-@@ -290,7 +290,7 @@
+@@ -290,7 +290,7 @@ net_open (struct serial *scb, const char *name)
    if (parsed.port_str.empty ())
      error (_("Missing port on hostname '%s'"), name);
  
@@ -19,9 +20,10 @@ diff --unified --recursive --text gdb-14.2.orig/gdb/ser-tcp.c gdb-14.2/gdb/ser-t
  		       parsed.port_str.c_str (),
  		       &hint, &ainfo);
  
-diff --unified --recursive --text gdb-14.2.orig/gdbserver/gdbreplay.cc gdb-14.2/gdbserver/gdbreplay.cc
---- gdb-14.2.orig/gdbserver/gdbreplay.cc
-+++ gdb-14.2/gdbserver/gdbreplay.cc
+diff --git a/gdbserver/gdbreplay.cc b/gdbserver/gdbreplay.cc
+index 438a6a60bdb..5272533734e 100644
+--- a/gdbserver/gdbreplay.cc
++++ b/gdbserver/gdbreplay.cc
 @@ -53,7 +53,7 @@
  #endif
  
@@ -31,7 +33,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/gdbreplay.cc gdb-14.2/
  #endif
  
  #include "gdbsupport/netstuff.h"
-@@ -154,7 +154,7 @@
+@@ -192,7 +192,7 @@ remote_open (char *name)
      }
  #endif
  
@@ -40,8 +42,8 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/gdbreplay.cc gdb-14.2/
  		       &hint, &ainfo);
  
    if (r != 0)
-@@ -230,7 +230,7 @@
-       setsockopt (remote_desc_in, IPPROTO_TCP, TCP_NODELAY,
+@@ -268,7 +268,7 @@ remote_open (char *name)
+       setsockopt (remote_desc, IPPROTO_TCP, TCP_NODELAY,
  		  (char *) &tmp, sizeof (tmp));
  
 -      if (getnameinfo ((struct sockaddr *) &sockaddr, sockaddrsize,
@@ -49,9 +51,10 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/gdbreplay.cc gdb-14.2/
  		       orig_host, sizeof (orig_host),
  		       orig_port, sizeof (orig_port),
  		       NI_NUMERICHOST | NI_NUMERICSERV) == 0)
-diff --unified --recursive --text gdb-14.2.orig/gdbserver/remote-utils.cc gdb-14.2/gdbserver/remote-utils.cc
---- gdb-14.2.orig/gdbserver/remote-utils.cc
-+++ gdb-14.2/gdbserver/remote-utils.cc
+diff --git a/gdbserver/remote-utils.cc b/gdbserver/remote-utils.cc
+index 1195ce87ec7..0d102429a24 100644
+--- a/gdbserver/remote-utils.cc
++++ b/gdbserver/remote-utils.cc
 @@ -65,7 +65,7 @@
  #include <sys/stat.h>
  
@@ -61,7 +64,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/remote-utils.cc gdb-14
  #endif
  
  #ifndef HAVE_SOCKLEN_T
-@@ -182,7 +182,7 @@
+@@ -179,7 +179,7 @@ handle_accept_event (int err, gdb_client_data client_data)
    /* Convert IP address to string.  */
    char orig_host[GDB_NI_MAX_ADDR], orig_port[GDB_NI_MAX_PORT];
  
@@ -70,7 +73,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/remote-utils.cc gdb-14
  		       orig_host, sizeof (orig_host),
  		       orig_port, sizeof (orig_port),
  		       NI_NUMERICHOST | NI_NUMERICSERV);
-@@ -260,7 +260,7 @@
+@@ -257,7 +257,7 @@ remote_prepare (const char *name)
      }
  #endif
  
@@ -79,7 +82,7 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/remote-utils.cc gdb-14
  		       &hint, &ainfo);
  
    if (r != 0)
-@@ -387,7 +387,7 @@
+@@ -384,7 +384,7 @@ remote_open (const char *name)
        if (getsockname (listen_desc, (struct sockaddr *) &sockaddr, &len) < 0)
  	perror_with_name ("Can't determine port");
  
@@ -88,9 +91,10 @@ diff --unified --recursive --text gdb-14.2.orig/gdbserver/remote-utils.cc gdb-14
  			   NULL, 0,
  			   listen_port, sizeof (listen_port),
  			   NI_NUMERICSERV);
-diff --unified --recursive --text gdb-14.2.orig/gdbsupport/netstuff.cc gdb-14.2/gdbsupport/netstuff.cc
---- gdb-14.2.orig/gdbsupport/netstuff.cc
-+++ gdb-14.2/gdbsupport/netstuff.cc
+diff --git a/gdbsupport/netstuff.cc b/gdbsupport/netstuff.cc
+index a056e6adf7d..246239ffcbd 100644
+--- a/gdbsupport/netstuff.cc
++++ b/gdbsupport/netstuff.cc
 @@ -21,7 +21,7 @@
  #include <algorithm>
  

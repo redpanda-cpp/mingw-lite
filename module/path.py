@@ -73,8 +73,10 @@ class ProjectPaths:
     self.binutils = self.build / binutils
     if Version(ver.binutils) >= Version('2.43'):
       self.binutils_arx = self.assets / f'{binutils}.tar.zst'
-    else:
+    elif Version(ver.binutils) >= Version('2.28.1'):
       self.binutils_arx = self.assets / f'{binutils}.tar.xz'
+    else:
+      self.binutils_arx = self.assets / f'{binutils}.tar.bz2'
 
     if ver.gettext:
       gettext = f'gettext-{ver.gettext}'
@@ -86,15 +88,24 @@ class ProjectPaths:
 
     gcc = f'gcc-{ver.gcc}'
     self.gcc = self.build / gcc
-    self.gcc_arx = self.assets / f'{gcc}.tar.xz'
+    if Version(ver.gcc).major >= 5:
+      self.gcc_arx = self.assets / f'{gcc}.tar.xz'
+    else:
+      self.gcc_arx = self.assets / f'{gcc}.tar.bz2'
 
     gdb = f'gdb-{ver.gdb}'
     self.gdb = self.build / gdb
-    self.gdb_arx = self.assets / f'{gdb}.tar.xz'
+    if Version(ver.gdb) >= Version('7.8'):
+      self.gdb_arx = self.assets / f'{gdb}.tar.xz'
+    else:
+      self.gdb_arx = self.assets / f'{gdb}.tar.bz2'
 
     gmp = f'gmp-{ver.gmp}'
     self.gmp = self.build / gmp
-    self.gmp_arx = self.assets / f'{gmp}.tar.xz'
+    if Version(ver.gmp) >= Version('6.2.0'):
+      self.gmp_arx = self.assets / f'{gmp}.tar.zst'
+    else:
+      self.gmp_arx = self.assets / f'{gmp}.tar.xz'
 
     iconv = f'libiconv-{ver.iconv}'
     self.iconv = self.build / iconv
@@ -102,7 +113,10 @@ class ProjectPaths:
 
     make = f'make-{ver.make}'
     self.make = self.build / make
-    self.make_arx = self.assets / f'{make}.tar.gz'
+    if Version(ver.make) >= Version('4.3'):
+      self.make_arx = self.assets / f'{make}.tar.lz'
+    else:
+      self.make_arx = self.assets / f'{make}.tar.bz2'
 
     if ver.mcfgthread:
       mcfgthread = f'mcfgthread-{ver.mcfgthread}'
@@ -114,7 +128,10 @@ class ProjectPaths:
 
     mingw = f'mingw-w64-v{ver.mingw}'
     self.mingw = self.build / mingw
-    self.mingw_arx = self.assets / f'{mingw}.tar.bz2'
+    if Version(ver.mingw).major >= 3:
+      self.mingw_arx = self.assets / f'{mingw}.tar.bz2'
+    else:
+      self.mingw_arx = self.assets / f'{mingw}.tar.gz'
 
     mpc = f'mpc-{ver.mpc}'
     self.mpc = self.build / mpc

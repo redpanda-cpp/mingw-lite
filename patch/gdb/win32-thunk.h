@@ -13,8 +13,7 @@ namespace Win32Thunk {
     LPDWORD lpdwProcessList,
     DWORD dwProcessCount
   ) {
-    using type = decltype(&GetConsoleProcessList);
-    static_assert(std::is_same_v<type, decltype(&::GetConsoleProcessList)>);
+    using type = decltype(&::GetConsoleProcessList);
     static type real = (type) GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetConsoleProcessList");
     if (real)
       return real(lpdwProcessList, dwProcessCount);
@@ -26,8 +25,7 @@ namespace Win32Thunk {
     LPSTR lpBuffer,
     UINT uSize
   ) {
-    using type = decltype(&GetSystemWow64DirectoryA);
-    static_assert(std::is_same_v<type, decltype(&::GetSystemWow64DirectoryA)>);
+    using type = decltype(&::GetSystemWow64DirectoryA);
     static type real = (type) GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetSystemWow64DirectoryA");
     if (real)
       return real(lpBuffer, uSize);
@@ -39,8 +37,7 @@ namespace Win32Thunk {
   inline void WSAAPI freeaddrinfo(
     _In_ PADDRINFOA pAddrInfo
   ) {
-    using type = decltype(&freeaddrinfo);
-    static_assert(std::is_same_v<type, decltype(&::freeaddrinfo)>);
+    using type = decltype(&::freeaddrinfo);
     static type real = (type)GetProcAddress(GetModuleHandleW(L"ws2_32.dll"), "freeaddrinfo");
     if (real)
       return real(pAddrInfo);
@@ -98,8 +95,7 @@ namespace Win32Thunk {
     _In_opt_ const ADDRINFOA *pHints,
     _Out_ PADDRINFOA *ppResult
   ) {
-    using type = decltype(&getaddrinfo);
-    static_assert(std::is_same_v<type, decltype(&::getaddrinfo)>);
+    using type = decltype(&::getaddrinfo);
     static type real = (type)GetProcAddress(GetModuleHandleW(L"ws2_32.dll"), "getaddrinfo");
     if (real)
       return real(pNodeName, pServiceName, pHints, ppResult);
@@ -133,8 +129,7 @@ namespace Win32Thunk {
     _In_ DWORD ServiceBufferLength,
     _In_ INT Flags
   ) {
-    using type = decltype(&getnameinfo);
-    static_assert(std::is_same_v<type, decltype(&::getnameinfo)>);
+    using type = decltype(&::getnameinfo);
     static type real = (type)GetProcAddress(GetModuleHandleW(L"ws2_32.dll"), "getnameinfo");
     if (real)
       return real(pSockaddr, SockaddrLength, pNodeBuffer, NodeBufferLength, pServiceBuffer, ServiceBufferLength, Flags);

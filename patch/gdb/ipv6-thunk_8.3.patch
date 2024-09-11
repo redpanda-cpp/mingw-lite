@@ -1,0 +1,115 @@
+diff --git a/gdb/common/netstuff.c b/gdb/common/netstuff.c
+index 27fdc739ffd..edbf67c852c 100644
+--- a/gdb/common/netstuff.c
++++ b/gdb/common/netstuff.c
+@@ -25,7 +25,7 @@
+ # undef _WIN32_WINNT
+ # define _WIN32_WINNT 0x0501
+ #endif
+-#include <ws2tcpip.h>
++#include "win32-thunk.h"
+ #else
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+@@ -38,7 +38,7 @@
+ 
+ scoped_free_addrinfo::~scoped_free_addrinfo ()
+ {
+-  freeaddrinfo (m_res);
++  Win32Thunk::freeaddrinfo (m_res);
+ }
+ 
+ /* See common/netstuff.h.  */
+diff --git a/gdb/gdbserver/gdbreplay.c b/gdb/gdbserver/gdbreplay.c
+index fed9102866d..39e1b7e28e3 100644
+--- a/gdb/gdbserver/gdbreplay.c
++++ b/gdb/gdbserver/gdbreplay.c
+@@ -49,7 +49,7 @@
+ # undef _WIN32_WINNT
+ # define _WIN32_WINNT 0x0501
+ #endif
+-#include <ws2tcpip.h>
++#include "win32-thunk.h"
+ #endif
+ 
+ #include "common/netstuff.h"
+@@ -187,7 +187,7 @@ remote_open (char *name)
+     }
+ #endif
+ 
+-  int r = getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
++  int r = Win32Thunk::getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
+ 		       &hint, &ainfo);
+ 
+   if (r != 0)
+@@ -263,7 +263,7 @@ remote_open (char *name)
+       setsockopt (remote_desc, IPPROTO_TCP, TCP_NODELAY,
+ 		  (char *) &tmp, sizeof (tmp));
+ 
+-      if (getnameinfo ((struct sockaddr *) &sockaddr, sockaddrsize,
++      if (Win32Thunk::getnameinfo ((struct sockaddr *) &sockaddr, sockaddrsize,
+ 		       orig_host, sizeof (orig_host),
+ 		       orig_port, sizeof (orig_port),
+ 		       NI_NUMERICHOST | NI_NUMERICSERV) == 0)
+diff --git a/gdb/gdbserver/remote-utils.c b/gdb/gdbserver/remote-utils.c
+index 4e6f9c62de8..aaecb42d54f 100644
+--- a/gdb/gdbserver/remote-utils.c
++++ b/gdb/gdbserver/remote-utils.c
+@@ -67,7 +67,7 @@
+ # undef _WIN32_WINNT
+ # define _WIN32_WINNT 0x0501
+ #endif
+-#include <ws2tcpip.h>
++#include "win32-thunk.h"
+ #endif
+ 
+ #if __QNX__
+@@ -198,7 +198,7 @@ handle_accept_event (int err, gdb_client_data client_data)
+   /* Convert IP address to string.  */
+   char orig_host[GDB_NI_MAX_ADDR], orig_port[GDB_NI_MAX_PORT];
+ 
+-  int r = getnameinfo ((struct sockaddr *) &sockaddr, len,
++  int r = Win32Thunk::getnameinfo ((struct sockaddr *) &sockaddr, len,
+ 		       orig_host, sizeof (orig_host),
+ 		       orig_port, sizeof (orig_port),
+ 		       NI_NUMERICHOST | NI_NUMERICSERV);
+@@ -278,7 +278,7 @@ remote_prepare (const char *name)
+     }
+ #endif
+ 
+-  int r = getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
++  int r = Win32Thunk::getaddrinfo (parsed.host_str.c_str (), parsed.port_str.c_str (),
+ 		       &hint, &ainfo);
+ 
+   if (r != 0)
+@@ -405,7 +405,7 @@ remote_open (const char *name)
+       if (getsockname (listen_desc, (struct sockaddr *) &sockaddr, &len) < 0)
+ 	perror_with_name ("Can't determine port");
+ 
+-      int r = getnameinfo ((struct sockaddr *) &sockaddr, len,
++      int r = Win32Thunk::getnameinfo ((struct sockaddr *) &sockaddr, len,
+ 			   NULL, 0,
+ 			   listen_port, sizeof (listen_port),
+ 			   NI_NUMERICSERV);
+diff --git a/gdb/ser-tcp.c b/gdb/ser-tcp.c
+index 039b0432231..d22cc94917f 100644
+--- a/gdb/ser-tcp.c
++++ b/gdb/ser-tcp.c
+@@ -43,7 +43,7 @@
+ # undef _WIN32_WINNT
+ # define _WIN32_WINNT 0x0501
+ #endif
+-#include <ws2tcpip.h>
++#include "win32-thunk.h"
+ #ifndef ETIMEDOUT
+ #define ETIMEDOUT WSAETIMEDOUT
+ #endif
+@@ -294,7 +294,7 @@ net_open (struct serial *scb, const char *name)
+   if (parsed.port_str.empty ())
+     error (_("Missing port on hostname '%s'"), name);
+ 
+-  int r = getaddrinfo (parsed.host_str.c_str (),
++  int r = Win32Thunk::getaddrinfo (parsed.host_str.c_str (),
+ 		       parsed.port_str.c_str (),
+ 		       &hint, &ainfo);
+ 

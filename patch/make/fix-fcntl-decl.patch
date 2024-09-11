@@ -1,0 +1,12 @@
+diff --unified --recursive --text make-4.3.orig/lib/fcntl.in.h make-4.3/lib/fcntl.in.h
+--- make-4.3.orig/lib/fcntl.in.h	2020-01-20 04:34:01.000000000 +0800
++++ make-4.3/lib/fcntl.in.h	2024-09-14 14:53:36.196168105 +0800
+@@ -108,7 +108,7 @@
+                  "use gnulib module creat for portability");
+ #endif
+ 
+-#if @GNULIB_FCNTL@
++#if 0
+ # if @REPLACE_FCNTL@
+ #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+ #   undef fcntl

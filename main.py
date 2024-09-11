@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+from packaging.version import Version
 from pathlib import Path
 import shutil
 import subprocess
@@ -19,7 +20,14 @@ def parse_args() -> argparse.Namespace:
   parser.add_argument(
     '-b', '--branch',
     type = str,
-    choices = ['15', '14'],
+    choices = [
+      # C++17 era
+      '15', '14', '13', '12', '11',
+      # C++14 era
+      '10', '9', '8', '7', '6',
+      # C++98 era
+      '5','4.9', '4.8',
+    ],
     required = True,
     help = 'GCC branch to build',
   )
@@ -56,7 +64,16 @@ def parse_args() -> argparse.Namespace:
     default = 0,
     help = 'Increase verbosity (up to 2)',
   )
-  return parser.parse_args()
+
+  result = parser.parse_args()
+  if result.profile in ['64-mcf', '32-mcf'] and Version(result.branch).major < 13:
+    raise Exception('mcf profile requires GCC 13 or later')
+  if result.profile in ['64-ucrt', '32-ucrt'] and Version(result.branch).major < 8:
+    raise Exception('ucrt profile requires GCC 8 or later')
+  if result.profile == '32-legacy' and Version(result.branch).major < 14:
+    raise Exception('32-legacy profile not backported yet')
+
+  return result
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.build.exists():
