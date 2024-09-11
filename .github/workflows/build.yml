@@ -34,8 +34,8 @@ jobs:
       - name: Build
         if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
         run: |
-          podman build -t mingw-lite/buildenv-ubuntu support/buildenv-ubuntu
-          podman run --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-ubuntu \
+          podman build -t mingw-lite/buildenv-alpine support/buildenv-alpine
+          podman run --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-alpine \
             ./main.py --branch ${{ matrix.branch }} --profile ${{ matrix.profile }}
 
       - name: Upload

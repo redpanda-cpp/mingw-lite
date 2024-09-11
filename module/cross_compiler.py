@@ -14,12 +14,19 @@ def _binutils(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   configure('binutils', build_dir, [
     f'--prefix={paths.x_prefix}',
     f'--target={info.target}',
-    '--disable-nls',
-    '--with-static-standard-libraries',
+    # static build
+    '--disable-plugins',
+    '--disable-shared',
+    '--enable-static',
+    # features
+    '--disable-install-libbfd',
     '--disable-multilib',
-    *cflags_build(),
+    '--disable-nls',
+    # libtool eats `-static`
+    *cflags_build(ld_extra = ['--static']),
   ])
-  make_default('binutils', build_dir, jobs)
+  # make_default('binutils', build_dir, jobs)
+  make_custom('binutils', build_dir, ['V=1', 'MAKEINFO=true'], jobs)
   make_install('binutils', build_dir)
 
 def _headers(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
@@ -87,22 +94,29 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--libexecdir={paths.x_prefix / 'lib'}',
     f'--with-gcc-major-version-only',
     f'--target={info.target}',
-    '--enable-static',
+    # static build
+    '--disable-lto',
+    '--disable-plugin',
     '--disable-shared',
-    '--with-pic',
-    f'--with-gmp={paths.x_dep}',
-    f'--with-mpfr={paths.x_dep}',
-    f'--with-mpc={paths.x_dep}',
+    '--enable-static',
+    '--without-pic',
+    # features
+    '--disable-dependency-tracking',
     '--enable-languages=c,c++',
     '--enable-libgomp',
+    '--disable-multilib',
+    '--disable-nls',
     f'--enable-threads={info.thread}',
     *exception_flags,
-    '--enable-version-specific-runtime-libs',
-    '--disable-dependency-tracking',
-    '--disable-nls',
-    '--disable-multilib',
-    *cflags_build('_FOR_BUILD'),  # In the cross phase,
-    *cflags_build(),              # GCC’s HOST is our BUILD (Linux x86_64)
+    # packages
+    f'--with-gmp={paths.x_dep}',
+    '--without-libcc1',
+    '--without-libiconv',
+    '--without-libintl',
+    f'--with-mpc={paths.x_dep}',
+    f'--with-mpfr={paths.x_dep}',
+    # libtool eats `-static`
+    *cflags_build(ld_extra = ['--static']),  # GCC’s HOST is our BUILD (Linux x86_64)
     *cflags_host('_FOR_TARGET'),  # GCC’s TARGET is our HOST (Windows on which GCC runs)
   ])
   make_custom('gcc (all-gcc)', build_dir, ['all-gcc'], jobs)
