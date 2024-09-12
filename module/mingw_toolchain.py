@@ -286,7 +286,7 @@ def _licenses(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
   if info.thread == 'mcf':
     ensure(license_dir / 'mcfgthread')
     copyfile(paths.mcfgthread / 'LICENSE.TXT', license_dir / 'mcfgthread' / 'LICENSE.TXT')
-    for file in ['gcc-exception-3.1.en.txt', 'gpl-3.0.txt', 'lgpl-3.0.txt']:
+    for file in ['gcc-exception-3.1.txt', 'gpl-3.0.txt', 'lgpl-3.0.txt']:
       copyfile(paths.mcfgthread / 'licenses' / file, license_dir / 'mcfgthread' / file)
 
   ensure(license_dir / 'mingw-w64')

@@ -16,7 +16,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'make-4.4.1.tar.gz': 'dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3',
 
-  'mcfgthread-1.8-ga.3.tar.gz': '6d916455c1a999b97dbe1f96faa3f0da63095cd6fc860f52135dae37ac4886a9',
+  'mcfgthread-1.8-ga.4.tar.gz': 'd2318ef761927860b7a8963308145065047d8ad2102313b26e6eb2d88d9ef1e3',
 
   'mingw-w64-v12.0.0.tar.bz2': 'cc41898aac4b6e8dd5cffd7331b9d9515b912df4420a3a612b5ea2955bbeed2f',
 
