@@ -86,7 +86,7 @@ def package(paths: ProjectPaths):
 
   subprocess.run([
     '7z', 'a', '-t7z',
-    '-mf=BCJ2', '-mx9', '-ms=on', '-m0=LZMA:d=64m',
+    '-mf=BCJ2', '-mx9', '-ms=on', '-mqs', '-m0=LZMA:d=64m:fb273',
     paths.arx,
     paths.prefix.name,
   ], check = True, cwd = paths.prefix.parent)
