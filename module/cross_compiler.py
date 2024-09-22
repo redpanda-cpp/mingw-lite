@@ -146,6 +146,7 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--enable-static',
     '--without-pic',
     # features
+    '--enable-checking=release',
     '--disable-dependency-tracking',
     '--enable-languages=c,c++',
     '--disable-libgomp',
