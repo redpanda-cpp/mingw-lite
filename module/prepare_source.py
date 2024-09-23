@@ -4,6 +4,7 @@ from packaging.version import Version
 from pathlib import Path
 from shutil import copyfile
 import subprocess
+from urllib.error import URLError
 from urllib.request import urlopen
 
 from module.checksum import CHECKSUMS
@@ -11,6 +12,7 @@ from module.path import ProjectPaths
 from module.profile import BranchVersions, ProfileInfo
 
 def _validate_and_download(path: Path, url: str):
+  MAX_RETRY = 3
   checksum = CHECKSUMS[path.name]
   if path.exists():
     with open(path, 'rb') as f:
@@ -22,14 +24,27 @@ def _validate_and_download(path: Path, url: str):
         raise Exception(message)
   else:
     logging.info('Downloading %s' % path.name)
-    with urlopen(url) as response:
-      body = response.read()
-      if checksum != sha256(body).hexdigest():
-        message = 'Download fail: checksum mismatch for %s' % path.name
-        logging.critical(message)
-        raise Exception(message)
-      with open(path, "wb") as f:
-        f.write(body)
+    retry_count = 0
+    while True:
+      retry_count += 1
+      try:
+        response = urlopen(url)
+        body = response.read()
+        if checksum != sha256(body).hexdigest():
+          message = 'Download fail: checksum mismatch for %s' % path.name
+          logging.critical(message)
+          raise Exception(message)
+        with open(path, "wb") as f:
+          f.write(body)
+          return
+      except URLError as e:
+        message = 'Download fail: %s (retry %d/3)' % (e.reason, retry_count)
+        if retry_count < MAX_RETRY:
+          logging.warning(message)
+          logging.warning('Retrying...')
+        else:
+          logging.critical(message)
+          raise e
 
 def _check_and_extract(path: Path, arx: Path):
   # check if already extracted
