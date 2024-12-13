@@ -33,7 +33,7 @@ def _gmp(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--disable-assembly',
     '--enable-static',
     '--disable-shared',
-    *cflags_host(),
+    *cflags_host(c_extra = ['-std=gnu11']),
   ])
   make_default('gmp', build_dir, jobs)
   make_install('gmp', build_dir)
@@ -161,7 +161,7 @@ def _iconv(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--disable-nls',
     '--enable-static',
     '--disable-shared',
-    *cflags_host(),
+    *cflags_host(c_extra = ['-std=gnu11']),
   ])
   make_default('iconv', build_dir, jobs)
   make_install('iconv', build_dir)
@@ -259,7 +259,7 @@ def _gdb(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--with-mpc={paths.dep}',
     f'--with-mpfr={paths.dep}',
     *gmp_mpfr_flags,
-    *cflags_host(common_extra = ['-DPDC_WIDE']),
+    *cflags_host(common_extra = ['-DPDC_WIDE'], c_extra = ['-std=gnu11']),
   ])
   make_default('gdb', build_dir, jobs)
   make_install('gdb', build_dir)
@@ -271,7 +271,7 @@ def _gmake(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--prefix={paths.prefix}',
     f'--host={info.target}',
     '--disable-nls',
-    *cflags_host(),
+    *cflags_host(c_extra = ['-std=gnu11']),
   ])
   make_default('make', build_dir, jobs)
   copyfile(build_dir / 'make.exe', paths.prefix / 'bin' / 'mingw32-make.exe')
