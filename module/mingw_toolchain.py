@@ -2,8 +2,9 @@ import argparse
 import logging
 from packaging.version import Version
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, copytree
 import subprocess
+from typing import Optional
 
 from module.debug import shell_here
 from module.path import ProjectPaths
@@ -236,7 +237,42 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   make_default('gcc', build_dir, jobs)
   make_install('gcc', build_dir)
 
-def _gdb(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+def _python(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  # we do not actually need it
+  # just create frozen module headers for target
+  x_build_dir = paths.python / 'x-build'
+  ensure(x_build_dir)
+  configure('python', x_build_dir, [])
+  make_default('python', x_build_dir, jobs)
+
+  xmake_arch_map = {
+    '32': 'i386',
+    '64': 'x86_64',
+    'arm64': 'aarch64',
+  }
+  res = subprocess.run([
+    'xmake', 'config', '--root',
+    '-p', 'mingw',
+    '-a', xmake_arch_map[info.arch],
+    f'--mingw={paths.x_prefix}',
+    f'--cross={info.target}-',
+  ], cwd = paths.python)
+  if res.returncode != 0:
+    raise Exception('xmake config failed')
+  res = subprocess.run([
+    'xmake', 'build', '--root',
+    '-j', str(jobs),
+  ], cwd = paths.python)
+  if res.returncode != 0:
+    raise Exception('xmake build failed')
+  res = subprocess.run([
+    'xmake', 'install', '--root',
+    '-o', str(paths.dep),
+  ], cwd = paths.python)
+  if res.returncode != 0:
+    raise Exception('xmake install failed')
+
+def _gdb(ver: str, python_ver: Optional[str], paths: ProjectPaths, info: ProfileInfo, jobs: int):
   v = Version(ver)
   build_dir = paths.gdb / 'build'
   ensure(build_dir)
@@ -249,6 +285,11 @@ def _gdb(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
       f'--with-libmpfr-prefix={paths.dep}',
     ]
 
+  if python_ver:
+    python_flags = [f'--with-python={paths.dep}/python-config.sh']
+  else:
+    python_flags = []
+
   configure('gdb', build_dir, [
     f'--prefix={paths.prefix}',
     f'--host={info.target}',
@@ -258,7 +299,9 @@ def _gdb(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--with-gmp={paths.dep}',
     f'--with-mpc={paths.dep}',
     f'--with-mpfr={paths.dep}',
+    f'--with-system-gdbinit={paths.prefix}/share/gdb/gdbinit',
     *gmp_mpfr_flags,
+    *python_flags,
     *cflags_host(common_extra = ['-DPDC_WIDE'], c_extra = ['-std=gnu11']),
   ])
   make_default('gdb', build_dir, jobs)
@@ -275,6 +318,22 @@ def _gmake(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   ])
   make_default('make', build_dir, jobs)
   copyfile(build_dir / 'make.exe', paths.prefix / 'bin' / 'mingw32-make.exe')
+
+def _python_packages(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, config: argparse.Namespace):
+  copytree(paths.prefix / 'share' / f'gcc-{config.branch}' / 'python', paths.dep / 'Lib', dirs_exist_ok = True)
+  subprocess.run([
+    '7z', 'a', '-tzip',
+    '-mx0',  # no compression, reduce final size
+    paths.prefix / 'lib' / 'python.zip',
+    '*'
+  ], check = True, cwd = paths.dep / 'Lib')
+  with open(paths.prefix / 'bin' / 'gdb._pth', 'w') as f:
+    f.write('../lib/python.zip\n')
+  with open(paths.prefix / 'share' / 'gdb' / 'gdbinit', 'w') as f:
+    f.write('python\n')
+    f.write('from libstdcxx.v6.printers import register_libstdcxx_printers\n')
+    f.write('register_libstdcxx_printers(None)\n')
+    f.write('end\n')
 
 def _licenses(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
   license_dir = paths.prefix / 'share' / 'licenses'
@@ -328,6 +387,10 @@ def _licenses(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
   ensure(license_dir / 'mpfr')
   copyfile(paths.mpfr / 'COPYING.LESSER', license_dir / 'mpfr' / 'COPYING.LESSER')
 
+  if ver.python:
+    ensure(license_dir / 'python')
+    copyfile(paths.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
+
 def build_mingw_toolchain(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, config: argparse.Namespace):
   _binutils(ver.binutils, paths, info, config.jobs)
 
@@ -353,8 +416,14 @@ def build_mingw_toolchain(ver: BranchVersions, paths: ProjectPaths, info: Profil
 
   _gcc(ver.gcc, paths, info, config.jobs)
 
-  _gdb(ver.gdb, paths, info, config.jobs)
+  if ver.python:
+    _python(ver.python, paths, info, config.jobs)
+
+  _gdb(ver.gdb, ver.python, paths, info, config.jobs)
 
   _gmake(ver.make, paths, info, config.jobs)
+
+  if ver.python:
+    _python_packages(ver, paths, info, config)
 
   _licenses(ver, paths, info)

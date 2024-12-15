@@ -1,0 +1,260 @@
+diff --git a/Include/internal/pycore_time.h b/Include/internal/pycore_time.h
+index 205ac5d3781..c30e07f4b4a 100644
+--- a/Include/internal/pycore_time.h
++++ b/Include/internal/pycore_time.h
+@@ -58,9 +58,7 @@ extern "C" {
+ #endif
+ 
+ 
+-#ifdef __clang__
+ struct timeval;
+-#endif
+ 
+ #define _SIZEOF_PYTIME_T 8
+ 
+diff --git a/Modules/_winapi.c b/Modules/_winapi.c
+index bd80c5c94fe..eb1333b9e04 100644
+--- a/Modules/_winapi.c
++++ b/Modules/_winapi.c
+@@ -642,7 +642,7 @@ _winapi_CreateJunction_impl(PyObject *module, LPCWSTR src_path,
+     tp.base.PrivilegeCount = 1;
+     tp.base.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+     if (!AdjustTokenPrivileges(token, FALSE, &tp.base, sizeof(previousTp),
+-                               &previousTp.base, &previousTpSize)) {
++                               &previousTp.base, (DWORD *)&previousTpSize)) {
+         goto cleanup;
+     }
+ 
+@@ -2890,66 +2890,6 @@ _winapi_NeedCurrentDirectoryForExePath_impl(PyObject *module,
+ }
+ 
+ 
+-/*[clinic input]
+-_winapi.CopyFile2
+-
+-    existing_file_name: LPCWSTR
+-    new_file_name: LPCWSTR
+-    flags: DWORD
+-    progress_routine: object = None
+-
+-Copies a file from one name to a new name.
+-
+-This is implemented using the CopyFile2 API, which preserves all stat
+-and metadata information apart from security attributes.
+-
+-progress_routine is reserved for future use, but is currently not
+-implemented. Its value is ignored.
+-[clinic start generated code]*/
+-
+-static PyObject *
+-_winapi_CopyFile2_impl(PyObject *module, LPCWSTR existing_file_name,
+-                       LPCWSTR new_file_name, DWORD flags,
+-                       PyObject *progress_routine)
+-/*[clinic end generated code: output=43d960d9df73d984 input=fb976b8d1492d130]*/
+-{
+-    HRESULT hr;
+-    COPYFILE2_EXTENDED_PARAMETERS params = { sizeof(COPYFILE2_EXTENDED_PARAMETERS) };
+-
+-    if (PySys_Audit("_winapi.CopyFile2", "uuk",
+-                    existing_file_name, new_file_name, flags) < 0) {
+-        return NULL;
+-    }
+-
+-    params.dwCopyFlags = flags;
+-    /* For future implementation. We ignore the value for now so that
+-       users only have to test for 'CopyFile2' existing and not whether
+-       the additional parameter exists.
+-    if (progress_routine != Py_None) {
+-        params.pProgressRoutine = _winapi_CopyFile2ProgressRoutine;
+-        params.pvCallbackContext = Py_NewRef(progress_routine);
+-    }
+-    */
+-    Py_BEGIN_ALLOW_THREADS;
+-    hr = CopyFile2(existing_file_name, new_file_name, &params);
+-    Py_END_ALLOW_THREADS;
+-    /* For future implementation.
+-    if (progress_routine != Py_None) {
+-        Py_DECREF(progress_routine);
+-    }
+-    */
+-    if (FAILED(hr)) {
+-        if ((hr & 0xFFFF0000) == 0x80070000) {
+-            PyErr_SetFromWindowsErr(hr & 0xFFFF);
+-        } else {
+-            PyErr_SetFromWindowsErr(hr);
+-        }
+-        return NULL;
+-    }
+-    Py_RETURN_NONE;
+-}
+-
+-
+ static PyMethodDef winapi_functions[] = {
+     _WINAPI_CLOSEHANDLE_METHODDEF
+     _WINAPI_CONNECTNAMEDPIPE_METHODDEF
+@@ -2995,7 +2935,6 @@ static PyMethodDef winapi_functions[] = {
+     _WINAPI_GETFILETYPE_METHODDEF
+     _WINAPI__MIMETYPES_READ_WINDOWS_REGISTRY_METHODDEF
+     _WINAPI_NEEDCURRENTDIRECTORYFOREXEPATH_METHODDEF
+-    _WINAPI_COPYFILE2_METHODDEF
+     {NULL, NULL}
+ };
+ 
+diff --git a/Modules/clinic/_winapi.c.h b/Modules/clinic/_winapi.c.h
+index b0c54fc809f..4bcb6ac7c7e 100644
+--- a/Modules/clinic/_winapi.c.h
++++ b/Modules/clinic/_winapi.c.h
+@@ -2055,73 +2055,4 @@ exit:
+     return return_value;
+ }
+ 
+-PyDoc_STRVAR(_winapi_CopyFile2__doc__,
+-"CopyFile2($module, /, existing_file_name, new_file_name, flags,\n"
+-"          progress_routine=None)\n"
+-"--\n"
+-"\n"
+-"Copies a file from one name to a new name.\n"
+-"\n"
+-"This is implemented using the CopyFile2 API, which preserves all stat\n"
+-"and metadata information apart from security attributes.\n"
+-"\n"
+-"progress_routine is reserved for future use, but is currently not\n"
+-"implemented. Its value is ignored.");
+-
+-#define _WINAPI_COPYFILE2_METHODDEF    \
+-    {"CopyFile2", _PyCFunction_CAST(_winapi_CopyFile2), METH_FASTCALL|METH_KEYWORDS, _winapi_CopyFile2__doc__},
+-
+-static PyObject *
+-_winapi_CopyFile2_impl(PyObject *module, LPCWSTR existing_file_name,
+-                       LPCWSTR new_file_name, DWORD flags,
+-                       PyObject *progress_routine);
+-
+-static PyObject *
+-_winapi_CopyFile2(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+-{
+-    PyObject *return_value = NULL;
+-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+-
+-    #define NUM_KEYWORDS 4
+-    static struct {
+-        PyGC_Head _this_is_not_used;
+-        PyObject_VAR_HEAD
+-        PyObject *ob_item[NUM_KEYWORDS];
+-    } _kwtuple = {
+-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
+-        .ob_item = { &_Py_ID(existing_file_name), &_Py_ID(new_file_name), &_Py_ID(flags), &_Py_ID(progress_routine), },
+-    };
+-    #undef NUM_KEYWORDS
+-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+-
+-    #else  // !Py_BUILD_CORE
+-    #  define KWTUPLE NULL
+-    #endif  // !Py_BUILD_CORE
+-
+-    static const char * const _keywords[] = {"existing_file_name", "new_file_name", "flags", "progress_routine", NULL};
+-    static _PyArg_Parser _parser = {
+-        .keywords = _keywords,
+-        .format = "O&O&k|O:CopyFile2",
+-        .kwtuple = KWTUPLE,
+-    };
+-    #undef KWTUPLE
+-    LPCWSTR existing_file_name = NULL;
+-    LPCWSTR new_file_name = NULL;
+-    DWORD flags;
+-    PyObject *progress_routine = Py_None;
+-
+-    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+-        _PyUnicode_WideCharString_Converter, &existing_file_name, _PyUnicode_WideCharString_Converter, &new_file_name, &flags, &progress_routine)) {
+-        goto exit;
+-    }
+-    return_value = _winapi_CopyFile2_impl(module, existing_file_name, new_file_name, flags, progress_routine);
+-
+-exit:
+-    /* Cleanup for existing_file_name */
+-    PyMem_Free((void *)existing_file_name);
+-    /* Cleanup for new_file_name */
+-    PyMem_Free((void *)new_file_name);
+-
+-    return return_value;
+-}
+ /*[clinic end generated code: output=2304c62187a90140 input=a9049054013a1b77]*/
+diff --git a/Modules/getpath.c b/Modules/getpath.c
+index d0128b20fae..ec3fb3b4325 100644
+--- a/Modules/getpath.c
++++ b/Modules/getpath.c
+@@ -22,7 +22,7 @@
+ #endif
+ 
+ /* Reference the precompiled getpath.py */
+-#include "Python/frozen_modules/getpath.h"
++#include "frozen_modules/getpath.h"
+ 
+ #if (!defined(PREFIX) || !defined(EXEC_PREFIX) \
+         || !defined(VERSION) || !defined(VPATH) \
+diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
+index a09305c91ec..a4de96b8ead 100644
+--- a/Modules/posixmodule.c
++++ b/Modules/posixmodule.c
+@@ -33,7 +33,7 @@
+ #ifdef MS_WINDOWS
+ #  include <windows.h>
+ #  if !defined(MS_WINDOWS_GAMES) || defined(MS_WINDOWS_DESKTOP)
+-#    include <pathcch.h>
++#    include "internal/win32-thunk.h"
+ #  endif
+ #  include <winioctl.h>
+ #  include <lmcons.h>             // UNLEN
+@@ -43,6 +43,7 @@
+ #  if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM)
+ #    define HAVE_SYMLINK
+ #  endif /* MS_WINDOWS_DESKTOP | MS_WINDOWS_SYSTEM */
++#  include <process.h>
+ #endif
+ 
+ #ifndef MS_WINDOWS
+@@ -5141,7 +5142,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
+     }
+ 
+     Py_BEGIN_ALLOW_THREADS
+-    ret = PathCchSkipRoot(buffer, &end);
++    ret = PathCchSkipRoot(buffer, (const wchar_t **)&end);
+     Py_END_ALLOW_THREADS
+     if (FAILED(ret)) {
+         result = Py_BuildValue("sO", "", path->object);
+diff --git a/Python/fileutils.c b/Python/fileutils.c
+index 9529b14d377..266fad48ab5 100644
+--- a/Python/fileutils.c
++++ b/Python/fileutils.c
+@@ -16,7 +16,7 @@
+ #  if defined(MS_WINDOWS_GAMES) && !defined(MS_WINDOWS_DESKTOP)
+ #    define PATHCCH_ALLOW_LONG_PATHS 0x01
+ #  else
+-#    include <pathcch.h>            // PathCchCombineEx
++#    include "internal/win32-thunk.h"
+ #  endif
+ extern int winerror_to_errno(int);
+ #endif
+diff --git a/Python/pytime.c b/Python/pytime.c
+index 560aea33f20..736ba9165c0 100644
+--- a/Python/pytime.c
++++ b/Python/pytime.c
+@@ -7,6 +7,7 @@
+ #endif
+ #ifdef MS_WINDOWS
+ #  include <winsock2.h>           // struct timeval
++#  include "internal/win32-thunk.h"
+ #endif
+ 
+ #if defined(__APPLE__)
+diff --git a/Python/sysmodule.c b/Python/sysmodule.c
+index 3f170fff156..bf13233f450 100644
+--- a/Python/sysmodule.c
++++ b/Python/sysmodule.c
+@@ -3522,6 +3522,7 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
+     SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
+     SET_SYS_FROM_STRING("winver", PyWin_DLLVersionString);
+ #endif
++    SET_SYS_FROM_STRING("winver", "3.13");
+ #ifdef ABIFLAGS
+     SET_SYS_FROM_STRING("abiflags", ABIFLAGS);
+ #endif

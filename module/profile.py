@@ -15,6 +15,8 @@ class BranchVersions:
   mingw: str
   mpc: str
   mpfr: str
+  python: Optional[str]
+  python_z: Optional[str]
 
   def __init__(
     self,
@@ -32,6 +34,8 @@ class BranchVersions:
     mingw: str,
     mpc: str,
     mpfr: str,
+    python: Optional[str],
+    python_z: Optional[str]
   ):
     self.gcc = gcc
     self.rev = rev
@@ -46,6 +50,8 @@ class BranchVersions:
     self.mingw = mingw
     self.mpc = mpc
     self.mpfr = mpfr
+    self.python = python
+    self.python_z = python_z
 
 class ProfileInfo:
   arch: str
@@ -108,6 +114,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.1',
+    python = '3.13.1',
+    python_z = '1.3.1',
   ),
   '14': BranchVersions(
     gcc = '14.2.0',
@@ -123,6 +131,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.1',
+    python = '3.13.1',
+    python_z = '1.3.1',
   ),
   '13': BranchVersions(
     gcc = '13.3.0',
@@ -141,6 +151,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '11.0.1',
     mpc = '1.3.1',
     mpfr = '4.2.1',
+    python = None,
+    python_z = None,
   ),
   '12': BranchVersions(
     gcc = '12.4.0',
@@ -156,6 +168,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '10.0.0',
     mpc = '1.3.1',
     mpfr = '4.1.1',
+    python = None,
+    python_z = None,
   ),
   '11': BranchVersions(
     gcc = '11.5.0',
@@ -171,6 +185,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '9.0.0',
     mpc = '1.2.1',
     mpfr = '4.1.1',
+    python = None,
+    python_z = None,
   ),
   '10': BranchVersions(
     gcc = '10.5.0',
@@ -186,6 +202,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '8.0.3',
     mpc = '1.2.1',
     mpfr = '4.1.1',
+    python = None,
+    python_z = None,
   ),
   '9': BranchVersions(
     gcc = '9.5.0',
@@ -201,6 +219,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '7.0.0',
     mpc = '1.1.0',
     mpfr = '4.0.2',
+    python = None,
+    python_z = None,
   ),
   '8': BranchVersions(
     gcc = '8.5.0',
@@ -216,6 +236,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '6.0.1',
     mpc = '1.1.0',
     mpfr = '4.0.2',
+    python = None,
+    python_z = None,
   ),
   '7': BranchVersions(
     gcc = '7.5.0',
@@ -232,6 +254,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.0.3',
     # mpfr 4.0 released, but mpc was not ready
     mpfr = '3.1.6',
+    python = None,
+    python_z = None,
   ),
   '6': BranchVersions(
     gcc = '6.5.0',
@@ -247,6 +271,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '5.0.5',
     mpc = '1.0.3',
     mpfr = '3.1.6',
+    python = None,
+    python_z = None,
   ),
   '5': BranchVersions(
     gcc = '5.5.0',
@@ -262,6 +288,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '4.0.6',
     mpc = '1.0.3',
     mpfr = '3.1.6',
+    python = None,
+    python_z = None,
   ),
   '4.9': BranchVersions(
     gcc = '4.9.4',
@@ -277,6 +305,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '3.3.0',
     mpc = '1.0.3',
     mpfr = '3.1.6',
+    python = None,
+    python_z = None,
   ),
   '4.8': BranchVersions(
     gcc = '4.8.5',
@@ -292,6 +322,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '3.3.0',
     mpc = '1.0.3',
     mpfr = '3.1.6',
+    python = None,
+    python_z = None,
   ),
 }
 

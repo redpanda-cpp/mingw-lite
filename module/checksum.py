@@ -1,6 +1,8 @@
 from typing import Dict
 
 CHECKSUMS: Dict[str, str] = {
+  'Python-3.13.1.tar.xz': '9cf9427bee9e2242e3877dd0f6b641c1853ca461f39d6503ce260a59c80bf0d9',
+
   'binutils-2.24.tar.bz2': 'e5e8c5be9664e7f7f96e0d09919110ab5ad597794f5b1809871177a0f0f14137',
   'binutils-2.25.1.tar.bz2': 'b5b14added7d78a8d1ca70b5cb75fef57ce2197264f4f5835326b0df22ac9f22',
   'binutils-2.27.tar.bz2': '369737ce51587f92466041a97ab7d2358c6d9e1b6490b3940eb09fb0a9a6ac88',
@@ -80,4 +82,6 @@ CHECKSUMS: Dict[str, str] = {
   'mpfr-4.0.2.tar.xz': '1d3be708604eae0e42d578ba93b390c2a145f17743a744d8f3f8c2ad5855a38a',
   'mpfr-4.1.1.tar.xz': 'ffd195bd567dbaffc3b98b23fd00aad0537680c9896171e44fe3ff79e28ac33d',
   'mpfr-4.2.1.tar.xz': '277807353a6726978996945af13e52829e3abd7a9a5b7fb2793894e18f1fcbb2',
+
+  'zlib-1.3.1.tar.gz': '9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23',
 }

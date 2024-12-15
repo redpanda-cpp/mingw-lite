@@ -1,5 +1,6 @@
 from hashlib import sha256
 import logging
+import os
 from packaging.version import Version
 from pathlib import Path
 from shutil import copyfile
@@ -240,11 +241,11 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
 
     _patch_done(paths.gcc)
 
-def _gdb(ver: str, info: ProfileInfo, paths: ProjectPaths):
+def _gdb(ver: BranchVersions, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.gdb_arx.name}'
   _validate_and_download(paths.gdb_arx, url)
   if _check_and_extract(paths.gdb, paths.gdb_arx):
-    v = Version(ver)
+    v = Version(ver.gdb)
 
     # Backport
     if v == Version('8.3.1'):
@@ -253,6 +254,10 @@ def _gdb(ver: str, info: ProfileInfo, paths: ProjectPaths):
     # Fix thread
     if v.major >= 12 and info.host_winnt <= 0x0600:
       _patch(paths.gdb, paths.patch / 'gdb' / 'fix-thread.patch')
+
+    # Fix pythondir
+    if ver.python:
+      _patch(paths.gdb, paths.patch / 'gdb' / 'fix-pythondir.patch')
 
     if info.host_winnt <= 0x0500:
       copyfile(paths.patch / 'gdb' / 'win32-thunk.h', paths.gdb / 'gdb' / 'win32-thunk.h')
@@ -374,10 +379,25 @@ def _mpfr(ver: str, info: ProfileInfo, paths: ProjectPaths):
   _check_and_extract(paths.mpfr, paths.mpfr_arx)
   _patch_done(paths.mpfr)
 
+def _python(ver: BranchVersions, info: ProfileInfo, paths: ProjectPaths):
+  url = f'https://www.python.org/ftp/python/{ver.python}/{paths.python_arx.name}'
+  z_url = f'https://zlib.net/fossils/{paths.python_z_arx.name}'
+  _validate_and_download(paths.python_arx, url)
+  _validate_and_download(paths.python_z_arx, z_url)
+  if _check_and_extract(paths.python, paths.python_arx):
+    _check_and_extract(paths.python_z, paths.python_z_arx)
+    os.symlink(paths.python_z, paths.python / 'zlib', target_is_directory = True)
+    copyfile(paths.patch / 'python' / 'xmake.lua', paths.python / 'xmake.lua')
+    copyfile(paths.patch / 'python' / 'python-config.sh', paths.python / 'python-config.sh')
+    os.chmod(paths.python / 'python-config.sh', 0o755)
+    copyfile(paths.patch / 'python' / 'win32-thunk.h', paths.python / 'Include' / 'internal' / 'win32-thunk.h')
+    _patch(paths.python, paths.patch / 'python' / 'unified.patch')
+    _patch_done(paths.python)
+
 def download_and_patch(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
   _binutils(ver.binutils, info, paths)
   _gcc(ver.gcc, info, paths)
-  _gdb(ver.gdb, info, paths)
+  _gdb(ver, info, paths)
   if ver.gettext:
     _gettext(ver.gettext, info, paths)
   _gmp(ver.gmp, info, paths)
@@ -388,3 +408,5 @@ def download_and_patch(ver: BranchVersions, paths: ProjectPaths, info: ProfileIn
   _mingw(ver.mingw, info, paths)
   _mpc(ver.mpc, info, paths)
   _mpfr(ver.mpfr, info, paths)
+  if ver.python:
+    _python(ver, info, paths)

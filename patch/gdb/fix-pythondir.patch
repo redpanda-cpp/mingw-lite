@@ -1,0 +1,38 @@
+diff --git a/gdb/python/python.c b/gdb/python/python.c
+index 8121e5d6f2a..d3eeae38c79 100644
+--- a/gdb/python/python.c
++++ b/gdb/python/python.c
+@@ -2538,6 +2538,22 @@ which don't seem to make sense, indicate that it's on/enabled."),
+ 
+ #ifdef HAVE_PYTHON
+ 
++#ifdef _WIN32
++#define WIN32_LEAN_AND_MEAN
++#define NOMINMAX
++#include <windows.h>
++static std::string local_to_utf8(const std::string &local)
++{
++  int len = MultiByteToWideChar(CP_ACP, 0, local.data(), local.size(), NULL, 0);
++  std::wstring wide(len, 0);
++  MultiByteToWideChar(CP_ACP, 0, local.data(), local.size(), &wide[0], len);
++  len = WideCharToMultiByte(CP_UTF8, 0, wide.data(), wide.size(), NULL, 0, NULL, NULL);
++  std::string utf8(len, 0);
++  WideCharToMultiByte(CP_UTF8, 0, wide.data(), wide.size(), &utf8[0], len, NULL, NULL);
++  return utf8;
++}
++#endif
++
+ /* Helper function for gdbpy_initialize.  This does the work and then
+    returns false if an error has occurred and must be displayed, or true on
+    success.  */
+@@ -2552,6 +2568,10 @@ do_initialize (const struct extension_language_defn *extlang)
+ 
+   std::string gdb_pythondir = (std::string (gdb_datadir) + SLASH_STRING
+ 			       + "python");
++#ifdef _WIN32
++  if (GetACP() != CP_UTF8)
++    gdb_pythondir = local_to_utf8(gdb_pythondir);
++#endif
+ 
+   sys_path = PySys_GetObject ("path");
+ 
