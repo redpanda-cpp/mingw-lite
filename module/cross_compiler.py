@@ -308,6 +308,6 @@ def build_cross_compiler(ver: BranchVersions, paths: ProjectPaths, info: Profile
 
   gcc.__next__()
 
-  if ver.python:
+  if ver.python and info.host_winnt >= 0x0601:
     _python_z(ver, paths, info, config.jobs)
     _python(ver, paths, info, config.jobs)

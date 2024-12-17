@@ -408,5 +408,5 @@ def download_and_patch(ver: BranchVersions, paths: ProjectPaths, info: ProfileIn
   _mingw(ver.mingw, info, paths)
   _mpc(ver.mpc, info, paths)
   _mpfr(ver.mpfr, info, paths)
-  if ver.python:
+  if ver.python and info.host_winnt >= 0x0601:
     _python(ver, info, paths)

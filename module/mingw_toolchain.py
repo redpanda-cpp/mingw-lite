@@ -288,8 +288,8 @@ def _python(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   if res.returncode != 0:
     raise Exception('xmake install failed')
 
-def _gdb(ver: str, python_ver: Optional[str], paths: ProjectPaths, info: ProfileInfo, jobs: int):
-  v = Version(ver)
+def _gdb(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  v = Version(ver.gdb)
   build_dir = paths.gdb / 'build'
   ensure(build_dir)
 
@@ -301,7 +301,7 @@ def _gdb(ver: str, python_ver: Optional[str], paths: ProjectPaths, info: Profile
       f'--with-libmpfr-prefix={paths.dep}',
     ]
 
-  if python_ver:
+  if ver.python and info.host_winnt >= 0x0601:
     python_flags = [f'--with-python={paths.dep}/python-config.sh']
   else:
     python_flags = []
@@ -411,7 +411,7 @@ def _licenses(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
   ensure(license_dir / 'mpfr')
   copyfile(paths.mpfr / 'COPYING.LESSER', license_dir / 'mpfr' / 'COPYING.LESSER')
 
-  if ver.python:
+  if ver.python and info.host_winnt >= 0x0601:
     ensure(license_dir / 'python')
     copyfile(paths.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
 
@@ -440,14 +440,14 @@ def build_mingw_toolchain(ver: BranchVersions, paths: ProjectPaths, info: Profil
 
   _gcc(ver.gcc, paths, info, config.jobs)
 
-  if ver.python:
+  if ver.python and info.host_winnt >= 0x0601:
     _python(ver.python, paths, info, config.jobs)
 
-  _gdb(ver.gdb, ver.python, paths, info, config.jobs)
+  _gdb(ver, paths, info, config.jobs)
 
   _gmake(ver.make, paths, info, config.jobs)
 
-  if ver.python:
+  if ver.python and info.host_winnt >= 0x0601:
     _python_packages(ver, paths, info, config)
 
   _licenses(ver, paths, info)
