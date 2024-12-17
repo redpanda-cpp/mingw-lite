@@ -253,6 +253,36 @@ def _mcfgthread(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   for header_file in header_files:
     copyfile(header_file, include_dir / header_file.name)
 
+def _python_z(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  build_dir = paths.python_z / 'x-build'
+  ensure(build_dir)
+  configure('zlib for python', build_dir, [
+    f'--prefix={paths.x_dep}',
+    '--static',
+  ])
+  make_default('zlib for python', build_dir, jobs)
+  make_install('zlib for python', build_dir)
+
+def _python(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, jobs: int):
+  build_dir = paths.python / 'x-build'
+  ensure(build_dir)
+  # also change flags in `mingw_toolchain.py`
+  configure('python', build_dir, [
+    f'--prefix={paths.x_prefix}',
+    # static
+    '--disable-shared',
+    'MODULE_BUILDTYPE=static',
+    # features
+    '--disable-test-modules',
+    # packages
+    '--without-static-libpython',
+    f'ZLIB_CFLAGS=-I{paths.x_dep}/include',
+    f'ZLIB_LIBS=-L{paths.x_dep}/lib -lz',
+    *cflags_build(ld_extra = ['-static']),
+  ])
+  make_custom('python', build_dir, ['LDFLAGS=-static', 'LINKFORSHARED= '], jobs)
+  make_install('python', build_dir)
+
 def build_cross_compiler(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, config: argparse.Namespace):
   _iconv(ver.iconv, paths, info, config.jobs)
 
@@ -277,3 +307,7 @@ def build_cross_compiler(ver: BranchVersions, paths: ProjectPaths, info: Profile
     _mcfgthread(ver.mcfgthread, paths, info, config.jobs)
 
   gcc.__next__()
+
+  if ver.python:
+    _python_z(ver, paths, info, config.jobs)
+    _python(ver, paths, info, config.jobs)

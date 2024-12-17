@@ -47,7 +47,7 @@ target('pythoncore')
     'python-config.sh',
     {prefixdir = ''})
   add_installfiles(
-    'Lib/(**)|__pycache__',
+    'Lib/(**)|__pycache__/|test/',
     {prefixdir = 'Lib'})
   add_files(
     'Modules/getpath.c',

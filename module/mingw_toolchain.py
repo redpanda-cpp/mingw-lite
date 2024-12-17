@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 from packaging.version import Version
 from pathlib import Path
 from shutil import copyfile, copytree
@@ -238,12 +239,27 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   make_install('gcc', build_dir)
 
 def _python(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
-  # we do not actually need it
-  # just create frozen module headers for target
+  # ensure frozen module headers for target
   x_build_dir = paths.python / 'x-build'
   ensure(x_build_dir)
-  configure('python', x_build_dir, [])
-  make_default('python', x_build_dir, jobs)
+  # same flags as `cross_compiler.py`
+  configure('python frozen headers', x_build_dir, [
+    f'--prefix={paths.x_prefix}',
+    # static
+    '--disable-shared',
+    'MODULE_BUILDTYPE=static',
+    # features
+    '--disable-test-modules',
+    # packages
+    '--without-static-libpython',
+    f'ZLIB_CFLAGS=-I{paths.x_dep}/include',
+    f'ZLIB_LIBS=-L{paths.x_dep}/lib -lz',
+    *cflags_build(ld_extra = ['-static']),
+  ])
+  make_custom('python frozen headers', x_build_dir, [
+    'Modules/getpath.o',
+    'Python/frozen.o',
+  ], jobs)
 
   xmake_arch_map = {
     '32': 'i386',
@@ -322,10 +338,18 @@ def _gmake(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
 def _python_packages(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, config: argparse.Namespace):
   copytree(paths.prefix / 'share' / f'gcc-{config.branch}' / 'python', paths.dep / 'Lib', dirs_exist_ok = True)
   subprocess.run([
+    paths.x_prefix / 'bin' / 'python3', '-m', 'compileall',
+    '-b',
+    '-o', '2',
+    '.',
+  ], check = True, cwd = paths.dep / 'Lib')
+  if (paths.prefix / 'lib' / 'python.zip').exists():
+    os.remove(paths.prefix / 'lib' / 'python.zip')
+  subprocess.run([
     '7z', 'a', '-tzip',
     '-mx0',  # no compression, reduce final size
     paths.prefix / 'lib' / 'python.zip',
-    '*'
+    '*', '-xr!__pycache__', '-xr!*.py',
   ], check = True, cwd = paths.dep / 'Lib')
   with open(paths.prefix / 'bin' / 'gdb._pth', 'w') as f:
     f.write('../lib/python.zip\n')
