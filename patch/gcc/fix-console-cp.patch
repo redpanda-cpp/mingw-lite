@@ -1,7 +1,8 @@
-diff --unified --recursive --text gcc-13.2.0.orig/gcc/gcc-main.cc gcc-13.2.0/gcc/gcc-main.cc
---- gcc-13.2.0.orig/gcc/gcc-main.cc
-+++ gcc-13.2.0/gcc/gcc-main.cc
-@@ -38,9 +38,43 @@
+diff --git a/gcc/gcc-main.cc b/gcc/gcc-main.cc
+index 75eca1a3127..f5968c9abdf 100644
+--- a/gcc/gcc-main.cc
++++ b/gcc/gcc-main.cc
+@@ -38,6 +38,39 @@ along with GCC; see the file COPYING3.  If not see
  
  extern int main (int, char **);
  
@@ -20,8 +21,11 @@ diff --unified --recursive --text gcc-13.2.0.orig/gcc/gcc-main.cc gcc-13.2.0/gcc
 +    , saved_output_cp(GetConsoleOutputCP())
 +  {
 +    UINT cp = GetACP();
++    LCID lcid = GetThreadLocale();
 +    SetConsoleCP(cp);
 +    SetConsoleOutputCP(cp);
++    // `SetConsoleOutputCP` changed thread locale, restore it.
++    SetThreadLocale(lcid);
 +  }
 +
 +  ~__console_cp_init_t()
@@ -31,17 +35,10 @@ diff --unified --recursive --text gcc-13.2.0.orig/gcc/gcc-main.cc gcc-13.2.0/gcc
 +  }
 +};
 +
-+#else
-+
-+using __console_cp_init_t = int;
++__console_cp_init_t __console_cp_init;
 +
 +#endif /* __MINGW32__ */
 +
  int
  main (int argc, char **argv)
  {
-+  __console_cp_init_t __console_cp_init;
-+
-   driver d (false, /* can_finalize */
- 	    false); /* debug */
- 
