@@ -130,7 +130,7 @@ def main():
 
   download_and_patch(profile.ver, paths, profile.info)
 
-  os.environ['PATH'] = f'{paths.x_prefix}/bin:{os.environ['PATH']}'
+  os.environ['PATH'] = f'{paths.x_prefix}/bin:{os.environ["PATH"]}'
 
   if not config.no_cross:
     build_cross_compiler(profile.ver, paths, profile.info, config)

@@ -136,7 +136,7 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
 
   configure('gcc', build_dir, [
     f'--prefix={paths.x_prefix}',
-    f'--libexecdir={paths.x_prefix / 'lib'}',
+    f'--libexecdir={paths.x_prefix / "lib"}',
     f'--with-gcc-major-version-only',
     f'--target={info.target}',
     # static build
