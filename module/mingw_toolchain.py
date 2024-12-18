@@ -203,7 +203,7 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
 
   configure('gcc', build_dir, [
     f'--prefix={paths.prefix}',
-    f'--libexecdir={paths.prefix / 'lib'}',
+    f'--libexecdir={paths.prefix / "lib"}',
     f'--with-gcc-major-version-only',
     f'--target={info.target}',
     f'--host={info.target}',
