@@ -36,6 +36,7 @@ def _gmp(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--enable-static',
     '--disable-shared',
     *cflags_host(c_extra = ['-std=gnu11']),
+    'CC_FOR_BUILD=gcc',
   ])
   make_default('gmp', build_dir, jobs)
   make_install('gmp', build_dir)

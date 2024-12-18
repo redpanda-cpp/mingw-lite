@@ -4,14 +4,28 @@ Extremely fast MinGW GCC build scripts for easy experiments.
 
 ## Build
 
-```bash
-podman build -t mingw-lite/buildenv-ubuntu support/buildenv-ubuntu
-
-podman run -it --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-ubuntu
-
-# in the container
-./main.py -b <branch> -p <profile>
-```
+1. Prepare build environment. Linux:
+   ```bash
+   podman build -t mingw-lite/buildenv-ubuntu support/buildenv-ubuntu
+   ```
+   For Windows host, [create an exclusive WSL distro for mingw-lite](doc/wsl-buildenv.md).
+2. Launch build environment. Linux:
+   ```bash
+   podman run -it --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-ubuntu
+   ```
+   To expose build directories for debugging:
+   ```bash
+   podman run -it --rm \
+     -v $PWD:/mnt -w /mnt \
+     -v $PWD/build:/tmp/build \
+     -v $PWD/pkg:/opt \
+     mingw-lite/buildenv-ubuntu
+   ```
+   Windows: in “Terminal”, select “mingw-lite-buildenv” from the dropdown list.
+3. In the build environment, run:
+   ```bash
+   ./main.py -b <branch> -p <profile>
+   ```
 
 Available branches:
 
@@ -47,16 +61,6 @@ Available profiles:
 
 Notes:
 
-- To expose build directories for debugging:
-  ```bash
-  mkdir -p build pkg
-
-  podman run -it --rm \
-    -v $PWD:/mnt -w /mnt \
-    -v $PWD/build:/tmp/build \
-    -v $PWD/pkg:/opt \
-    mingw-lite/buildenv-ubuntu
-  ```
 - Version “freeze” happens at next 01-01 after GCC’s release.
 - The “32-legacy” profile partially runs on Windows 9x host.
   - GDB does not work.
