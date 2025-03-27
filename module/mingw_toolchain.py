@@ -186,8 +186,6 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   v = Version(ver)
   build_dir = paths.gcc / 'build'
   ensure(build_dir)
-  # some old version checks existence of /mingw/include
-  ensure(Path('/mingw/include'))
 
   if info.exception == 'dwarf':
     exception_flags = ['--disable-sjlj-exceptions', '--with-dwarf2']

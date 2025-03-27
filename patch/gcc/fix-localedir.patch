@@ -27,8 +27,8 @@ index d83e351139c..1b0ed5665b4 100644
 +    GetModuleFileNameA(NULL, buf, MAX_PATH);
 +    std::string exe_path = buf;
 +
-+    /* \libexec\gcc\<triplet>\<version>\cc1.exe */
-+    size_t pos = exe_path.rfind(R"(\libexec\gcc\)");
++    /* \lib\gcc\<triplet>\<version>\cc1.exe */
++    size_t pos = exe_path.rfind(R"(\lib\gcc\)");
 +    if (pos == std::string::npos) {
 +      /* \bin\gcc.exe */
 +      pos = exe_path.rfind(R"(\bin\)");
@@ -77,8 +77,8 @@ index f4ab83d2145..343b2ac7459 100644
 +	GetModuleFileNameA(NULL, buf, MAX_PATH);
 +	std::string exe_path = buf;
 +
-+	/* \libexec\gcc\<triplet>\<version>\cc1.exe */
-+	size_t pos = exe_path.rfind(R"(\libexec\gcc\)");
++	/* \lib\gcc\<triplet>\<version>\cc1.exe */
++	size_t pos = exe_path.rfind(R"(\lib\gcc\)");
 +	if (pos == std::string::npos) {
 +	  /* \bin\gcc.exe */
 +	  pos = exe_path.rfind(R"(\bin\)");

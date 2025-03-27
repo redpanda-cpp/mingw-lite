@@ -29,21 +29,11 @@ Extremely fast MinGW GCC build scripts for easy experiments.
 
 Available branches:
 
-| Branch | GCC version | GCC adoption | MinGW | Binutils |
-| ------ | ----------- | ------------ | ----- | -------- |
-| 15 | 15-20241208 (exp) | | 12.0.0 | 2.43.1 |
-| 14 | 14.2.0 | Debian 13, EL 10 | 12.0.0 | 2.43.1 |
-| 13 | 13.3.0 | Ubuntu 24.04 | 11.0.1 | 2.41 |
-| 12 | 12.4.0 | Debian 12 | 10.0.0 | 2.39 |
-| 11 | 11.5.0 (EOL) | Ubuntu 22.04, EL 9 | 9.0.0 | 2.37 |
-| 10 | 10.5.0 (EOL) | Debian 11 | 8.0.3 | 2.35.2 |
-| 9 | 9.5.0 (EOL) | Ubuntu 20.04 | 7.0.0 | 2.33.1 |
-| 8 | 8.5.0 (EOL) | Debian 10, EL 8 | 6.0.1 | 2.31.1 |
-| 7 | 7.5.0 (EOL) | Ubuntu 18.04 | 5.0.5 | 2.29.1 |
-| 6 | 6.5.0 (EOL) | Debian 9 | 5.0.5 | 2.27 |
-| 5 | 5.5.0 (EOL) | Ubuntu 16.04 | 4.0.6 | 2.25.1 |
-| 4.9 | 4.9.4 (EOL) | Debian 8 | 3.3.0 | 2.25.1 |
-| 4.8 | 4.8.5 (EOL) | Ubuntu 14.04, EL 7 | 3.3.0 | 2.24 |
+| Branch | GCC version | MinGW | Binutils |
+| ------ | ----------- | ----- | -------- |
+| 15 | 15-20241208 (exp) | 12.0.0 | 2.43.1 |
+| 14 | 14.2.0 | 12.0.0 | 2.43.1 |
+| 13 | 13.3.0 | 11.0.1 | 2.41 |
 
 Available profiles:
 

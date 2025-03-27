@@ -13,12 +13,6 @@ def _iconv(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   v = Version(ver)
   build_dir = paths.iconv / 'x-build'
   ensure(build_dir)
-
-  if v < Version('1.15'):
-    cstd_flags = ['-std=c99']
-  else:
-    cstd_flags = []
-
   configure('iconv', build_dir, [
     f'--prefix={paths.x_dep}',
     # static build
@@ -26,7 +20,7 @@ def _iconv(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     '--enable-static',
     # features
     '--disable-nls',
-    *cflags_build(c_extra = [*cstd_flags]),
+    *cflags_build(),
   ])
   make_default('iconv', build_dir, jobs)
   make_install('iconv', build_dir)
@@ -59,17 +53,8 @@ def _headers(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
   v = Version(ver)
   build_dir = paths.mingw / 'mingw-w64-headers' / 'x-build'
   ensure(build_dir)
-
-  if v.major >= 3:
-    prefix = paths.x_prefix / info.target
-    sysroot_flags = []
-  else:
-    prefix = paths.x_prefix
-    sysroot_flags = [f'--with-sysroot={prefix}']
-
   configure('headers', build_dir, [
-    f'--prefix={prefix}',
-    *sysroot_flags,
+    f'--prefix={paths.x_prefix / info.target}',
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
     # use target definition since we use same source for both
@@ -127,12 +112,6 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     exception_flags = ['--disable-sjlj-exceptions', '--with-dwarf2']
   else:
     exception_flags = []
-  if v.major < 7:
-    cstd_flags = ['-std=gnu89']
-    cxxstd_flags = ['-std=gnu++98']
-  else:
-    cstd_flags = []
-    cxxstd_flags = []
 
   configure('gcc', build_dir, [
     f'--prefix={paths.x_prefix}',
@@ -162,12 +141,8 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--with-mpc={paths.x_dep}',
     f'--with-mpfr={paths.x_dep}',
     # GCC’s HOST is our BUILD (Linux x86_64)
-    *cflags_build(
-      c_extra = [*cstd_flags],
-      cxx_extra = [*cxxstd_flags],
-      # libtool eats `-static`
-      ld_extra = ['--static'],
-    ),
+    # libtool eats `-static`
+    *cflags_build(ld_extra = ['--static']),
     # GCC’s TARGET is our HOST (Windows on which GCC runs)
     *cflags_host('_FOR_TARGET'),
   ])
