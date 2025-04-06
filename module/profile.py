@@ -61,7 +61,7 @@ class ProfileInfo:
   exception: str
   thread: str
 
-  host_winnt: int
+  default_winnt: int
   target_winnt: int
 
   def __init__(
@@ -74,7 +74,7 @@ class ProfileInfo:
     exception: str,
     thread: str,
 
-    host_winnt: int,
+    default_winnt: int,
     target_winnt: int,
   ):
     self.arch = arch
@@ -84,7 +84,7 @@ class ProfileInfo:
     self.exception = exception
     self.thread = thread
 
-    self.host_winnt = host_winnt
+    self.default_winnt = default_winnt
     self.target_winnt = target_winnt
 
 class FullProfile:
@@ -165,7 +165,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'seh',
     thread = 'mcf',
 
-    host_winnt = 0x0601,
+    default_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
   '64-ucrt': ProfileInfo(
@@ -176,8 +176,8 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'seh',
     thread = 'posix',
 
-    host_winnt = 0x0601,
-    target_winnt = 0x0502,
+    default_winnt = 0x0A00,
+    target_winnt = 0x0601,
   ),
   '64-msvcrt': ProfileInfo(
     arch = '64',
@@ -187,8 +187,8 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'seh',
     thread = 'posix',
 
-    host_winnt = 0x0502,
-    target_winnt = 0x0502,
+    default_winnt = 0x0A00,
+    target_winnt = 0x0601,
   ),
 
   'arm64-mcf': ProfileInfo(
@@ -199,7 +199,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'seh',
     thread = 'mcf',
 
-    host_winnt = 0x0A00,
+    default_winnt = 0x0A00,
     target_winnt = 0x0A00,
   ),
   'arm64-ucrt': ProfileInfo(
@@ -210,7 +210,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'seh',
     thread = 'posix',
 
-    host_winnt = 0x0A00,
+    default_winnt = 0x0A00,
     target_winnt = 0x0A00,
   ),
 
@@ -222,7 +222,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'dwarf',
     thread = 'mcf',
 
-    host_winnt = 0x0601,
+    default_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
   '32-ucrt': ProfileInfo(
@@ -233,8 +233,8 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'dwarf',
     thread = 'posix',
 
-    host_winnt = 0x0601,
-    target_winnt = 0x0501,
+    default_winnt = 0x0A00,
+    target_winnt = 0x0601,
   ),
   '32-msvcrt': ProfileInfo(
     arch = '32',
@@ -244,21 +244,9 @@ PROFILES: Dict[str, ProfileInfo] = {
     exception = 'dwarf',
     thread = 'posix',
 
-    host_winnt = 0x0500,
-    target_winnt = 0x0400,
+    default_winnt = 0x0A00,
+    target_winnt = 0x0601,
   ),
-
-  '32-legacy': ProfileInfo(
-    arch = '32',
-    target = 'i486-w64-mingw32',
-
-    crt = 'msvcrt',
-    exception = 'dwarf',
-    thread = 'posix',
-
-    host_winnt = 0x03FF,
-    target_winnt = 0x03FF,
-  )
 }
 
 def get_full_profile(config: argparse.Namespace) -> FullProfile:

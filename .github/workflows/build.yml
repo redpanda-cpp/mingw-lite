@@ -12,15 +12,12 @@ jobs:
         profile: [
           64-mcf, 64-ucrt, 64-msvcrt,
           32-mcf, 32-ucrt, 32-msvcrt,
-          32-legacy,
         ]
         include:
           - prerelease: false
           - { branch: 15, prerelease: true }
           - make_latest: false
           - { branch: 14, make_latest: true }
-        exclude:
-          - { branch: 13, profile: 32-legacy }
     runs-on: ubuntu-24.04
 
     steps:

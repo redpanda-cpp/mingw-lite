@@ -3,7 +3,7 @@ import logging
 import os
 from packaging.version import Version
 from pathlib import Path
-from shutil import copyfile
+import shutil
 import subprocess
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -119,10 +119,6 @@ def _binutils(ver: str, info: ProfileInfo, paths: ProjectPaths):
     else:
       _patch(paths.binutils, paths.patch / 'binutils' / 'fix-path-corruption_2.41.patch')
 
-    # Ignore long path
-    if info.host_winnt <= 0x03FF:
-      _patch(paths.binutils, paths.patch / 'binutils' / 'ignore-long-path.patch')
-
     _patch_done(paths.binutils)
 
 def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
@@ -160,35 +156,11 @@ def _gcc(ver: str, info: ProfileInfo, paths: ProjectPaths):
       logging.critical(message)
       raise Exception(message)
 
-    if info.host_winnt >= 0x0600:
+    if info.target_winnt >= 0x0600:
       # Fix console code page
       _patch(paths.gcc, paths.patch / 'gcc' / 'fix-console-cp.patch')
     else:
       pass  # disable UTF-8 manifest later
-
-    # Disable `_aligned_malloc`
-    if info.target_winnt <= 0x0500:
-      if v.major >= 14:
-        _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc_14.patch')
-      else:
-        _patch(paths.gcc, paths.patch / 'gcc' / 'disable-aligned-malloc_9.patch')
-
-    # Fix libbacktrace
-    if v.major >= 15 and info.host_winnt <= 0x0500:
-      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-backtrace_nt50-15.patch')
-      if info.host_winnt <= 0x0400:
-        _patch(paths.gcc, paths.patch / 'gcc' / 'fix-backtrace_nt40-15.patch')
-
-    # libstdc++ Win32 thunk
-    if info.target_winnt <= 0x0400:
-      copyfile(paths.patch / 'gcc' / 'win32-thunk.h', paths.gcc / 'libstdc++-v3' / 'libsupc++' / 'win32-thunk.h')
-      if info.target_winnt == 0x0400:
-        _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_nt40.patch')
-      else:
-        if v.major >= 15:
-          _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_win9x-15.patch')
-        else:
-          _patch(paths.gcc, paths.patch / 'gcc' / 'libstdc++-win32-thunk_win9x-14.patch')
 
     _patch_done(paths.gcc)
 
@@ -199,37 +171,20 @@ def _gdb(ver: BranchVersions, info: ProfileInfo, paths: ProjectPaths):
     v = Version(ver.gdb)
 
     # Fix thread
-    if info.host_winnt <= 0x0600:
+    if info.target_winnt <= 0x0600:
       _patch(paths.gdb, paths.patch / 'gdb' / 'fix-thread.patch')
 
     # Fix pythondir
     if ver.python:
       _patch(paths.gdb, paths.patch / 'gdb' / 'fix-pythondir.patch')
 
-    if info.host_winnt <= 0x0500:
-      copyfile(paths.patch / 'gdb' / 'win32-thunk.h', paths.gdb / 'gdb' / 'win32-thunk.h')
-      # Kernel32 thunk
-      _patch(paths.gdb, paths.patch / 'gdb' / 'kernel32-thunk.patch')
-
-      # IPv6 thunk
-      _patch(paths.gdb, paths.patch / 'gdb' / 'ipv6-thunk.patch')
-
-    # Fix VC6 CRT compatibility
-    if info.host_winnt <= 0x0400:
-      _patch(paths.gdb, paths.patch / 'gdb' / 'vc6-crt-compat.patch')
-
     _patch_done(paths.gdb)
 
 def _gettext(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gettext/{paths.gettext_arx.name}'
   _validate_and_download(paths.gettext_arx, url)
-  if _check_and_extract(paths.gettext, paths.gettext_arx):
-    # Kernel32 thunk
-    if info.host_winnt <= 0x03FF:
-      copyfile(paths.patch / 'gettext' / 'win32-thunk.h', paths.gettext / 'gettext-runtime' / 'intl' / 'gnulib-lib' / 'win32-thunk.h')
-      _patch(paths.gettext, paths.patch / 'gettext' / 'kernel32-thunk.patch')
-
-    _patch_done(paths.gettext)
+  _check_and_extract(paths.gettext, paths.gettext_arx)
+  _patch_done(paths.gettext)
 
 def _gmp(ver: str, info: ProfileInfo, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gmp/{paths.gmp_arx.name}'
@@ -267,29 +222,18 @@ def _mingw(ver: str, info: ProfileInfo, paths: ProjectPaths):
         _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_12.patch')
       else:
         _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_7.patch')
-      _autoreconf(paths.mingw / 'mingw-w64-crt')
-      _automake(paths.mingw / 'mingw-w64-crt')
 
-    # CRT: Allow skip space check in `ftruncate64`
-    if info.host_winnt <= 0x0400:
-      _patch(paths.mingw, paths.patch / 'crt' / 'ftruncate64-allow-skip-space-check.patch')
+    # CRT: Add mingw thunks
+    nt_ver = f'{info.target_winnt >> 8}.{info.target_winnt & 0xFF}'
+    subprocess.run([
+      './patch.py',
+      paths.mingw,
+      '-a', info.arch,
+      '--nt-ver', nt_ver,
+    ], cwd = paths.root / 'thunk', check = True)
 
-    # CRT: Use ANSI API
-    if info.target_winnt <= 0x03FF:
-      _patch(paths.mingw, paths.patch / 'crt' / 'use-ansi-api.patch')
-
-    # winpthreads: Disable VEH
-    if info.target_winnt <= 0x0500:
-      _patch(paths.mingw, paths.patch / 'winpthreads' / 'disable-veh.patch')
-
-    # winpthreads: Fix thread
-    if info.target_winnt <= 0x03FF:
-      _patch(paths.mingw, paths.patch / 'winpthreads' / 'fix-thread.patch')
-
-    # winpthreads: Kernel32 thunk
-    if info.target_winnt <= 0x03FF:
-      copyfile(paths.patch / 'winpthreads' / 'win32-thunk.h', paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'src' / 'win32-thunk.h')
-      _patch(paths.mingw, paths.patch / 'winpthreads' / 'kernel32-thunk.patch')
+    _autoreconf(paths.mingw / 'mingw-w64-crt')
+    _automake(paths.mingw / 'mingw-w64-crt')
 
     _patch_done(paths.mingw)
 
@@ -311,13 +255,23 @@ def _python(ver: BranchVersions, info: ProfileInfo, paths: ProjectPaths):
   _validate_and_download(paths.python_arx, url)
   _validate_and_download(paths.python_z_arx, z_url)
   if _check_and_extract(paths.python, paths.python_arx):
+    ver = Version(ver.python)
+
+    # Disable xxlimited shared library if `--disable-test-modules`
+    if ver >= Version('3.12') and ver < Version('3.13'):
+      _patch(paths.python, paths.patch / 'python' / 'disable-shared-xxlimited_3.12.patch')
+
+    # Alternative build system
     _check_and_extract(paths.python_z, paths.python_z_arx)
     os.symlink(paths.python_z, paths.python / 'zlib', target_is_directory = True)
-    copyfile(paths.patch / 'python' / 'xmake.lua', paths.python / 'xmake.lua')
-    copyfile(paths.patch / 'python' / 'python-config.sh', paths.python / 'python-config.sh')
-    os.chmod(paths.python / 'python-config.sh', 0o755)
-    copyfile(paths.patch / 'python' / 'win32-thunk.h', paths.python / 'Include' / 'internal' / 'win32-thunk.h')
-    _patch(paths.python, paths.patch / 'python' / 'unified.patch')
+    if ver >= Version('3.13'):
+      shutil.copy(paths.patch / 'python' / 'xmake_3.13.lua', paths.python / 'xmake.lua')
+      _patch(paths.python, paths.patch / 'python' / 'fix-mingw-build_3.13.patch')
+    else:
+      shutil.copy(paths.patch / 'python' / 'xmake_3.12.lua', paths.python / 'xmake.lua')
+      _patch(paths.python, paths.patch / 'python' / 'fix-mingw-build_3.12.patch')
+    shutil.copy(paths.patch / 'python' / 'python-config.sh', paths.python / 'python-config.sh')
+
     _patch_done(paths.python)
 
 def download_and_patch(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
@@ -334,5 +288,5 @@ def download_and_patch(ver: BranchVersions, paths: ProjectPaths, info: ProfileIn
   _mingw(ver.mingw, info, paths)
   _mpc(ver.mpc, info, paths)
   _mpfr(ver.mpfr, info, paths)
-  if ver.python and info.host_winnt >= 0x0601:
+  if ver.python and info.target_winnt >= 0x0601:
     _python(ver, info, paths)

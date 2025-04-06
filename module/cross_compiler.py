@@ -58,7 +58,7 @@ def _headers(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
     # use target definition since we use same source for both
-    f'--with-default-win32-winnt=0x{max(info.target_winnt, 0x0400):04X}',
+    f'--with-default-win32-winnt=0x{max(info.default_winnt, 0x0400):04X}',
   ])
   make_default('headers', build_dir, jobs)
   make_install('headers', build_dir)
@@ -169,7 +169,7 @@ def _crt(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
     # use target definition since we use same source for both
-    f'--with-default-win32-winnt=0x{max(info.target_winnt, 0x0400):04X}',
+    f'--with-default-win32-winnt=0x{max(info.default_winnt, 0x0400):04X}',
     '--disable-dependency-tracking',
     *multilib_flags,
     *cflags_host(),
@@ -283,6 +283,6 @@ def build_cross_compiler(ver: BranchVersions, paths: ProjectPaths, info: Profile
 
   gcc.__next__()
 
-  if ver.python and info.host_winnt >= 0x0601:
+  if ver.python and info.target_winnt >= 0x0601:
     _python_z(ver, paths, info, config.jobs)
     _python(ver, paths, info, config.jobs)

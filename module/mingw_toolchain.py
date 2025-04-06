@@ -77,7 +77,7 @@ def _headers(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--prefix={paths.prefix}',
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
-    f'--with-default-win32-winnt=0x{max(info.target_winnt, 0x0400):04X}',
+    f'--with-default-win32-winnt=0x{max(info.default_winnt, 0x0400):04X}',
   ])
   make_default('headers', build_dir, jobs)
   make_install('headers', build_dir)
@@ -96,7 +96,7 @@ def _crt(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     f'--with-sysroot={paths.prefix}',
     f'--host={info.target}',
     f'--with-default-msvcrt={info.crt}',
-    f'--with-default-win32-winnt=0x{max(info.target_winnt, 0x0400):04X}',
+    f'--with-default-win32-winnt=0x{max(info.default_winnt, 0x0400):04X}',
     '--disable-dependency-tracking',
     *multilib_flags,
     *cflags_target(),
@@ -191,7 +191,7 @@ def _gcc(ver: str, paths: ProjectPaths, info: ProfileInfo, jobs: int):
     exception_flags = ['--disable-sjlj-exceptions', '--with-dwarf2']
   else:
     exception_flags = []
-  if info.host_winnt <= 0x0502 and v.major >= 13:
+  if info.target_winnt < 0x0600 and v.major >= 13:
     manifest_flags = ['--disable-win32-utf8-manifest']
   else:
     manifest_flags = []
@@ -300,7 +300,7 @@ def _gdb(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo, jobs: int)
       f'--with-libmpfr-prefix={paths.dep}',
     ]
 
-  if ver.python and info.host_winnt >= 0x0601:
+  if ver.python and info.target_winnt >= 0x0601:
     python_flags = [f'--with-python={paths.dep}/python-config.sh']
   else:
     python_flags = []
@@ -410,7 +410,7 @@ def _licenses(ver: BranchVersions, paths: ProjectPaths, info: ProfileInfo):
   ensure(license_dir / 'mpfr')
   copyfile(paths.mpfr / 'COPYING.LESSER', license_dir / 'mpfr' / 'COPYING.LESSER')
 
-  if ver.python and info.host_winnt >= 0x0601:
+  if ver.python and info.target_winnt >= 0x0601:
     ensure(license_dir / 'python')
     copyfile(paths.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
 
@@ -439,14 +439,14 @@ def build_mingw_toolchain(ver: BranchVersions, paths: ProjectPaths, info: Profil
 
   _gcc(ver.gcc, paths, info, config.jobs)
 
-  if ver.python and info.host_winnt >= 0x0601:
+  if ver.python and info.target_winnt >= 0x0601:
     _python(ver.python, paths, info, config.jobs)
 
   _gdb(ver, paths, info, config.jobs)
 
   _gmake(ver.make, paths, info, config.jobs)
 
-  if ver.python and info.host_winnt >= 0x0601:
+  if ver.python and info.target_winnt >= 0x0601:
     _python_packages(ver, paths, info, config)
 
   _licenses(ver, paths, info)

@@ -1,0 +1,37 @@
+diff --git a/configure b/configure
+index 89edc42f45c..6e4ccafbd30 100755
+--- a/configure
++++ b/configure
+@@ -31254,7 +31254,7 @@ printf %s "checking for stdlib extension module xxlimited... " >&6; }
+         if test "$py_cv_module_xxlimited" != "n/a"
+ then :
+ 
+-    if test "$with_trace_refs" = "no"
++    if test "$with_trace_refs" = "no" -a "$TEST_MODULES" = yes
+ then :
+   if test "$ac_cv_func_dlopen" = yes
+ then :
+@@ -31292,7 +31292,7 @@ printf %s "checking for stdlib extension module xxlimited_35... " >&6; }
+         if test "$py_cv_module_xxlimited_35" != "n/a"
+ then :
+ 
+-    if test "$with_trace_refs" = "no"
++    if test "$with_trace_refs" = "no" -a "$TEST_MODULES" = yes
+ then :
+   if test "$ac_cv_func_dlopen" = yes
+ then :
+diff --git a/configure.ac b/configure.ac
+index 1a02d19f1b2..c722e212bf2 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -7575,8 +7575,8 @@ PY_STDLIB_MOD([_ctypes_test],
+ dnl Limited API template modules.
+ dnl The limited C API is not compatible with the Py_TRACE_REFS macro.
+ dnl Emscripten does not support shared libraries yet.
+-PY_STDLIB_MOD([xxlimited], [test "$with_trace_refs" = "no"], [test "$ac_cv_func_dlopen" = yes])
+-PY_STDLIB_MOD([xxlimited_35], [test "$with_trace_refs" = "no"], [test "$ac_cv_func_dlopen" = yes])
++PY_STDLIB_MOD([xxlimited], [test "$with_trace_refs" = "no" -a "$TEST_MODULES" = yes], [test "$ac_cv_func_dlopen" = yes])
++PY_STDLIB_MOD([xxlimited_35], [test "$with_trace_refs" = "no" -a "$TEST_MODULES" = yes], [test "$ac_cv_func_dlopen" = yes])
+ 
+ # substitute multiline block, must come after last PY_STDLIB_MOD()
+ AC_SUBST([MODULE_BLOCK])

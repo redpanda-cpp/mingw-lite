@@ -1,0 +1,47 @@
+diff --git a/Modules/_winapi.c b/Modules/_winapi.c
+index ac3ee113ffd..c28c01db120 100644
+--- a/Modules/_winapi.c
++++ b/Modules/_winapi.c
+@@ -571,7 +571,7 @@ _winapi_CreateJunction_impl(PyObject *module, LPCWSTR src_path,
+     tp.base.PrivilegeCount = 1;
+     tp.base.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+     if (!AdjustTokenPrivileges(token, FALSE, &tp.base, sizeof(previousTp),
+-                               &previousTp.base, &previousTpSize)) {
++                               &previousTp.base, (DWORD *)&previousTpSize)) {
+         goto cleanup;
+     }
+ 
+diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
+index c21c6f06c72..a8f388706d0 100644
+--- a/Modules/posixmodule.c
++++ b/Modules/posixmodule.c
+@@ -39,6 +39,7 @@
+ #  if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM)
+ #    define HAVE_SYMLINK
+ #  endif /* MS_WINDOWS_DESKTOP | MS_WINDOWS_SYSTEM */
++#  include <process.h>
+ #endif
+ 
+ #include "structmember.h"         // PyMemberDef
+@@ -4961,7 +4962,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
+     }
+ 
+     Py_BEGIN_ALLOW_THREADS
+-    ret = PathCchSkipRoot(buffer, &end);
++    ret = PathCchSkipRoot(buffer, (const wchar_t **)&end);
+     Py_END_ALLOW_THREADS
+     if (FAILED(ret)) {
+         result = Py_BuildValue("sO", "", path->object);
+diff --git a/Python/sysmodule.c b/Python/sysmodule.c
+index 1f7cc655c45..89eb72b1774 100644
+--- a/Python/sysmodule.c
++++ b/Python/sysmodule.c
+@@ -3319,6 +3319,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
+ #ifdef MS_COREDLL
+     SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
+     SET_SYS_FROM_STRING("winver", PyWin_DLLVersionString);
++#else
++    SET_SYS_FROM_STRING("winver", "");
+ #endif
+ #ifdef ABIFLAGS
+     SET_SYS_FROM_STRING("abiflags", ABIFLAGS);
