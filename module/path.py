@@ -3,7 +3,7 @@ from packaging.version import Version
 from pathlib import Path
 from typing import Optional
 
-from module.profile import BranchVersions
+from module.profile import BranchProfile
 
 class ProjectPaths:
   root: Path
@@ -12,15 +12,17 @@ class ProjectPaths:
   dist: Path
   patch: Path
 
+  mingw_prefix: Path
+  x_prefix: Path
+
+  mingw_pkg: Path
+  x_pkg: Path
+
+  # build phase
+
   build: Path
   dep: Path
   x_dep: Path
-
-  prefix: Path
-  x_prefix: Path
-
-  arx: Path
-  x_arx: Path
 
   binutils: Path
   gettext: Optional[Path]
@@ -50,10 +52,21 @@ class ProjectPaths:
   python_arx: Path
   python_z_arx: Path
 
+  # test phase
+
+  test: Path
+  test_src: Path
+
+  test_mingw: Path
+
+  xmake: Path
+  xmake_arx: Path
+  xmake_exe: Path
+
   def __init__(
     self,
     config: argparse.Namespace,
-    ver: BranchVersions,
+    ver: BranchProfile,
   ):
     self.root = Path.cwd()
 
@@ -63,15 +76,17 @@ class ProjectPaths:
 
     dir = f'mingw{config.profile}-{config.branch}'
 
+    self.mingw_prefix = Path(f'/opt/{dir}')
+    self.x_prefix = Path(f'/opt/x-{dir}')
+
+    self.mingw_pkg = self.dist / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
+    self.x_pkg = self.dist / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
+
+    # build phase
+
     self.build = Path(f'/tmp/build/{dir}')
     self.dep = self.build / 'deps'
     self.x_dep = self.build / 'x-deps'
-
-    self.prefix = Path(f'/opt/{dir}')
-    self.x_prefix = Path(f'/opt/x-{dir}')
-
-    self.arx = self.dist / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.7z'
-    self.x_arx = self.dist / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
 
     binutils = f'binutils-{ver.binutils}'
     self.binutils = self.build / binutils
@@ -80,14 +95,6 @@ class ProjectPaths:
     else:
       self.binutils_arx = self.assets / f'{binutils}.tar.xz'
 
-    if ver.gettext:
-      gettext = f'gettext-{ver.gettext}'
-      self.gettext = self.build / gettext
-      self.gettext_arx = self.assets / f'{gettext}.tar.xz'
-    else:
-      self.gettext = None
-      self.gettext_arx = None
-
     gcc = f'gcc-{ver.gcc}'
     self.gcc = self.build / gcc
     self.gcc_arx = self.assets / f'{gcc}.tar.xz'
@@ -95,6 +102,14 @@ class ProjectPaths:
     gdb = f'gdb-{ver.gdb}'
     self.gdb = self.build / gdb
     self.gdb_arx = self.assets / f'{gdb}.tar.xz'
+
+    if ver.gettext:
+      gettext = f'gettext-{ver.gettext}'
+      self.gettext = self.build / gettext
+      self.gettext_arx = self.assets / f'{gettext}.tar.xz'
+    else:
+      self.gettext = None
+      self.gettext_arx = None
 
     gmp = f'gmp-{ver.gmp}'
     self.gmp = self.build / gmp
@@ -140,3 +155,14 @@ class ProjectPaths:
       self.python_arx = None
       self.python_z = None
       self.python_z_arx = None
+
+    # test phase
+
+    self.test = Path(f'/tmp/test/{dir}')
+    self.test_src = self.root / 'support' / 'test'
+
+    self.test_mingw = self.test / dir
+
+    self.xmake = self.test / 'xmake'
+    self.xmake_arx = self.assets / f'xmake-v{ver.xmake}.win64.zip'
+    self.xmake_exe = self.xmake / 'xmake.exe'

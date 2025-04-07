@@ -9,79 +9,37 @@ import shutil
 import subprocess
 from subprocess import PIPE, Popen
 
-from module.cross_compiler import build_cross_compiler
-from module.mingw_toolchain import build_mingw_toolchain
+from module.args import parse_args
 from module.path import ProjectPaths
-from module.prepare_source import download_and_patch
-from module.profile import get_full_profile
+from module.prepare_source import prepare_source
+from module.profile import resolve_profile
 
-def parse_args() -> argparse.Namespace:
-  parser = argparse.ArgumentParser()
-  parser.add_argument(
-    '-b', '--branch',
-    type = str,
-    choices = ['15', '14', '13'],
-    required = True,
-    help = 'GCC branch to build',
-  )
-  parser.add_argument(
-    '-p', '--profile',
-    type = str,
-    choices = [
-      '64-mcf', '64-ucrt', '64-msvcrt',
-      '32-mcf', '32-ucrt', '32-msvcrt',
-    ],
-    required = True,
-    help = 'MinGW profile to build',
-  )
-
-  parser.add_argument(
-    '-c', '--clean',
-    action = 'store_true',
-    help = 'Clean build directories',
-  )
-  parser.add_argument(
-    '-j', '--jobs',
-    type = int,
-    default = os.cpu_count(),
-  )
-  parser.add_argument(
-    '-nx', '--no-cross',
-    action = 'store_true',
-    help = 'Do not build cross toolchain',
-  )
-  parser.add_argument(
-    '-v', '--verbose',
-    action = 'count',
-    default = 0,
-    help = 'Increase verbosity (up to 2)',
-  )
-
-  result = parser.parse_args()
-  if result.profile == '32-legacy' and Version(result.branch).major < 14:
-    raise Exception('32-legacy profile not backported yet')
-
-  return result
+# A = x86_64-linux-gnu or x86_64-linux-musl
+# B = {i686,x86_64}-w64-mingw32
+# XYZ: build = X, host = Y, target = Z
+from module.AAA import build_AAA_library, build_AAA_python
+from module.AAB import build_AAB_compiler, build_AAB_library
+from module.ABB import build_ABB_toolchain
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.build.exists():
     shutil.rmtree(paths.build)
   if not config.no_cross and paths.x_prefix.exists():
     shutil.rmtree(paths.x_prefix)
-  if paths.prefix.exists():
-    shutil.rmtree(paths.prefix)
+  if paths.mingw_prefix.exists():
+    shutil.rmtree(paths.mingw_prefix)
 
 def prepare_dirs(paths: ProjectPaths):
   paths.assets.mkdir(parents = True, exist_ok = True)
   paths.build.mkdir(parents = True, exist_ok = True)
   paths.dist.mkdir(parents = True, exist_ok = True)
 
-def package(paths: ProjectPaths):
-  tar = Popen(['bsdtar', '-c', paths.x_prefix], stdout = PIPE)
+def _package(root: Path | str, src: Path | str, dst: Path):
+  tar = Popen(['bsdtar', '-C', root, '-c', src], stdout = PIPE)
   zstd = Popen([
     'zstd', '-f',
     '--zstd=strat=5,wlog=27,hlog=25,slog=6',
-    '-o', paths.x_arx,
+    '-o', dst,
   ], stdin = tar.stdout)
   tar.stdout.close()
   zstd.communicate()
@@ -89,12 +47,11 @@ def package(paths: ProjectPaths):
   if tar.returncode != 0 or zstd.returncode != 0:
     raise Exception('bsdtar | zstd failed')
 
-  subprocess.run([
-    '7z', 'a', '-t7z',
-    '-mf=BCJ2', '-mx9', '-ms=on', '-mqs', '-m0=LZMA:d=64m:fb273',
-    paths.arx,
-    paths.prefix.name,
-  ], check = True, cwd = paths.prefix.parent)
+def package_cross(paths: ProjectPaths):
+  _package(paths.x_prefix.parent, paths.x_prefix.name, paths.x_pkg)
+
+def package_mingw(paths: ProjectPaths):
+  _package(paths.mingw_prefix.parent, paths.mingw_prefix.name, paths.mingw_pkg)
 
 def main():
   config = parse_args()
@@ -108,24 +65,26 @@ def main():
 
   logging.info("building GCC %s for %s", config.branch, config.profile)
 
-  profile = get_full_profile(config)
-  paths = ProjectPaths(config, profile.ver)
+  ver = resolve_profile(config)
+  paths = ProjectPaths(config, ver)
 
   if config.clean:
     clean(config, paths)
 
   prepare_dirs(paths)
 
-  download_and_patch(profile.ver, paths, profile.info)
+  prepare_source(ver, paths)
 
   os.environ['PATH'] = f'{paths.x_prefix}/bin:{os.environ["PATH"]}'
-
   if not config.no_cross:
-    build_cross_compiler(profile.ver, paths, profile.info, config)
+    build_AAA_library(ver, paths, config)
+    build_AAA_python(ver, paths, config)
+    build_AAB_compiler(ver, paths, config)
+    build_AAB_library(ver, paths, config)
+    package_cross(paths)
 
-  build_mingw_toolchain(profile.ver, paths, profile.info, config)
-
-  package(paths)
+  build_ABB_toolchain(ver, paths, config)
+  package_mingw(paths)
 
 if __name__ == '__main__':
   main()

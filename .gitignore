@@ -1,5 +1,5 @@
-/assets
-/build
-/dist
-/pkg
-__pycache__/
+__pycache__
+assets
+build
+dist
+pkg

@@ -1,0 +1,15 @@
+diff --git a/libcpp/system.h b/libcpp/system.h
+index 4e3dff8ed0e..ed95aba69f8 100644
+--- a/libcpp/system.h
++++ b/libcpp/system.h
+@@ -267,10 +267,6 @@ extern int errno;
+ # include <langinfo.h>
+ #endif
+ 
+-#ifndef HAVE_SETLOCALE
+-# define setlocale(category, locale) (locale)
+-#endif
+-
+ #ifdef ENABLE_NLS
+ #include <libintl.h>
+ #else

@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -18,10 +19,22 @@ jobs:
           - { branch: 15, prerelease: true }
           - make_latest: false
           - { branch: 14, make_latest: true }
-    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Enable multiarch
+        run: |
+          sudo dpkg --add-architecture i386
+
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: libarchive-tools qemu-user qemu-user-binfmt wine
+
+      # apt install wine-binfmt seems not work
+      - name: Register wine binfmt
+        run: |
+          echo ':DOSWin:M::MZ::/usr/bin/wine:' | sudo tee /proc/sys/fs/binfmt_misc/register
 
       - name: Build
         if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
@@ -37,6 +50,11 @@ jobs:
           name: mingw${{ matrix.profile }}-${{ matrix.branch }}
           path: dist
 
+      - name: Test
+        if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
+        run: |
+          ./test.py --branch ${{ matrix.branch }} --profile ${{ matrix.profile }} -v
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag' && startsWith(github.ref_name, matrix.branch)
@@ -44,5 +62,4 @@ jobs:
           prerelease: ${{ matrix.prerelease }}
           make_latest: ${{ matrix.make_latest }}
           files: |
-            dist/*.7z
             dist/*.tar.zst

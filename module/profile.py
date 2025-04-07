@@ -18,6 +18,8 @@ class BranchVersions:
   python: Optional[str]
   python_z: Optional[str]
 
+  xmake: str = '2.9.8'
+
   def __init__(
     self,
 
@@ -57,11 +59,11 @@ class ProfileInfo:
   arch: str
   target: str
 
-  crt: str
+  default_crt: str
   exception: str
   thread: str
 
-  default_winnt: int
+  win32_winnt: int
   target_winnt: int
 
   def __init__(
@@ -70,34 +72,50 @@ class ProfileInfo:
     arch: str,
     target: str,
 
-    crt: str,
+    default_crt: str,
     exception: str,
     thread: str,
 
-    default_winnt: int,
+    win32_winnt: int,
     target_winnt: int,
   ):
     self.arch = arch
     self.target = target
 
-    self.crt = crt
+    self.default_crt = default_crt
     self.exception = exception
     self.thread = thread
 
-    self.default_winnt = default_winnt
+    self.win32_winnt = win32_winnt
     self.target_winnt = target_winnt
 
-class FullProfile:
-  ver: BranchVersions
-  info: ProfileInfo
+class BranchProfile(BranchVersions):
+  arch: str
+  target: str
+
+  default_crt: str
+  exception: str
+  thread: str
+
+  win32_winnt: int
+  target_winnt: int
 
   def __init__(
     self,
     ver: BranchVersions,
     info: ProfileInfo,
   ):
-    self.ver = ver
-    self.info = info
+    BranchVersions.__init__(self, **ver.__dict__)
+
+    self.arch = info.arch
+    self.target = info.target
+
+    self.default_crt = info.default_crt
+    self.exception = info.exception
+    self.thread = info.thread
+
+    self.win32_winnt = info.win32_winnt
+    self.target_winnt = info.target_winnt
 
 BRANCHES: Dict[str, BranchVersions] = {
   '15': BranchVersions(
@@ -161,33 +179,33 @@ PROFILES: Dict[str, ProfileInfo] = {
     arch = '64',
     target = 'x86_64-w64-mingw32',
 
-    crt = 'ucrt',
+    default_crt = 'ucrt',
     exception = 'seh',
     thread = 'mcf',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
   '64-ucrt': ProfileInfo(
     arch = '64',
     target = 'x86_64-w64-mingw32',
 
-    crt = 'ucrt',
+    default_crt = 'ucrt',
     exception = 'seh',
     thread = 'posix',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
   '64-msvcrt': ProfileInfo(
     arch = '64',
     target = 'x86_64-w64-mingw32',
 
-    crt = 'msvcrt',
+    default_crt = 'msvcrt',
     exception = 'seh',
     thread = 'posix',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
 
@@ -195,22 +213,22 @@ PROFILES: Dict[str, ProfileInfo] = {
     arch = 'arm64',
     target = 'aarch64-w64-mingw32',
 
-    crt = 'ucrt',
+    default_crt = 'ucrt',
     exception = 'seh',
     thread = 'mcf',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0A00,
   ),
   'arm64-ucrt': ProfileInfo(
     arch = 'arm64',
     target = 'aarch64-w64-mingw32',
 
-    crt = 'ucrt',
+    default_crt = 'ucrt',
     exception = 'seh',
     thread = 'posix',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0A00,
   ),
 
@@ -218,39 +236,39 @@ PROFILES: Dict[str, ProfileInfo] = {
     arch = '32',
     target = 'i686-w64-mingw32',
 
-    crt = 'ucrt',
+    default_crt = 'ucrt',
     exception = 'dwarf',
     thread = 'mcf',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
   '32-ucrt': ProfileInfo(
     arch = '32',
     target = 'i686-w64-mingw32',
 
-    crt = 'ucrt',
+    default_crt = 'ucrt',
     exception = 'dwarf',
     thread = 'posix',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
   '32-msvcrt': ProfileInfo(
     arch = '32',
     target = 'i686-w64-mingw32',
 
-    crt = 'msvcrt',
+    default_crt = 'msvcrt',
     exception = 'dwarf',
     thread = 'posix',
 
-    default_winnt = 0x0A00,
+    win32_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
 }
 
-def get_full_profile(config: argparse.Namespace) -> FullProfile:
-  return FullProfile(
+def resolve_profile(config: argparse.Namespace) -> BranchProfile:
+  return BranchProfile(
     ver = BRANCHES[config.branch],
     info = PROFILES[config.profile],
   )
