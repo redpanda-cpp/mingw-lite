@@ -22,8 +22,8 @@ def parse_args() -> argparse.Namespace:
     '-p', '--profile',
     type = str,
     choices = [
-      '64-mcf', '64-ucrt', '64-msvcrt',
-      '32-mcf', '32-ucrt', '32-msvcrt',
+      '64-mcf', '64-win32', '64-ucrt', '64-msvcrt',
+      '32-mcf', '32-win32', '32-ucrt', '32-msvcrt',
     ],
     required = True,
     help = 'MinGW profile to build',

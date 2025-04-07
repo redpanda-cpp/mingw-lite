@@ -197,6 +197,8 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   if v_gcc.major >= 15 and v < Version('16.3'):
     c_extra.append('-std=gnu11')
 
+  # workaround gdb's detection of C++11 threading
+  os.environ['CPPFLAGS'] = f'-D_WIN32_WINNT={ver.win32_winnt}'
   configure('gdb', build_dir, [
     '--prefix=',
     f'--target={ver.target}',
@@ -214,6 +216,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ])
   make_default('gdb', build_dir, config.jobs)
   make_destdir_install('gdb', build_dir, paths.mingw_prefix)
+  del os.environ['CPPFLAGS']
 
   gdbinit = paths.mingw_prefix / 'share' / 'gdb' / 'gdbinit'
   with open(gdbinit, 'w') as f:

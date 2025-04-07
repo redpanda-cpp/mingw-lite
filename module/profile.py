@@ -188,6 +188,17 @@ PROFILES: Dict[str, ProfileInfo] = {
     win32_winnt = 0x0A00,
     target_winnt = 0x0601,
   ),
+  '64-win32': ProfileInfo(
+    arch = '64',
+    target = 'x86_64-w64-mingw32',
+
+    default_crt = 'ucrt',
+    exception = 'seh',
+    thread = 'win32',
+
+    win32_winnt = 0x0A00,
+    target_winnt = 0x0601,
+  ),
   '64-ucrt': ProfileInfo(
     arch = '64',
     target = 'x86_64-w64-mingw32',
@@ -222,6 +233,17 @@ PROFILES: Dict[str, ProfileInfo] = {
     win32_winnt = 0x0A00,
     target_winnt = 0x0A00,
   ),
+  'arm64-win32': ProfileInfo(
+    arch = 'arm64',
+    target = 'aarch64-w64-mingw32',
+
+    default_crt = 'ucrt',
+    exception = 'seh',
+    thread = 'win32',
+
+    win32_winnt = 0x0A00,
+    target_winnt = 0x0A00,
+  ),
   'arm64-ucrt': ProfileInfo(
     arch = 'arm64',
     target = 'aarch64-w64-mingw32',
@@ -241,6 +263,17 @@ PROFILES: Dict[str, ProfileInfo] = {
     default_crt = 'ucrt',
     exception = 'dwarf',
     thread = 'mcf',
+
+    win32_winnt = 0x0A00,
+    target_winnt = 0x0601,
+  ),
+  '32-win32': ProfileInfo(
+    arch = '32',
+    target = 'i686-w64-mingw32',
+
+    default_crt = 'ucrt',
+    exception = 'dwarf',
+    thread = 'win32',
 
     win32_winnt = 0x0A00,
     target_winnt = 0x0601,

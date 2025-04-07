@@ -40,6 +40,7 @@ A profile is composed of bitness and predefined ABI variant. The combination of 
 | ABI variant \ Bitness | 64 (seh) | 32 (dwarf) |
 | --------------------- | -------- | ---------- |
 | mcf (ucrt, mcf) | 64-mcf | 32-mcf |
+| win32 (ucrt, win32) | 64-win32 | 32-win32 |
 | ucrt (ucrt, posix) | 64-ucrt | 32-ucrt |
 | msvcrt (msvcrt, posix) | 64-msvcrt | 32-msvcrt |
 
