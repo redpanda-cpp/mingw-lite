@@ -51,15 +51,12 @@ target('pythoncore')
     {prefixdir = 'Lib'})
   add_files(
     'Modules/getpath.c',
-    {
-      defines = {
-        'PREFIX=NULL',
-        'EXEC_PREFIX=NULL',
-        'VERSION=NULL',
-        [[VPATH="..\\.."]],
-        'PLATLIBDIR="DLLs"'},
-      includedirs = {'.'},
-    })
+    {defines = {
+      'PREFIX=NULL',
+      'EXEC_PREFIX=NULL',
+      'VERSION=NULL',
+      [[VPATH="..\\.."]],
+      'PLATLIBDIR="DLLs"'}})
   add_files(
     'Modules/_abc.c',
     'Modules/_bisectmodule.c',
@@ -328,7 +325,10 @@ target('pythoncore')
       {'__phello__.spam', 'Lib/__phello__/spam.py', 'Python/frozen_modules/__phello__.spam.h'},
       {'frozen_only', 'Tools/freeze/flag.py', 'Python/frozen_modules/frozen_only.h'},
     }
+    os.mkdir(target:autogendir() .. '/Python/frozen_modules')
+    target:add('includedirs', target:autogendir())
+    target:add('includedirs', target:autogendir() .. '/Python')
     for _, module in ipairs(modules) do
-      os.execv('python3.13', {'Programs/_freeze_module.py', module[1], module[2], module[3]})
+      os.execv('python3.13', {'Programs/_freeze_module.py', module[1], module[2], target:autogendir() .. '/' .. module[3]})
     end
   end)

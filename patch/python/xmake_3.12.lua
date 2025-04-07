@@ -50,15 +50,12 @@ target('pythoncore')
     {prefixdir = 'Lib'})
   add_files(
     'Modules/getpath.c',
-    {
-      defines = {
-        'PREFIX=NULL',
-        'EXEC_PREFIX=NULL',
-        'VERSION=NULL',
-        [[VPATH="..\\.."]],
-        'PLATLIBDIR="DLLs"'},
-      includedirs = {'.'},
-    })
+    {defines = {
+      'PREFIX=NULL',
+      'EXEC_PREFIX=NULL',
+      'VERSION=NULL',
+      [[VPATH="..\\.."]],
+      'PLATLIBDIR="DLLs"'}})
   add_files(
     'Modules/_abc.c',
     'Modules/_bisectmodule.c',
@@ -262,8 +259,6 @@ target('pythoncore')
     'Python/traceback.c',
     'Python/tracemalloc.c')
   add_files(
-    'Python/deepfreeze/deepfreeze.c')
-  add_files(
     'Modules/zlibmodule.c',
     'zlib/adler32.c',
     'zlib/compress.c',
@@ -307,14 +302,19 @@ target('pythoncore')
       {'getpath', 'Modules/getpath.py', 'Python/frozen_modules/getpath.h'},
       table.unpack(deepfreeze_modules),
     }
+    os.mkdir(target:autogendir() .. '/Python/deepfreeze')
+    os.mkdir(target:autogendir() .. '/Python/frozen_modules')
+    target:add('files', target:autogendir() .. '/Python/deepfreeze/deepfreeze.c')
+    target:add('includedirs', target:autogendir())
+    target:add('includedirs', target:autogendir() .. '/Python')
     for _, module in ipairs(modules) do
-      os.execv('python3.12', {'Programs/_freeze_module.py', module[1], module[2], module[3]})
+      os.execv('python3.12', {'Programs/_freeze_module.py', module[1], module[2], target:autogendir() .. '/' .. module[3]})
     end
     local deepfreeze_args = {
       'Tools/build/deepfreeze.py',
-      '-o', 'Python/deepfreeze/deepfreeze.c'}
+      '-o', target:autogendir() .. '/Python/deepfreeze/deepfreeze.c'}
     for _, module in ipairs(deepfreeze_modules) do
-      table.insert(deepfreeze_args, module[3] .. ':' .. module[1])
+      table.insert(deepfreeze_args, target:autogendir() .. '/' .. module[3] .. ':' .. module[1])
     end
     os.execv('python3.12', deepfreeze_args)
   end)
