@@ -119,42 +119,44 @@ class BranchProfile(BranchVersions):
 
 BRANCHES: Dict[str, BranchVersions] = {
   '15': BranchVersions(
-    gcc = '15-20241208',
+    gcc = '15-20250330',
     rev = '0',
 
-    binutils = '2.43.1',
-    gdb = '15.1',
-    gettext = '0.22.5',
+    binutils = '2.44',
+    gdb = '16.2',
+    gettext = '0.24',
     gmp = '6.3.0',
     iconv = '1.17',
     make = '4.4.1',
-    mcfgthread = '1.8-ga.4',
+    mcfgthread = '2.0-ga.1',
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.1',
-    python = '3.13.1',
+    python = '3.13.2',
     python_z = '1.3.1',
   ),
   '14': BranchVersions(
     gcc = '14.2.0',
     rev = '5',
 
+    # freeze: 2025-01-01
     binutils = '2.43.1',
-    gdb = '15.1',
-    gettext = '0.22.5',
+    gdb = '15.2',
+    gettext = '0.23.1',
     gmp = '6.3.0',
     iconv = '1.17',
     make = '4.4.1',
-    mcfgthread = '1.8-ga.4',
+    mcfgthread = '1.9-ga.2',
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.1',
-    python = '3.13.1',
+    python = '3.13.2',
     python_z = '1.3.1',
   ),
   '13': BranchVersions(
     gcc = '13.3.0',
     rev = '0',
+
     # freeze: 2024-01-01
     binutils = '2.41',
     gdb = '14.2',
@@ -169,8 +171,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '11.0.1',
     mpc = '1.3.1',
     mpfr = '4.2.1',
-    python = None,
-    python_z = None,
+    python = '3.12.9',
+    python_z = '1.3.1',
   ),
 }
 

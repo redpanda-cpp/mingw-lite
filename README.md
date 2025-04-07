@@ -31,8 +31,8 @@ Available branches:
 
 | Branch | GCC version | MinGW | Binutils | GDB |
 | ------ | ----------- | ----- | -------- | --- |
-| 15 | 15-20241208 | 12.0.0 | 2.43.1 | 15.1 |
-| 14 | 14.2.0 | 12.0.0 | 2.43.1 | 15.1 |
+| 15 | 15-20250330 | 12.0.0 | 2.44 | 16.2 |
+| 14 | 14.2.0 | 12.0.0 | 2.43.1 | 15.2 |
 | 13 | 13.3.0 | 11.0.1 | 2.41 | 14.2 |
 
 A profile is composed of bitness and predefined ABI variant. The combination of CRT, thread model and exception model cannot be freely configured.
