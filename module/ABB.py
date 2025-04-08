@@ -33,7 +33,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   make_custom('binutils (install)', build_dir, [
     f'DESTDIR={paths.mingw_prefix}',
     # use native layout
-    f'tooldir={paths.mingw_prefix}',
+    'tooldir=',
     'install',
   ], jobs = 1)
 
