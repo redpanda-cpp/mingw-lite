@@ -10,7 +10,7 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import cflags_A, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, make_install
+from module.util import add_objects_to_static_lib, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, make_install
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.binutils / 'build-ABB'
@@ -27,7 +27,10 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     '--disable-multilib',
     '--disable-nls',
     # libtool eats `-static`
-    *cflags_A(ld_extra = ['--static']),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      ld_extra = ['--static'],
+    ),
   ])
   make_default('binutils', build_dir, config.jobs)
   make_custom('binutils (install)', build_dir, [
@@ -82,7 +85,9 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
     f'--build={config.build}',
     '--enable-static',
     '--disable-shared',
-    *cflags_B(),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    ),
   ])
   make_default('winpthreads', build_dir, config.jobs)
   make_destdir_install('winpthreads', build_dir, paths.mingw_prefix)
@@ -103,7 +108,9 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     raise Exception(message)
   ret = subprocess.run([
     'env',
-    *cflags_B(),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    ),
     'meson',
     'compile',
     'mcfgthread:static_library',
@@ -134,7 +141,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   if ver.exception == 'dwarf':
     config_flags.append('--disable-sjlj-exceptions')
     config_flags.append('--with-dwarf2')
-  if ver.target_winnt < 0x0600:
+  if ver.min_os.major < 6:
     config_flags.append('--disable-win32-utf8-manifest')
 
   configure('gcc', build_dir, [
@@ -162,8 +169,14 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     '--without-libcc1',
     '--with-libiconv',
     *config_flags,
-    *cflags_B(ld_extra = ['--static']),
-    *cflags_B('_FOR_TARGET', ld_extra = ['--static']),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      ld_extra = ['--static'],
+    ),
+    *cflags_B('_FOR_TARGET',
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      ld_extra = ['--static'],
+    ),
   ])
   make_default('gcc', build_dir, config.jobs)
   make_destdir_install('gcc', build_dir, paths.mingw_prefix)
@@ -190,15 +203,12 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   python_flags = []
   c_extra = []
 
-  if ver.python and ver.target_winnt >= 0x0601:
-    python_flags.append(f'--with-python={paths.x_prefix}/{ver.target}/python-config.sh')
+  python_flags.append(f'--with-python={paths.x_prefix}/{ver.target}/python-config.sh')
 
   # GCC 15 defaults to C23, in which `foo()` means `foo(void)` instead of `foo(...)`.
   if v_gcc.major >= 15 and v < Version('16.3'):
     c_extra.append('-std=gnu11')
 
-  # workaround gdb's detection of C++11 threading
-  os.environ['CPPFLAGS'] = f'-D_WIN32_WINNT={ver.win32_winnt}'
   configure('gdb', build_dir, [
     '--prefix=',
     f'--target={ver.target}',
@@ -210,27 +220,35 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     f'--with-system-gdbinit=/share/gdb/gdbinit',
     *python_flags,
     *cflags_B(
-      common_extra = ['-DPDC_WIDE'],
+      cpp_extra = [
+        f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}',
+        '-DPDC_WIDE',
+      ],
       c_extra = c_extra,
     ),
   ])
+
+  # workaround: top level configure does not pass CPPFLAGS to gdbsupport.
+  # thus it defaults to _WIN32_WINNT=0x0501, breaking win32 and mcf thread model.
+  os.environ['CPPFLAGS'] = f'-DNDEBUG -D_WIN32_WINNT=0x{ver.min_winnt:04X} -DPDC_WIDE'
+  make_custom('gdb (configure-host)', build_dir, ['configure-host'], config.jobs)
+  del os.environ['CPPFLAGS']
+
   make_default('gdb', build_dir, config.jobs)
   make_destdir_install('gdb', build_dir, paths.mingw_prefix)
-  del os.environ['CPPFLAGS']
 
   gdbinit = paths.mingw_prefix / 'share' / 'gdb' / 'gdbinit'
   with open(gdbinit, 'w') as f:
     pass
 
-  if ver.python:
-    shutil.copy(paths.x_prefix / ver.target / 'lib' / 'python.zip', paths.mingw_prefix / 'lib' / 'python.zip')
-    with open(paths.mingw_prefix / 'bin' / 'gdb._pth', 'w') as f:
-      f.write('../lib/python.zip\n')
-    with open(gdbinit, 'a') as f:
-      f.write('python\n')
-      f.write('from libstdcxx.v6.printers import register_libstdcxx_printers\n')
-      f.write('register_libstdcxx_printers(None)\n')
-      f.write('end\n')
+  shutil.copy(paths.x_prefix / ver.target / 'lib' / 'python.zip', paths.mingw_prefix / 'lib' / 'python.zip')
+  with open(paths.mingw_prefix / 'bin' / 'gdb._pth', 'w') as f:
+    f.write('../lib/python.zip\n')
+  with open(gdbinit, 'a') as f:
+    f.write('python\n')
+    f.write('from libstdcxx.v6.printers import register_libstdcxx_printers\n')
+    f.write('register_libstdcxx_printers(None)\n')
+    f.write('end\n')
 
 def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.make)
@@ -249,7 +267,10 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     f'--host={ver.target}',
     f'--build={config.build}',
     '--disable-nls',
-    *cflags_B(c_extra = c_extra),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      c_extra = c_extra,
+    ),
   ])
   make_default('make', build_dir, config.jobs)
   shutil.copy(build_dir / 'make.exe', paths.mingw_prefix / 'bin' / 'mingw32-make.exe')
@@ -302,13 +323,11 @@ def _licenses(ver: BranchProfile, paths: ProjectPaths):
   ensure(license_dir / 'mpfr')
   shutil.copy(paths.mpfr / 'COPYING.LESSER', license_dir / 'mpfr' / 'COPYING.LESSER')
 
-  if ver.python and ver.target_winnt >= 0x0601:
-    ensure(license_dir / 'python')
-    shutil.copy(paths.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
+  ensure(license_dir / 'python')
+  shutil.copy(paths.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
 
-  if ver.python_z and ver.target_winnt >= 0x0601:
-    ensure(license_dir / 'zlib')
-    shutil.copy(paths.python_z / 'LICENSE', license_dir / 'zlib' / 'LICENSE')
+  ensure(license_dir / 'zlib')
+  shutil.copy(paths.python_z / 'LICENSE', license_dir / 'zlib' / 'LICENSE')
 
 def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _binutils(ver, paths, config)

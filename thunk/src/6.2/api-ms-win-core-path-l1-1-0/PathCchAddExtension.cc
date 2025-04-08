@@ -1,6 +1,6 @@
 #include <thunk/_common.h>
 #include <thunk/stl/algorithm.h>
-#include <thunk/yy/pathcch.h>
+#include <thunk/yy/api-ms-win-core-path.h>
 
 #include <pathcch.h>
 #include <windows.h>

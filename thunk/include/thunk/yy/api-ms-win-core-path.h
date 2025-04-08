@@ -1,4 +1,6 @@
-#include <minwindef.h>
+#pragma once
+
+#include <windows.h>
 
 // YY-Thunks 1.1.6
 namespace mingw_thunk::internal

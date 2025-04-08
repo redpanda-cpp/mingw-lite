@@ -7,7 +7,7 @@ import subprocess
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import cflags_A, cflags_B, configure, ensure, fix_libtool_absolute_reference, make_custom, make_default, make_destdir_install, make_install
+from module.util import cflags_A, cflags_B, add_objects_to_static_lib, configure, ensure, fix_libtool_absolute_reference, make_custom, make_default, make_destdir_install, make_install
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.binutils / 'build-AAB'
@@ -84,7 +84,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     *config_flags,
     # libtool eats `-static`
     *cflags_A(ld_extra = ['--static']),
-    *cflags_B('_FOR_TARGET', ld_extra = ['--static']),
+    *cflags_B('_FOR_TARGET',
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      ld_extra = ['--static'],
+    ),
   ])
 
   make_custom('gcc (all-gcc)', build_dir, ['all-gcc'], config.jobs)
@@ -128,7 +131,9 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
     f'--build={config.build}',
     '--enable-static',
     '--disable-shared',
-    *cflags_B(),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    ),
   ])
   make_default('winpthreads', build_dir, config.jobs)
   make_destdir_install('winpthreads', build_dir, paths.x_prefix / ver.target)
@@ -149,7 +154,9 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     raise Exception(message)
   ret = subprocess.run([
     'env',
-    *cflags_B(),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    ),
     'meson',
     'compile',
     'mcfgthread:static_library',
@@ -207,7 +214,10 @@ def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     '--disable-assembly',
     '--enable-static',
     '--disable-shared',
-    *cflags_B(c_extra = c_extra),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      c_extra = c_extra,
+    ),
     # To determine build system compiler, the configure script will firstly try host
     # compiler (i.e. *-w64-mingw32-gcc) and check whether the output is executable
     # (and fallback to cc otherwise). However, in WSL or Linux with Wine configured,
@@ -227,7 +237,9 @@ def _mpfr(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     f'--build={config.build}',
     '--enable-static',
     '--disable-shared',
-    *cflags_B(),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    ),
   ])
   make_default('mpfr', build_dir, config.jobs)
   make_destdir_install('mpfr', build_dir, paths.x_prefix / ver.target)
@@ -243,7 +255,9 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     f'--build={config.build}',
     '--enable-static',
     '--disable-shared',
-    *cflags_B(),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    ),
   ])
   make_default('mpc', build_dir, config.jobs)
   make_destdir_install('mpc', build_dir, paths.x_prefix / ver.target)
@@ -269,7 +283,10 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     '--disable-nls',
     '--enable-static',
     '--disable-shared',
-    *cflags_B(c_extra = c_extra),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      c_extra = c_extra,
+    ),
   ])
   make_default('iconv', build_dir, config.jobs)
   make_destdir_install('iconv', build_dir, paths.x_prefix / ver.target)
@@ -283,7 +300,9 @@ def _gettext(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
     f'--build={config.build}',
     '--enable-static',
     '--disable-shared',
-    *cflags_B(),
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    ),
   ])
   make_default('gettext', build_dir, config.jobs)
   make_destdir_install('gettext', build_dir, paths.x_prefix / ver.target)
@@ -297,12 +316,20 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     'arm64': 'aarch64',
   }
 
+  config_args = []
+  if ver.min_os.major < 6:
+    config_args.append('--emulated-win-cv=1')
+
   res = subprocess.run([
     'xmake', 'config', '--root',
     '-p', 'mingw',
     '-a', XMAKE_ARCH_MAP[ver.arch],
     f'--mingw={paths.x_prefix}',
-    f'--cross={ver.target}-',
+    f'--ar={ver.target}-ar',
+    f'--cc={ver.target}-gcc',
+    f'--cxx={ver.target}-g++',
+    f'--ld={ver.target}-g++',
+    *config_args,
   ], cwd = paths.python)
   if res.returncode != 0:
     raise Exception('xmake config failed')
@@ -351,6 +378,5 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
   if ver.gettext:
     _gettext(ver, paths, config)
 
-  if ver.python:
-    _python(ver, paths, config)
-    _python_packages(ver, paths, config)
+  _python(ver, paths, config)
+  _python_packages(ver, paths, config)

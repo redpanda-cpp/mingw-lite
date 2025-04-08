@@ -143,18 +143,12 @@ class ProjectPaths:
     self.mpfr = self.build / mpfr
     self.mpfr_arx = self.assets / f'{mpfr}.tar.xz'
 
-    if ver.python:
-      python = f'Python-{ver.python}'
-      python_z = f'zlib-{ver.python_z}'
-      self.python = self.build / python
-      self.python_arx = self.assets / f'{python}.tar.xz'
-      self.python_z = self.python / python_z
-      self.python_z_arx = self.assets / f'{python_z}.tar.gz'
-    else:
-      self.python = None
-      self.python_arx = None
-      self.python_z = None
-      self.python_z_arx = None
+    python = f'Python-{ver.python}'
+    python_z = f'zlib-{ver.python_z}'
+    self.python = self.build / python
+    self.python_arx = self.assets / f'{python}.tar.xz'
+    self.python_z = self.python / python_z
+    self.python_z_arx = self.assets / f'{python_z}.tar.gz'
 
     # test phase
 

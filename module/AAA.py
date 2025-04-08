@@ -75,8 +75,7 @@ def build_AAA_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
 
   _mpc(ver.mpc, paths, config)
 
-  if ver.python:
-    _python_z(ver, paths, config)
+  _python_z(ver, paths, config)
 
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.python / 'build-AAA'
@@ -98,5 +97,4 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
   make_install('python', build_dir)
 
 def build_AAA_python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  if ver.python:
-    _python(ver, paths, config)
+  _python(ver, paths, config)

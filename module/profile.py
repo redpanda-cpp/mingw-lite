@@ -1,6 +1,6 @@
 import argparse
+from packaging.version import Version
 from typing import Dict, Optional
-
 class BranchVersions:
   gcc: str
   rev: str
@@ -11,12 +11,12 @@ class BranchVersions:
   gmp: str
   iconv: str
   make: str
-  mcfgthread: Optional[str]
+  mcfgthread: str
   mingw: str
   mpc: str
   mpfr: str
-  python: Optional[str]
-  python_z: Optional[str]
+  python: str
+  python_z: str
 
   xmake: str = '2.9.8'
 
@@ -32,12 +32,12 @@ class BranchVersions:
     gmp: str,
     iconv: str,
     make: str,
-    mcfgthread: Optional[str],
+    mcfgthread: str,
     mingw: str,
     mpc: str,
     mpfr: str,
-    python: Optional[str],
-    python_z: Optional[str]
+    python: str,
+    python_z: str,
   ):
     self.gcc = gcc
     self.rev = rev
@@ -64,7 +64,7 @@ class ProfileInfo:
   thread: str
 
   win32_winnt: int
-  target_winnt: int
+  min_os: Version
 
   def __init__(
     self,
@@ -77,7 +77,7 @@ class ProfileInfo:
     thread: str,
 
     win32_winnt: int,
-    target_winnt: int,
+    min_os: str,
   ):
     self.arch = arch
     self.target = target
@@ -87,7 +87,7 @@ class ProfileInfo:
     self.thread = thread
 
     self.win32_winnt = win32_winnt
-    self.target_winnt = target_winnt
+    self.min_os = Version(min_os)
 
 class BranchProfile(BranchVersions):
   arch: str
@@ -98,7 +98,8 @@ class BranchProfile(BranchVersions):
   thread: str
 
   win32_winnt: int
-  target_winnt: int
+  min_os: Version
+  min_winnt: int
 
   def __init__(
     self,
@@ -115,7 +116,12 @@ class BranchProfile(BranchVersions):
     self.thread = info.thread
 
     self.win32_winnt = info.win32_winnt
-    self.target_winnt = info.target_winnt
+    self.min_os = info.min_os
+
+    if info.min_os.major < 4:
+      self.min_winnt = 0x0400
+    else:
+      self.min_winnt = info.min_os.major * 0x100 + info.min_os.minor
 
 BRANCHES: Dict[str, BranchVersions] = {
   '15': BranchVersions(
@@ -186,7 +192,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'mcf',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.1',
   ),
   '64-win32': ProfileInfo(
     arch = '64',
@@ -197,7 +203,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'win32',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.0',
   ),
   '64-ucrt': ProfileInfo(
     arch = '64',
@@ -208,7 +214,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'posix',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.0',
   ),
   '64-msvcrt': ProfileInfo(
     arch = '64',
@@ -219,7 +225,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'posix',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.0',
   ),
 
   'arm64-mcf': ProfileInfo(
@@ -231,7 +237,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'mcf',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0A00,
+    min_os = '10.0.16299',
   ),
   'arm64-win32': ProfileInfo(
     arch = 'arm64',
@@ -242,7 +248,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'win32',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0A00,
+    min_os = '10.0.16299',
   ),
   'arm64-ucrt': ProfileInfo(
     arch = 'arm64',
@@ -253,7 +259,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'posix',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0A00,
+    min_os = '10.0.16299',
   ),
 
   '32-mcf': ProfileInfo(
@@ -265,7 +271,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'mcf',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.1',
   ),
   '32-win32': ProfileInfo(
     arch = '32',
@@ -276,7 +282,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'win32',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.0',
   ),
   '32-ucrt': ProfileInfo(
     arch = '32',
@@ -287,7 +293,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'posix',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.0',
   ),
   '32-msvcrt': ProfileInfo(
     arch = '32',
@@ -298,7 +304,7 @@ PROFILES: Dict[str, ProfileInfo] = {
     thread = 'posix',
 
     win32_winnt = 0x0A00,
-    target_winnt = 0x0601,
+    min_os = '6.0',
   ),
 }
 

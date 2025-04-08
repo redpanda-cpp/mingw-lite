@@ -2,20 +2,34 @@ import logging
 from pathlib import Path
 import re
 import subprocess
-from typing import List
+from typing import Iterable, List
 
 from module.profile import ProfileInfo
 
+def add_objects_to_static_lib(ar: str, lib: Path, objects: Iterable[Path]):
+  res = subprocess.run([
+    ar, 'r',
+    lib,
+    *objects,
+  ])
+  if res.returncode != 0:
+    message = f'Build fail: {lib.name} ar returned {res.returncode}'
+    logging.critical(message)
+    raise Exception(message)
+
 def cflags_A(
   suffix: str = '',
+  cpp_extra: List[str] = [],
   common_extra: List[str] = [],
   ld_extra: List[str] = [],
   c_extra: List[str] = [],
   cxx_extra: List[str] = [],
 ) -> List[str]:
+  cpp = ['-DNDEBUG']
   common = ['-Os']
   ld = ['-s']
   return [
+    f'CPPFLAGS{suffix}=' + ' '.join(cpp + cpp_extra),
     f'CFLAGS{suffix}=' + ' '.join(common + common_extra + c_extra),
     f'CXXFLAGS{suffix}=' + ' '.join(common + common_extra + cxx_extra),
     f'LDFLAGS{suffix}=' + ' '.join(ld + ld_extra),
@@ -23,14 +37,17 @@ def cflags_A(
 
 def cflags_B(
   suffix: str = '',
+  cpp_extra: List[str] = [],
   common_extra: List[str] = [],
   ld_extra: List[str] = [],
   c_extra: List[str] = [],
   cxx_extra: List[str] = [],
 ) -> List[str]:
+  cpp = ['-DNDEBUG']
   common = ['-Os']
   ld = ['-s']
   return [
+    f'CPPFLAGS{suffix}=' + ' '.join(cpp + cpp_extra),
     f'CFLAGS{suffix}=' + ' '.join(common + common_extra + c_extra),
     f'CXXFLAGS{suffix}=' + ' '.join(common + common_extra + cxx_extra),
     f'LDFLAGS{suffix}=' + ' '.join(ld + ld_extra),
@@ -82,10 +99,10 @@ def make_custom(component: str, cwd: Path, extra_args: List[str], jobs: int):
     raise Exception(message)
 
 def make_default(component: str, cwd: Path, jobs: int):
-  make_custom(component + ' (default)', cwd, ['MAKEINFO=true'], jobs)
+  make_custom(component + ' (default)', cwd, [], jobs)
 
 def make_destdir_install(component: str, cwd: Path, destdir: Path):
   make_custom(component + ' (install)', cwd, [f'DESTDIR={destdir}', 'install'], jobs = 1)
 
 def make_install(component: str, cwd: Path):
-  make_custom(component + ' (install)', cwd, ['MAKEINFO=true', 'install'], jobs = 1)
+  make_custom(component + ' (install)', cwd, ['install'], jobs = 1)

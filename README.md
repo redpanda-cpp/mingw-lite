@@ -48,6 +48,11 @@ A profile is composed of bitness and predefined ABI variant. The combination of 
 
 The default `_WIN32_WINNT` value is based on the earliest Windows version that is supported at the end of the GCC’s release year. (Currently 0x0A00 for all branches.)
 
-By default, the toolchain’s minimum supported OS is based on the earliest Windows version that is suported at the publication date of the ISO C++ standard related to GCC’s default C++ standard. Some variants extend the minimum supported OS to earlier Windows versions.
+Python (GDB scripting engine) often limits the toolchain’s minimum supported OS. However, Python is sometimes a bit aggressive, so we use some thunks to bring back support for earlier Windows versions. There is no well-defined rule for minimum supported OS; the one that costs “reasonable” effort is chosen.
 
-Currently GCCs in all branches default to `-std=gnu++17`, with related ISO C++ standard published on 2017-12. That is to say, the default minimum supported OS is Windows 7 (NT 6.1).
+| ABI variant | Minimum supported OS |
+| ----------- | -------------------- |
+| mcf | Windows 7 (NT 6.1) |
+| win32 | Windows Vista (NT 6.0) |
+| ucrt | Windows Vista (NT 6.0) |
+| msvcrt | Windows Vista (NT 6.0) |

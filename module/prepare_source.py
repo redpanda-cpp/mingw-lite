@@ -10,7 +10,7 @@ from urllib.request import urlopen
 
 from module.fetch import validate_and_download, check_and_extract
 from module.path import ProjectPaths
-from module.profile import BranchVersions, ProfileInfo
+from module.profile import BranchProfile
 
 def _patch(path: Path, patch: Path):
   res = subprocess.run([
@@ -46,7 +46,7 @@ def _patch_done(path: Path):
   mark = path / '.patched'
   mark.touch()
 
-def _binutils(ver: BranchVersions, paths: ProjectPaths):
+def _binutils(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/binutils/{paths.binutils_arx.name}'
   validate_and_download(paths.binutils_arx, url)
   if check_and_extract(paths.binutils, paths.binutils_arx):
@@ -60,7 +60,7 @@ def _binutils(ver: BranchVersions, paths: ProjectPaths):
 
     _patch_done(paths.binutils)
 
-def _gcc(ver: BranchVersions, paths: ProjectPaths):
+def _gcc(ver: BranchProfile, paths: ProjectPaths):
   v = Version(ver.gcc)
   if v.major >= 15:
     url = f'https://gcc.gnu.org/pub/gcc/snapshots/{ver.gcc}/{paths.gcc_arx.name}'
@@ -99,7 +99,7 @@ def _gcc(ver: BranchVersions, paths: ProjectPaths):
       logging.critical(message)
       raise Exception(message)
 
-    if ver.target_winnt >= 0x0600:
+    if ver.min_os.major >= 6:
       # Fix console code page
       _patch(paths.gcc, paths.patch / 'gcc' / 'fix-console-cp.patch')
     else:
@@ -107,75 +107,75 @@ def _gcc(ver: BranchVersions, paths: ProjectPaths):
 
     _patch_done(paths.gcc)
 
-def _gdb(ver: BranchVersions, paths: ProjectPaths):
+def _gdb(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.gdb_arx.name}'
   validate_and_download(paths.gdb_arx, url)
   if check_and_extract(paths.gdb, paths.gdb_arx):
     v = Version(ver.gdb)
 
     # Fix thread
-    if ver.target_winnt <= 0x0600:
-      _patch(paths.gdb, paths.patch / 'gdb' / 'fix-thread.patch')
+    if v.major >= 16:
+      _patch(paths.gdb, paths.patch / 'gdb' / 'fix-thread_16.patch')
+    else:
+      _patch(paths.gdb, paths.patch / 'gdb' / 'fix-thread_14.patch')
 
     # Fix iconv 'CP65001'
     _patch(paths.gdb, paths.patch / 'gdb' / 'fix-iconv-cp65001.patch')
 
     # Fix pythondir
-    if ver.python:
-      _patch(paths.gdb, paths.patch / 'gdb' / 'fix-pythondir.patch')
+    _patch(paths.gdb, paths.patch / 'gdb' / 'fix-pythondir.patch')
 
     _patch_done(paths.gdb)
 
-def _gettext(ver: BranchVersions, paths: ProjectPaths):
+def _gettext(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gettext/{paths.gettext_arx.name}'
   validate_and_download(paths.gettext_arx, url)
   check_and_extract(paths.gettext, paths.gettext_arx)
   _patch_done(paths.gettext)
 
-def _gmp(ver: BranchVersions, paths: ProjectPaths):
+def _gmp(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gmp/{paths.gmp_arx.name}'
   validate_and_download(paths.gmp_arx, url)
   check_and_extract(paths.gmp, paths.gmp_arx)
   _patch_done(paths.gmp)
 
-def _iconv(ver: BranchVersions, paths: ProjectPaths):
+def _iconv(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/libiconv/{paths.iconv_arx.name}'
   validate_and_download(paths.iconv_arx, url)
   check_and_extract(paths.iconv, paths.iconv_arx)
   _patch_done(paths.iconv)
 
-def _make(ver: BranchVersions, paths: ProjectPaths):
+def _make(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/make/{paths.make_arx.name}'
   validate_and_download(paths.make_arx, url)
   check_and_extract(paths.make, paths.make_arx)
   _patch_done(paths.make)
 
-def _mcfgthread(ver: BranchVersions, paths: ProjectPaths):
+def _mcfgthread(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://github.com/lhmouse/mcfgthread/archive/refs/tags/v{ver.mcfgthread}.tar.gz'
   validate_and_download(paths.mcfgthread_arx, url)
   check_and_extract(paths.mcfgthread, paths.mcfgthread_arx)
   _patch_done(paths.mcfgthread)
 
-def _mingw(ver: BranchVersions, paths: ProjectPaths):
+def _mingw(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.mingw_arx.name}'
   validate_and_download(paths.mingw_arx, url)
   if check_and_extract(paths.mingw, paths.mingw_arx):
     v = Version(ver.mingw)
 
     # CRT: Fix missing function
-    if ver.target_winnt <= 0x0502:
+    if ver.min_os.major < 6:
       if v.major >= 12:
         _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_12.patch')
       else:
         _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_7.patch')
 
     # CRT: Add mingw thunks
-    nt_ver = f'{ver.target_winnt >> 8}.{ver.target_winnt & 0xFF}'
     subprocess.run([
       './patch.py',
       paths.mingw,
       '-a', ver.arch,
-      '--nt-ver', nt_ver,
+      '--nt-ver', str(ver.min_os),
     ], cwd = paths.root / 'thunk', check = True)
 
     _autoreconf(paths.mingw / 'mingw-w64-crt')
@@ -183,19 +183,19 @@ def _mingw(ver: BranchVersions, paths: ProjectPaths):
 
     _patch_done(paths.mingw)
 
-def _mpc(ver: BranchVersions, paths: ProjectPaths):
+def _mpc(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/mpc/{paths.mpc_arx.name}'
   validate_and_download(paths.mpc_arx, url)
   check_and_extract(paths.mpc, paths.mpc_arx)
   _patch_done(paths.mpc)
 
-def _mpfr(ver: BranchVersions, paths: ProjectPaths):
+def _mpfr(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/mpfr/{paths.mpfr_arx.name}'
   validate_and_download(paths.mpfr_arx, url)
   check_and_extract(paths.mpfr, paths.mpfr_arx)
   _patch_done(paths.mpfr)
 
-def _python(ver: BranchVersions, paths: ProjectPaths):
+def _python(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://www.python.org/ftp/python/{ver.python}/{paths.python_arx.name}'
   z_url = f'https://zlib.net/fossils/{paths.python_z_arx.name}'
   validate_and_download(paths.python_arx, url)
@@ -220,7 +220,7 @@ def _python(ver: BranchVersions, paths: ProjectPaths):
 
     _patch_done(paths.python)
 
-def prepare_source(ver: BranchVersions, paths: ProjectPaths):
+def prepare_source(ver: BranchProfile, paths: ProjectPaths):
   _binutils(ver, paths)
   _gcc(ver, paths)
   _gdb(ver, paths)
@@ -229,10 +229,9 @@ def prepare_source(ver: BranchVersions, paths: ProjectPaths):
   _gmp(ver, paths)
   _iconv(ver, paths)
   _make(ver, paths)
-  if ver.mcfgthread:
+  if ver.thread == 'mcf':
     _mcfgthread(ver, paths)
   _mingw(ver, paths)
   _mpc(ver, paths)
   _mpfr(ver, paths)
-  if ver.python and ver.target_winnt >= 0x0601:
-    _python(ver, paths)
+  _python(ver, paths)

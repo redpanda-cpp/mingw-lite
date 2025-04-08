@@ -1,0 +1,23 @@
+diff --git a/gdb/windows-nat.c b/gdb/windows-nat.c
+index 2fd943ea973..8f2bdab83a4 100644
+--- a/gdb/windows-nat.c
++++ b/gdb/windows-nat.c
+@@ -36,6 +36,7 @@
+ #include <fcntl.h>
+ #include <windows.h>
+ #include <imagehlp.h>
++#include <versionhelpers.h>
+ #ifdef __CYGWIN__
+ #include <wchar.h>
+ #include <sys/cygwin.h>
+@@ -1224,6 +1225,10 @@ windows_nat_target::windows_continue (DWORD continue_status, int id,
+   for (auto &th : windows_process.thread_list)
+     if (id == -1 || id == (int) th->tid)
+       {
++#ifdef __x86_64__
++        if (!IsWindows7OrGreater() && !th->suspended)
++          continue;
++#endif
+ 	windows_process.with_context (th.get (), [&] (auto *context)
+ 	  {
+ 	    if (th->debug_registers_changed)

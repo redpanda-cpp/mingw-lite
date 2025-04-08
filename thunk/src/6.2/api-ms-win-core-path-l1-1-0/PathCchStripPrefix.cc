@@ -1,5 +1,5 @@
 #include <thunk/_common.h>
-#include <thunk/yy/pathcch.h>
+#include <thunk/yy/api-ms-win-core-path.h>
 
 // workaround mingw-w64 11.0.1
 #define STRSAFE_NO_DEPRECATE
