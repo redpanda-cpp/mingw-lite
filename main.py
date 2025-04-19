@@ -32,6 +32,8 @@ def clean(config: argparse.Namespace, paths: ProjectPaths):
 def prepare_dirs(paths: ProjectPaths):
   paths.assets.mkdir(parents = True, exist_ok = True)
   paths.build.mkdir(parents = True, exist_ok = True)
+  paths.build_host.mkdir(parents = True, exist_ok = True)
+  paths.build_target.mkdir(parents = True, exist_ok = True)
   paths.dist.mkdir(parents = True, exist_ok = True)
 
 def _package(root: Path | str, src: Path | str, dst: Path):

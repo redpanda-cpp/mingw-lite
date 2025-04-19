@@ -21,6 +21,8 @@ class ProjectPaths:
   # build phase
 
   build: Path
+  build_host: Path
+  build_target: Path
   dep: Path
   x_dep: Path
 
@@ -32,7 +34,8 @@ class ProjectPaths:
   iconv: Path
   make: Path
   mcfgthread: Optional[Path]
-  mingw: Path
+  mingw_host: Path
+  mingw_target: Path
   mpc: Path
   mpfr: Path
   python: Path
@@ -85,6 +88,8 @@ class ProjectPaths:
     # build phase
 
     self.build = Path(f'/tmp/build/{dir}')
+    self.build_host = self.build / 'host'
+    self.build_target = self.build / 'target'
     self.dep = self.build / 'deps'
     self.x_dep = self.build / 'x-deps'
 
@@ -132,7 +137,8 @@ class ProjectPaths:
       self.mcfgthread_arx = None
 
     mingw = f'mingw-w64-v{ver.mingw}'
-    self.mingw = self.build / mingw
+    self.mingw_host = self.build_host / mingw
+    self.mingw_target = self.build_target / mingw
     self.mingw_arx = self.assets / f'{mingw}.tar.bz2'
 
     mpc = f'mpc-{ver.mpc}'

@@ -32,7 +32,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   make_destdir_install('binutils', build_dir, paths.x_prefix)
 
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.mingw / 'mingw-w64-headers' / 'build-AAB'
+  build_dir = paths.mingw_host / 'mingw-w64-headers' / 'build-AAB'
   ensure(build_dir)
   configure('headers', build_dir, [
     '--prefix=',
@@ -99,7 +99,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   yield
 
 def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.mingw / 'mingw-w64-crt' / 'build-AAB'
+  build_dir = paths.mingw_host / 'mingw-w64-crt' / 'build-AAB'
   ensure(build_dir)
 
   multilib_flags = [
@@ -123,7 +123,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   make_destdir_install('crt', build_dir, paths.x_prefix / ver.target)
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'build-AAB'
+  build_dir = paths.mingw_host / 'mingw-w64-libraries' / 'winpthreads' / 'build-AAB'
   ensure(build_dir)
   configure('winpthreads', build_dir, [
     '--prefix=',

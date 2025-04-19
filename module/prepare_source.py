@@ -157,31 +157,59 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths):
   check_and_extract(paths.mcfgthread, paths.mcfgthread_arx)
   _patch_done(paths.mcfgthread)
 
-def _mingw(ver: BranchProfile, paths: ProjectPaths):
+def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.mingw_arx.name}'
   validate_and_download(paths.mingw_arx, url)
-  if check_and_extract(paths.mingw, paths.mingw_arx):
+  if check_and_extract(paths.mingw_host, paths.mingw_arx):
     v = Version(ver.mingw)
 
     # CRT: Fix missing function
     if ver.min_os.major < 6:
       if v.major >= 12:
-        _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_12.patch')
+        _patch(paths.mingw_host, paths.patch / 'crt' / 'fix-missing-function_12.patch')
       else:
-        _patch(paths.mingw, paths.patch / 'crt' / 'fix-missing-function_7.patch')
+        _patch(paths.mingw_host, paths.patch / 'crt' / 'fix-missing-function_7.patch')
 
     # CRT: Add mingw thunks
     subprocess.run([
       './patch.py',
-      paths.mingw,
+      paths.mingw_host,
       '-a', ver.arch,
+      '--level', 'toolchain',
       '--nt-ver', str(ver.min_os),
     ], cwd = paths.root / 'thunk', check = True)
 
-    _autoreconf(paths.mingw / 'mingw-w64-crt')
-    _automake(paths.mingw / 'mingw-w64-crt')
+    _autoreconf(paths.mingw_host / 'mingw-w64-crt')
+    _automake(paths.mingw_host / 'mingw-w64-crt')
 
-    _patch_done(paths.mingw)
+    _patch_done(paths.mingw_host)
+
+def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
+  url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.mingw_arx.name}'
+  validate_and_download(paths.mingw_arx, url)
+  if check_and_extract(paths.mingw_target, paths.mingw_arx):
+    v = Version(ver.mingw)
+
+    # CRT: Fix missing function
+    if ver.min_os.major < 6:
+      if v.major >= 12:
+        _patch(paths.mingw_target, paths.patch / 'crt' / 'fix-missing-function_12.patch')
+      else:
+        _patch(paths.mingw_target, paths.patch / 'crt' / 'fix-missing-function_7.patch')
+
+    # CRT: Add mingw thunks
+    subprocess.run([
+      './patch.py',
+      paths.mingw_target,
+      '-a', ver.arch,
+      '--level', 'core',
+      '--nt-ver', str(ver.min_os),
+    ], cwd = paths.root / 'thunk', check = True)
+
+    _autoreconf(paths.mingw_target / 'mingw-w64-crt')
+    _automake(paths.mingw_target / 'mingw-w64-crt')
+
+    _patch_done(paths.mingw_target)
 
 def _mpc(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/mpc/{paths.mpc_arx.name}'
@@ -231,7 +259,8 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths):
   _make(ver, paths)
   if ver.thread == 'mcf':
     _mcfgthread(ver, paths)
-  _mingw(ver, paths)
+  _mingw_host(ver, paths)
+  _mingw_target(ver, paths)
   _mpc(ver, paths)
   _mpfr(ver, paths)
   _python(ver, paths)

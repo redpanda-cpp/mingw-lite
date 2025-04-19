@@ -41,7 +41,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   ], jobs = 1)
 
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.mingw / 'mingw-w64-headers' / 'build-ABB'
+  build_dir = paths.mingw_target / 'mingw-w64-headers' / 'build-ABB'
   ensure(build_dir)
   configure('mingw-w64-headers', build_dir, [
     '--prefix=',
@@ -54,7 +54,7 @@ def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
   make_destdir_install('headers', build_dir, paths.mingw_prefix)
 
 def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.mingw / 'mingw-w64-crt' / 'build-ABB'
+  build_dir = paths.mingw_target / 'mingw-w64-crt' / 'build-ABB'
   ensure(build_dir)
 
   multilib_flags = [
@@ -77,7 +77,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   make_destdir_install('crt', build_dir, paths.mingw_prefix)
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB'
+  build_dir = paths.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB'
   ensure(build_dir)
   configure('winpthreads', build_dir, [
     '--prefix=',
@@ -312,10 +312,10 @@ def _licenses(ver: BranchProfile, paths: ProjectPaths):
       shutil.copy(paths.mcfgthread / 'licenses' / file, license_dir / 'mcfgthread' / file)
 
   ensure(license_dir / 'mingw-w64')
-  shutil.copy(paths.mingw / 'COPYING', license_dir / 'mingw-w64' / 'COPYING')
+  shutil.copy(paths.mingw_target / 'COPYING', license_dir / 'mingw-w64' / 'COPYING')
 
   ensure(license_dir / 'mingw-w64-libraries-winpthreads')
-  shutil.copy(paths.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'COPYING', license_dir / 'mingw-w64-libraries-winpthreads' / 'COPYING')
+  shutil.copy(paths.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'COPYING', license_dir / 'mingw-w64-libraries-winpthreads' / 'COPYING')
 
   ensure(license_dir / 'mpc')
   shutil.copy(paths.mpc / 'COPYING.LESSER', license_dir / 'mpc' / 'COPYING.LESSER')

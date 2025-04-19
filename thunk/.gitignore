@@ -1,3 +1,4 @@
 .vscode
 .xmake
+__pycache__
 build
