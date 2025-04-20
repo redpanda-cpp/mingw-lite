@@ -126,7 +126,7 @@ class BranchProfile(BranchVersions):
 
 BRANCHES: Dict[str, BranchVersions] = {
   '15': BranchVersions(
-    gcc = '15-20250330',
+    gcc = '15.1.0-RC-20250418',
     rev = '0',
 
     binutils = '2.44',
