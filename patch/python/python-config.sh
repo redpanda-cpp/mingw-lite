@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 prefix=$(dirname $0)
 
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
   case $1 in
     --includes)
       echo "-I$prefix/include/python -DPy_NO_ENABLE_SHARED"

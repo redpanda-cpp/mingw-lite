@@ -248,6 +248,23 @@ def _python(ver: BranchProfile, paths: ProjectPaths):
 
     _patch_done(paths.python)
 
+def _xmake(ver: BranchProfile, paths: ProjectPaths):
+  url = f'https://github.com/xmake-io/xmake/releases/download/v{ver.xmake}/{paths.xmake_arx.name}'
+  validate_and_download(paths.xmake_arx, url)
+  if check_and_extract(paths.xmake, paths.xmake_arx):
+    # disable werror
+    xmake_lua = paths.xmake / 'core' / 'xmake.lua'
+    with open(xmake_lua, 'r') as f:
+      xmake_lua_content = f.readlines()
+    with open(xmake_lua, 'w') as f:
+      for line in xmake_lua_content:
+        if line.startswith('set_warnings'):
+          f.write('set_warnings("all")\n')
+        else:
+          f.write(line)
+
+    _patch_done(paths.xmake)
+
 def prepare_source(ver: BranchProfile, paths: ProjectPaths):
   _binutils(ver, paths)
   _gcc(ver, paths)
@@ -264,3 +281,4 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths):
   _mpc(ver, paths)
   _mpfr(ver, paths)
   _python(ver, paths)
+  _xmake(ver, paths)

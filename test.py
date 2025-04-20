@@ -40,13 +40,14 @@ def available_port():
     return s.getsockname()[1]
 
 def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
+  xmake = paths.test_mingw / 'bin' / 'xmake.exe'
   subprocess.check_call([
-    paths.xmake_exe, 'f', *verbose,
+    xmake, 'f', *verbose,
     '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
     f'--mingw={winepath(paths.test_mingw)}',
   ], cwd = paths.test)
-  subprocess.check_call([paths.xmake_exe, 'b', *verbose], cwd = paths.test)
-  subprocess.check_call([paths.xmake_exe, 'test', *verbose], cwd = paths.test)
+  subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test)
+  subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test)
 
 def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   bin_dir = paths.test_mingw / 'bin'

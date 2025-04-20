@@ -10,7 +10,7 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import add_objects_to_static_lib, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, make_install
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, make_install, xmake_build, xmake_config
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.binutils / 'build-ABB'
@@ -275,6 +275,19 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   make_default('make', build_dir, config.jobs)
   shutil.copy(build_dir / 'make.exe', paths.mingw_prefix / 'bin' / 'mingw32-make.exe')
 
+def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  build_dir = paths.xmake / 'core'
+  xmake_config('xmake', build_dir, [
+    '--plat=mingw',
+    f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+    '--toolchain=cross',
+    f'--sdk={paths.x_prefix}',
+    f'--cross={ver.target}-',
+    '--embed=y',
+  ])
+  xmake_build('xmake', build_dir, config.jobs)
+  shutil.copy(build_dir / 'build' / 'xmake.exe', paths.mingw_prefix / 'bin' / 'xmake.exe')
+
 def _licenses(ver: BranchProfile, paths: ProjectPaths):
   license_dir = paths.mingw_prefix / 'share' / 'licenses'
   ensure(license_dir)
@@ -326,6 +339,9 @@ def _licenses(ver: BranchProfile, paths: ProjectPaths):
   ensure(license_dir / 'python')
   shutil.copy(paths.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
 
+  ensure(license_dir / 'xmake')
+  shutil.copy(paths.xmake / 'LICENSE.md', license_dir / 'xmake' / 'LICENSE.md')
+
   ensure(license_dir / 'zlib')
   shutil.copy(paths.python_z / 'LICENSE', license_dir / 'zlib' / 'LICENSE')
 
@@ -346,5 +362,7 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
   _gdb(ver, paths, config)
 
   _gmake(ver, paths, config)
+
+  _xmake(ver, paths, config)
 
   _licenses(ver, paths)

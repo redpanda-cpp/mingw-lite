@@ -7,7 +7,7 @@ import subprocess
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import cflags_A, cflags_B, add_objects_to_static_lib, configure, ensure, fix_libtool_absolute_reference, make_custom, make_default, make_destdir_install, make_install
+from module.util import XMAKE_ARCH_MAP, cflags_A, cflags_B, add_objects_to_static_lib, configure, ensure, fix_libtool_absolute_reference, make_custom, make_default, make_destdir_install, make_install, xmake_build, xmake_config, xmake_install
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.binutils / 'build-AAB'
@@ -310,41 +310,20 @@ def _gettext(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
   fix_libtool_absolute_reference(paths.x_prefix / ver.target / 'lib' / 'libintl.la')
 
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  XMAKE_ARCH_MAP = {
-    '32': 'i386',
-    '64': 'x86_64',
-    'arm64': 'aarch64',
-  }
-
   config_args = []
   if ver.min_os.major < 6:
     config_args.append('--emulated-win-cv=1')
 
-  res = subprocess.run([
-    'xmake', 'config', '--root',
-    '-p', 'mingw',
-    '-a', XMAKE_ARCH_MAP[ver.arch],
-    f'--mingw={paths.x_prefix}',
-    f'--ar={ver.target}-ar',
-    f'--cc={ver.target}-gcc',
-    f'--cxx={ver.target}-g++',
-    f'--ld={ver.target}-g++',
+  xmake_config('python', paths.python, [
+    '--plat=mingw',
+    f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+    '--toolchain=cross',
+    f'--sdk={paths.x_prefix}',
+    f'--cross={ver.target}-',
     *config_args,
-  ], cwd = paths.python)
-  if res.returncode != 0:
-    raise Exception('xmake config failed')
-  res = subprocess.run([
-    'xmake', 'build', '--root',
-    '-j', str(config.jobs),
-  ], cwd = paths.python)
-  if res.returncode != 0:
-    raise Exception('xmake build failed')
-  res = subprocess.run([
-    'xmake', 'install', '--root',
-    '-o', paths.x_prefix / ver.target,
-  ], cwd = paths.python)
-  if res.returncode != 0:
-    raise Exception('xmake install failed')
+  ])
+  xmake_build('python', paths.python, config.jobs)
+  xmake_install('python', paths.python, paths.x_prefix / ver.target)
 
 def _python_packages(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   x_prefix_mingw = paths.x_prefix / ver.target

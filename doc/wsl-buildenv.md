@@ -23,7 +23,7 @@ The build script requires root privileges, so AN EXCLUSIVE DISTRO is highly reco
    ```bash
    apt update
    apt install --no-install-recommends -y \
-     autoconf automake build-essential flex libtool meson texinfo xmake \
+     autoconf automake build-essential flex libtool meson texinfo \
      7zip ca-certificates curl file gawk libarchive-tools python3 python3-packaging zstd
    ```
 

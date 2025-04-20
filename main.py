@@ -17,7 +17,7 @@ from module.profile import resolve_profile
 # A = x86_64-linux-gnu or x86_64-linux-musl
 # B = {i686,x86_64}-w64-mingw32
 # XYZ: build = X, host = Y, target = Z
-from module.AAA import build_AAA_library, build_AAA_python
+from module.AAA import build_AAA_library, build_AAA_tool
 from module.AAB import build_AAB_compiler, build_AAB_library
 from module.ABB import build_ABB_toolchain
 
@@ -80,7 +80,7 @@ def main():
   os.environ['PATH'] = f'{paths.x_prefix}/bin:{os.environ["PATH"]}'
   if not config.no_cross:
     build_AAA_library(ver, paths, config)
-    build_AAA_python(ver, paths, config)
+    build_AAA_tool(ver, paths, config)
     build_AAB_compiler(ver, paths, config)
     build_AAB_library(ver, paths, config)
     package_cross(paths)

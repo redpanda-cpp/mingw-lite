@@ -6,6 +6,12 @@ from typing import Iterable, List
 
 from module.profile import ProfileInfo
 
+XMAKE_ARCH_MAP = {
+  '32': 'i386',
+  '64': 'x86_64',
+  'arm64': 'aarch64',
+}
+
 def add_objects_to_static_lib(ar: str, lib: Path, objects: Iterable[Path]):
   res = subprocess.run([
     ar, 'r',
@@ -106,3 +112,33 @@ def make_destdir_install(component: str, cwd: Path, destdir: Path):
 
 def make_install(component: str, cwd: Path):
   make_custom(component + ' (install)', cwd, ['install'], jobs = 1)
+
+def xmake_build(component: str, cwd: Path, jobs: int):
+  res = subprocess.run(
+    ['xmake', 'build', '-j', str(jobs)],
+    cwd = cwd,
+  )
+  if res.returncode != 0:
+    message = f'Build fail: {component} xmake build returned {res.returncode}'
+    logging.critical(message)
+    raise Exception(message)
+
+def xmake_config(component: str, cwd: Path, extra_args: List[str]):
+  res = subprocess.run(
+    ['xmake', 'config', *extra_args],
+    cwd = cwd,
+  )
+  if res.returncode != 0:
+    message = f'Build fail: {component} xmake config returned {res.returncode}'
+    logging.critical(message)
+    raise Exception(message)
+
+def xmake_install(component: str, cwd: Path, destdir: Path):
+  res = subprocess.run(
+    ['xmake', 'install', '-o', destdir],
+    cwd = cwd,
+  )
+  if res.returncode != 0:
+    message = f'Build fail: {component} xmake install returned {res.returncode}'
+    logging.critical(message)
+    raise Exception(message)

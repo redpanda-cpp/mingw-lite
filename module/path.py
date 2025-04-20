@@ -40,6 +40,7 @@ class ProjectPaths:
   mpfr: Path
   python: Path
   python_z: Path
+  xmake: Path
 
   binutils_arx: Path
   gettext_arx: Optional[Path]
@@ -54,6 +55,7 @@ class ProjectPaths:
   mpfr_arx: Path
   python_arx: Path
   python_z_arx: Path
+  xmake_arx: Path
 
   # test phase
 
@@ -61,10 +63,6 @@ class ProjectPaths:
   test_src: Path
 
   test_mingw: Path
-
-  xmake: Path
-  xmake_arx: Path
-  xmake_exe: Path
 
   def __init__(
     self,
@@ -156,13 +154,12 @@ class ProjectPaths:
     self.python_z = self.python / python_z
     self.python_z_arx = self.assets / f'{python_z}.tar.gz'
 
+    self.xmake = self.build / f'xmake-{ver.xmake}'
+    self.xmake_arx = self.assets / f'xmake-v{ver.xmake}.tar.gz'
+
     # test phase
 
     self.test = Path(f'/tmp/test/{dir}')
     self.test_src = self.root / 'support' / 'test'
 
     self.test_mingw = self.test / dir
-
-    self.xmake = self.test / 'xmake'
-    self.xmake_arx = self.assets / f'xmake-v{ver.xmake}.win64.zip'
-    self.xmake_exe = self.xmake / 'xmake.exe'

@@ -96,5 +96,19 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
   make_custom('python', build_dir, ['LDFLAGS=-static', 'LINKFORSHARED= '], config.jobs)
   make_install('python', build_dir)
 
-def build_AAA_python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  res = subprocess.run([
+    './configure',
+    f'--prefix={paths.x_prefix}',
+  ], cwd = paths.xmake)
+  if (res.returncode != 0):
+    message = f'Build fail: xmake configure returned {res.returncode}'
+    logging.critical(message)
+    raise Exception(message)
+  make_default('xmake', paths.xmake, config.jobs)
+  make_install('xmake', paths.xmake)
+
+def build_AAA_tool(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _python(ver, paths, config)
+
+  _xmake(ver, paths, config)

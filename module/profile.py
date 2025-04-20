@@ -17,8 +17,7 @@ class BranchVersions:
   mpfr: str
   python: str
   python_z: str
-
-  xmake: str = '2.9.8'
+  xmake: str
 
   def __init__(
     self,
@@ -38,6 +37,7 @@ class BranchVersions:
     mpfr: str,
     python: str,
     python_z: str,
+    xmake: str,
   ):
     self.gcc = gcc
     self.rev = rev
@@ -54,6 +54,7 @@ class BranchVersions:
     self.mpfr = mpfr
     self.python = python
     self.python_z = python_z
+    self.xmake = xmake
 
 class ProfileInfo:
   arch: str
@@ -140,6 +141,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.1',
     python = '3.13.2',
     python_z = '1.3.1',
+    xmake = '2.9.9',
   ),
   '14': BranchVersions(
     gcc = '14.2.0',
@@ -158,6 +160,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.1',
     python = '3.13.2',
     python_z = '1.3.1',
+    xmake = '2.9.9',
   ),
   '13': BranchVersions(
     gcc = '13.3.0',
@@ -179,6 +182,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.1',
     python = '3.12.9',
     python_z = '1.3.1',
+    xmake = '2.9.9',
   ),
 }
 
