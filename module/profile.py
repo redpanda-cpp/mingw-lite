@@ -125,6 +125,24 @@ class BranchProfile(BranchVersions):
       self.min_winnt = info.min_os.major * 0x100 + info.min_os.minor
 
 BRANCHES: Dict[str, BranchVersions] = {
+  '16': BranchVersions(
+    gcc = '15-20250420',
+    rev = '0',
+
+    binutils = '2.44',
+    gdb = '16.2',
+    gettext = '0.24',
+    gmp = '6.3.0',
+    iconv = '1.17',
+    make = '4.4.1',
+    mcfgthread = '2.0-ga.1',
+    mingw = '12.0.0',
+    mpc = '1.3.1',
+    mpfr = '4.2.1',
+    python = '3.13.2',
+    python_z = '1.3.1',
+    xmake = '2.9.9',
+  ),
   '15': BranchVersions(
     gcc = '15.1.0-RC-20250418',
     rev = '0',

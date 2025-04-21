@@ -14,7 +14,7 @@ def parse_args() -> argparse.Namespace:
   parser.add_argument(
     '-b', '--branch',
     type = str,
-    choices = ['15', '14', '13'],
+    choices = ['16', '15', '14', '13'],
     required = True,
     help = 'GCC branch to build',
   )

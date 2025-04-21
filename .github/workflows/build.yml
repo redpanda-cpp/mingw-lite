@@ -9,13 +9,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: [15, 14, 13]
+        branch: [16, 15, 14, 13]
         profile: [
           64-mcf, 64-win32, 64-ucrt, 64-msvcrt,
           32-mcf, 32-win32, 32-ucrt, 32-msvcrt,
         ]
         include:
           - prerelease: false
+          - { branch: 16, prerelease: true }
           - { branch: 15, prerelease: true }
           - make_latest: false
           - { branch: 14, make_latest: true }
