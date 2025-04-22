@@ -1,13 +1,16 @@
 import argparse
+import logging
 import os
 import subprocess
 from subprocess import PIPE
 
 def get_gcc_triplet():
-  result = subprocess.run(['gcc', '-dumpmachine'], stdout = PIPE, stderr = PIPE)
-  if result.returncode != 0:
+  try:
+    result = subprocess.run(['gcc', '-dumpmachine'], stdout = PIPE, stderr = PIPE, check = True)
+    return result.stdout.decode('utf-8').strip()
+  except Exception as e:
+    logging.error(f'Failed to get GCC triplet: {e}')
     return None
-  return result.stdout.decode('utf-8').strip()
 
 def parse_args() -> argparse.Namespace:
   parser = argparse.ArgumentParser()
@@ -34,7 +37,7 @@ def parse_args() -> argparse.Namespace:
     '--build',
     type = str,
     default = gcc_triplet,
-    required = not bool(gcc_triplet),
+    required = not gcc_triplet,
     help = 'Build system triplet',
   )
 

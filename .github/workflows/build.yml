@@ -4,63 +4,14 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-24.04
+    name: Build (${{ matrix.profile }})
     strategy:
       fail-fast: false
       matrix:
-        branch: [16, 15, 14, 13]
         profile: [
           64-mcf, 64-win32, 64-ucrt, 64-msvcrt,
           32-mcf, 32-win32, 32-ucrt, 32-msvcrt,
         ]
-        include:
-          - prerelease: false
-          - { branch: 16, prerelease: true }
-          - { branch: 15, prerelease: true }
-          - make_latest: false
-          - { branch: 14, make_latest: true }
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Enable multiarch
-        run: |
-          sudo dpkg --add-architecture i386
-
-      - uses: ConorMacBride/install-package@v1
-        with:
-          apt: libarchive-tools qemu-user qemu-user-binfmt wine
-
-      # apt install wine-binfmt seems not work
-      - name: Register wine binfmt
-        run: |
-          echo ':DOSWin:M::MZ::/usr/bin/wine:' | sudo tee /proc/sys/fs/binfmt_misc/register
-
-      - name: Build
-        if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
-        run: |
-          podman build -t mingw-lite/buildenv-alpine support/buildenv-alpine
-          podman run --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-alpine \
-            ./main.py --branch ${{ matrix.branch }} --profile ${{ matrix.profile }}
-
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
-        with:
-          name: mingw${{ matrix.profile }}-${{ matrix.branch }}
-          path: dist
-
-      - name: Test
-        if: github.ref_type != 'tag' || startsWith(github.ref_name, matrix.branch)
-        run: |
-          ./test.py --branch ${{ matrix.branch }} --profile ${{ matrix.profile }} -v
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag' && startsWith(github.ref_name, matrix.branch)
-        with:
-          prerelease: ${{ matrix.prerelease }}
-          make_latest: ${{ matrix.make_latest }}
-          files: |
-            dist/*.tar.zst
+    uses: ./.github/workflows/build_per_profile.yml
+    with:
+      profile: ${{ matrix.profile }}

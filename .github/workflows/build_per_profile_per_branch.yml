@@ -1,0 +1,118 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        required: true
+        type: string
+      branch:
+        required: true
+        type: string
+      prerelease:
+        required: false
+        type: boolean
+      make_latest:
+        required: false
+        type: boolean
+
+jobs:
+  build:
+    name: Build (${{ inputs.branch }}, ${{ inputs.profile }})
+    if: github.ref_type != 'tag' || startsWith(github.ref_name, inputs.branch)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          podman build -t mingw-lite/buildenv-alpine support/buildenv-alpine
+          podman run --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-alpine \
+            ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
+          path: dist
+
+  test_on_linux:
+    name: Test on Linux (${{ inputs.branch }}, ${{ inputs.profile }})
+    if: github.ref_type != 'tag' || startsWith(github.ref_name, inputs.branch)
+    runs-on: ubuntu-24.04
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable multiarch
+        run: |
+          sudo dpkg --add-architecture i386
+
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: libarchive-tools wine
+
+      # apt install wine-binfmt seems not work
+      - name: Register wine binfmt
+        run: |
+          echo ':DOSWin:M::MZ::/usr/bin/wine:' | sudo tee /proc/sys/fs/binfmt_misc/register
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
+          path: dist
+
+      - name: Test
+        run: |
+          ./test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} -v
+  
+  test_on_windows:
+    name: Test on Windows (${{ inputs.branch }}, ${{ inputs.profile }})
+    if: github.ref_type != 'tag' || startsWith(github.ref_name, inputs.branch)
+    runs-on: windows-2022
+    needs: build
+
+    # temporary workaround for xmake standard library module
+    continue-on-error: true
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ucrt64
+          pacboy: python:p python-packaging:p
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
+          path: dist
+
+      - name: Test
+        run: |
+          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 -v
+
+  release:
+    name: Release (${{ inputs.branch }}, ${{ inputs.profile }})
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, inputs.branch)
+    runs-on: ubuntu-24.04
+    needs: [build, test_on_linux, test_on_windows]
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
+          path: dist
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ inputs.prerelease }}
+          make_latest: ${{ inputs.make_latest }}
+          files: |
+            dist/*.tar.zst

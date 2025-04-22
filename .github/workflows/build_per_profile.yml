@@ -1,0 +1,61 @@
+name: Build per profile
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build (${{ matrix.branch }}, ${{ inputs.profile }})
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [16, 15, 14, 13]
+        include:
+          - prerelease: false
+          - { branch: 16, prerelease: true }
+          - { branch: 15, prerelease: true }
+          - make_latest: false
+          - { branch: 14, make_latest: true }
+    uses: ./.github/workflows/build_per_profile_per_branch.yml
+    with:
+      profile: ${{ inputs.profile }}
+      branch: ${{ matrix.branch }}
+      prerelease: ${{ matrix.prerelease }}
+      make_latest: ${{ matrix.make_latest }}
+
+  create_test_archive_for_old_windows:
+    name: Create test archive for old Windows (${{ inputs.profile }})
+    runs-on: ubuntu-24.04
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: libarchive-tools
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mingw${{ inputs.profile }}-*
+          path: dist
+
+      - name: Create test archive
+        run: |
+          mv dist/*/*.tar.zst dist/
+
+          ./support/test-archive/prepare.py -b 16 -p ${{ inputs.profile }}
+          ./support/test-archive/prepare.py -b 15 -p ${{ inputs.profile }}
+          ./support/test-archive/prepare.py -b 14 -p ${{ inputs.profile }}
+          ./support/test-archive/prepare.py -b 13 -p ${{ inputs.profile }}
+
+          bsdtar -C pkg -c test-archive-${{ inputs.profile }} | zstd -f --zstd=strat=5,wlog=27,hlog=25,slog=6 -o dist/test-archive-${{ inputs.profile }}.tar.zst
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-archive-${{ inputs.profile }}
+          path: dist/test-archive-${{ inputs.profile }}.tar.zst

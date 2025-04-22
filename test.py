@@ -4,8 +4,8 @@ import argparse
 import logging
 import os
 from pathlib import Path
+import platform
 from pprint import pprint
-import resource
 import shutil
 import socket
 import subprocess
@@ -16,13 +16,7 @@ from module.args import parse_args
 from module.path import ProjectPaths
 from module.prepare_test_binary import prepare_test_binary
 from module.profile import BranchProfile, resolve_profile
-from module.util import ensure
-
-XMAKE_ARCH_MAP = {
-  '32': 'i386',
-  '64': 'x86_64',
-  'arm64': 'aarch64',
-}
+from module.util import XMAKE_ARCH_MAP, ensure
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.test.exists():
@@ -32,7 +26,10 @@ def prepare_dirs(paths: ProjectPaths):
   shutil.copytree(paths.test_src, paths.test)
 
 def winepath(path: Path):
-  return subprocess.check_output(['winepath', '-w', path]).decode().strip()
+  if platform.system() == 'Windows':
+    return str(path)
+  else:
+    return subprocess.check_output(['winepath', '-w', path]).decode().strip()
 
 def available_port():
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -61,10 +58,19 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   ensure(build_dir)
 
   # make
-  os.environ['WINEPATH'] = winepath(bin_dir)
-  subprocess.check_call([make_exe, f'DIR={build_dir}', 'SUFFIX=.exe'], cwd = paths.test)
-  del os.environ['WINEPATH']
+  if platform.system() == 'Windows':
+    saved_path = os.environ['PATH']
+    os.environ['PATH'] = str(bin_dir) + ':' + os.environ['PATH']
+  else:
+    os.environ['WINEPATH'] = winepath(bin_dir)
 
+  subprocess.check_call([make_exe, f'DIR={build_dir}', 'SUFFIX=.exe'], cwd = paths.test)
+
+  if platform.system() == 'Windows':
+    os.environ['PATH'] = saved_path
+  else:
+    del os.environ['WINEPATH']
+  
   # gdb
   port = available_port()
   comm = f'localhost:{port}'

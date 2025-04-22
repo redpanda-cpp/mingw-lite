@@ -1,6 +1,7 @@
 import argparse
 from packaging.version import Version
 from pathlib import Path
+import tempfile
 from typing import Optional
 
 from module.profile import BranchProfile
@@ -63,6 +64,11 @@ class ProjectPaths:
   test_src: Path
 
   test_mingw: Path
+
+  # target test archive phase
+
+  test_archive: Path
+  test_archive_mingw: Path
 
   def __init__(
     self,
@@ -159,7 +165,12 @@ class ProjectPaths:
 
     # test phase
 
-    self.test = Path(f'/tmp/test/{dir}')
+    self.test = Path(f'{tempfile.gettempdir()}/{dir}')
     self.test_src = self.root / 'support' / 'test'
 
     self.test_mingw = self.test / dir
+
+    # target test archive phase
+
+    self.test_archive = self.root / 'pkg' / f'test-archive-{config.profile}' / str(config.branch)
+    self.test_archive_mingw = self.test_archive / dir
