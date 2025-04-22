@@ -2,13 +2,14 @@ from hashlib import sha256
 import logging
 from pathlib import Path
 import subprocess
+import time
 from urllib.error import URLError
 from urllib.request import urlopen
 
 from module.checksum import CHECKSUMS
 
 def validate_and_download(path: Path, url: str):
-  MAX_RETRY = 3
+  MAX_RETRY = 5
   checksum = CHECKSUMS[path.name]
   if path.exists():
     with open(path, 'rb') as f:
@@ -34,10 +35,12 @@ def validate_and_download(path: Path, url: str):
           f.write(body)
           return
       except URLError as e:
-        message = 'Download fail: %s (retry %d/3)' % (e.reason, retry_count)
+        message = f'Download fail: {e.reason} (retry {retry_count}/{MAX_RETRY})'
         if retry_count < MAX_RETRY:
           logging.warning(message)
-          logging.warning('Retrying...')
+          wait_time = 2 ** retry_count
+          logging.warning(f'Retry in {wait_time} seconds...')
+          time.sleep(wait_time)
         else:
           logging.critical(message)
           raise e
