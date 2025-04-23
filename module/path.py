@@ -28,6 +28,7 @@ class ProjectPaths:
   x_dep: Path
 
   binutils: Path
+  expat: Path
   gettext: Optional[Path]
   gcc: Path
   gdb: Path
@@ -44,6 +45,7 @@ class ProjectPaths:
   xmake: Path
 
   binutils_arx: Path
+  expat_arx: Path
   gettext_arx: Optional[Path]
   gcc_arx: Path
   gdb_arx: Path
@@ -103,6 +105,10 @@ class ProjectPaths:
       self.binutils_arx = self.assets / f'{binutils}.tar.zst'
     else:
       self.binutils_arx = self.assets / f'{binutils}.tar.xz'
+
+    expat = f'expat-{ver.expat}'
+    self.expat = self.build / expat
+    self.expat_arx = self.assets / f'{expat}.tar.xz'
 
     gcc = f'gcc-{ver.gcc}'
     self.gcc = self.build / gcc

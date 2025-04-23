@@ -60,6 +60,14 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths):
 
     _patch_done(paths.binutils)
 
+def _expat(ver: BranchProfile, paths: ProjectPaths):
+  v = Version(ver.expat)
+  tag = f'R_{v.major}_{v.minor}_{v.micro}'
+  url = f'https://github.com/libexpat/libexpat/releases/download/{tag}/{paths.expat_arx.name}'
+  validate_and_download(paths.expat_arx, url)
+  check_and_extract(paths.expat, paths.expat_arx)
+  _patch_done(paths.expat)
+
 def _gcc(ver: BranchProfile, paths: ProjectPaths):
   v = Version(ver.gcc)
   if v.major >= 15:
@@ -270,6 +278,7 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths):
 
 def prepare_source(ver: BranchProfile, paths: ProjectPaths):
   _binutils(ver, paths)
+  _expat(ver, paths)
   _gcc(ver, paths)
   _gdb(ver, paths)
   if ver.gettext:

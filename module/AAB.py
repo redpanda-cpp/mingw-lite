@@ -264,6 +264,22 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   fix_libtool_absolute_reference(paths.x_prefix / ver.target / 'lib' / 'libmpc.la')
 
+def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  build_dir = paths.expat / 'build-AAB'
+  ensure(build_dir)
+  configure('expat', build_dir, [
+    '--prefix=',
+    f'--host={ver.target}',
+    f'--build={config.build}',
+    '--enable-static',
+    '--disable-shared',
+    *cflags_B(
+      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+    )
+  ])
+  make_default('expat', build_dir, config.jobs)
+  make_destdir_install('expat', build_dir, paths.x_prefix / ver.target)
+
 def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.iconv)
   v_gcc = Version(ver.gcc)
@@ -351,6 +367,8 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
   _mpfr(ver, paths, config)
 
   _mpc(ver, paths, config)
+
+  _expat(ver, paths, config)
 
   _iconv(ver, paths, config)
 

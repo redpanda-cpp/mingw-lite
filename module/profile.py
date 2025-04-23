@@ -6,6 +6,7 @@ class BranchVersions:
   rev: str
 
   binutils: str
+  expat: str
   gdb: str
   gettext: Optional[str]
   gmp: str
@@ -26,6 +27,7 @@ class BranchVersions:
     rev: str,
 
     binutils: str,
+    expat: str,
     gdb: str,
     gettext: Optional[str],
     gmp: str,
@@ -43,6 +45,7 @@ class BranchVersions:
     self.rev = rev
 
     self.binutils = binutils
+    self.expat = expat
     self.gdb = gdb
     self.gettext = gettext
     self.gmp = gmp
@@ -130,6 +133,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '0',
 
     binutils = '2.44',
+    expat = '2.7.1',
     gdb = '16.2',
     gettext = '0.24',
     gmp = '6.3.0',
@@ -148,6 +152,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '0',
 
     binutils = '2.44',
+    expat = '2.7.1',
     gdb = '16.2',
     gettext = '0.24',
     gmp = '6.3.0',
@@ -167,6 +172,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     # freeze: 2025-01-01
     binutils = '2.43.1',
+    expat = '2.6.4',
     gdb = '15.2',
     gettext = '0.23.1',
     gmp = '6.3.0',
@@ -186,6 +192,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     # freeze: 2024-01-01
     binutils = '2.41',
+    expat = '2.5.0',
     gdb = '14.2',
     gettext = None,
     gmp = '6.3.0',
