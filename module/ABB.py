@@ -175,6 +175,20 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     ),
     *cflags_B('_FOR_TARGET',
       cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      # C++ standard library:
+      #   ostream &ostream::operator<<(ostream &(*func)(ostream &))
+      #   {
+      #     return func(*this);
+      #   }
+      # is compiled into single instruction:
+      #   jmp *rdx
+      # hence there's no complete frame info.
+      #
+      # when debugging, gdb fails to resolve frame info,
+      # and will stop here if we want to "step over" it.
+      #
+      # here we add minimal debug info, so gdb will not be fooled.
+      common_extra = ['-g1'],
       ld_extra = ['--static'],
     ),
   ])
