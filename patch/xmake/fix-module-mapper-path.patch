@@ -1,0 +1,13 @@
+diff --git a/xmake/rules/c++/modules/modules_support/gcc/builder.lua b/xmake/rules/c++/modules/modules_support/gcc/builder.lua
+index a0a43db5a..39ffc597c 100644
+--- a/xmake/rules/c++/modules/modules_support/gcc/builder.lua
++++ b/xmake/rules/c++/modules/modules_support/gcc/builder.lua
+@@ -135,7 +135,7 @@ end
+ --
+ function _generate_modulemapper_file(target, module, cppfile)
+     local maplines = _get_maplines(target, module)
+-    local mapper_path = path.join(os.tmpdir(), target:name():replace(" ", "_"), name or cppfile:replace(" ", "_"))
++    local mapper_path = path.join(os.tmpdir(), target:name():replace(" ", "_"), name or cppfile:replace(" ", "_"):replace(":", "_"))
+     local mapper_content = {}
+     table.insert(mapper_content, "root " .. path.unix(os.projectdir()))
+     for _, mapline in ipairs(maplines) do

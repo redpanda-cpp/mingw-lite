@@ -263,6 +263,9 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths):
         else:
           f.write(line)
 
+    # Fix module mapper path
+    _patch(paths.xmake, paths.patch / 'xmake' / 'fix-module-mapper-path.patch')
+
     _patch_done(paths.xmake)
 
 def prepare_source(ver: BranchProfile, paths: ProjectPaths):
