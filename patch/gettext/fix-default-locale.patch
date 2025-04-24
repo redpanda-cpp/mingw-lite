@@ -1,0 +1,12 @@
+diff --unified --recursive --text gettext-0.23.1.orig/gettext-runtime/intl/gnulib-lib/localename-unsafe.c gettext-0.23.1/gettext-runtime/intl/gnulib-lib/localename-unsafe.c
+--- gettext-0.23.1.orig/gettext-runtime/intl/gnulib-lib/localename-unsafe.c
++++ gettext-0.23.1/gettext-runtime/intl/gnulib-lib/localename-unsafe.c
+@@ -3432,7 +3432,7 @@
+     LCID lcid;
+ 
+     /* Use native Windows API locale ID.  */
+-    lcid = GetThreadLocale ();
++    lcid = GetUserDefaultLCID ();
+ 
+     return gl_locale_name_from_win32_LCID (lcid);
+   }

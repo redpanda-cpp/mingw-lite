@@ -1,8 +1,8 @@
 diff --git a/gcc/gcc-main.cc b/gcc/gcc-main.cc
-index 75eca1a3127..f5968c9abdf 100644
+index 66588f50276..956b7080004 100644
 --- a/gcc/gcc-main.cc
 +++ b/gcc/gcc-main.cc
-@@ -38,6 +38,39 @@ along with GCC; see the file COPYING3.  If not see
+@@ -38,6 +38,36 @@ along with GCC; see the file COPYING3.  If not see
  
  extern int main (int, char **);
  
@@ -21,11 +21,8 @@ index 75eca1a3127..f5968c9abdf 100644
 +    , saved_output_cp(GetConsoleOutputCP())
 +  {
 +    UINT cp = GetACP();
-+    LCID lcid = GetThreadLocale();
 +    SetConsoleCP(cp);
 +    SetConsoleOutputCP(cp);
-+    // `SetConsoleOutputCP` changed thread locale, restore it.
-+    SetThreadLocale(lcid);
 +  }
 +
 +  ~__console_cp_init_t()

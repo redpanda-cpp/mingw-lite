@@ -1,0 +1,13 @@
+diff --git a/intl/localename.c b/intl/localename.c
+index 28c4ca7aab6..022abccae24 100644
+--- a/intl/localename.c
++++ b/intl/localename.c
+@@ -438,7 +438,7 @@ _nl_locale_name (category, categoryname)
+     return retval;
+ 
+   /* Use native Win32 API locale ID.  */
+-  lcid = GetThreadLocale ();
++  lcid = GetUserDefaultLCID ();
+ 
+   /* Strip off the sorting rules, keep only the language part.  */
+   langid = LANGIDFROMLCID (lcid);

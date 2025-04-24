@@ -89,6 +89,13 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
     # Fix locale directory
     _patch(paths.gcc, paths.patch / 'gcc' / 'fix-localedir.patch')
 
+    # Fix default locale
+    if v.major >= 14:
+      # provided by gettext library
+      pass
+    else:
+      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-default-locale.patch')
+
     # Fix libcpp setlocale
     # libcpp defines `setlocale` if `HAVE_SETLOCALE` not defined, but its configure.ac does not check `setlocale` at all
     _patch(paths.gcc, paths.patch / 'gcc' / 'fix-libcpp-setlocale.patch')
@@ -138,8 +145,11 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths):
 def _gettext(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gettext/{paths.gettext_arx.name}'
   validate_and_download(paths.gettext_arx, url)
-  check_and_extract(paths.gettext, paths.gettext_arx)
-  _patch_done(paths.gettext)
+  if check_and_extract(paths.gettext, paths.gettext_arx):
+    # Fix default locale
+    _patch(paths.gettext, paths.patch / 'gettext' / 'fix-default-locale.patch')
+
+    _patch_done(paths.gettext)
 
 def _gmp(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gmp/{paths.gmp_arx.name}'
