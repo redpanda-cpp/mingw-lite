@@ -220,7 +220,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   python_flags.append(f'--with-python={paths.x_prefix}/{ver.target}/python-config.sh')
 
   # GCC 15 defaults to C23, in which `foo()` means `foo(void)` instead of `foo(...)`.
-  if v_gcc.major >= 15 and v < Version('16.3'):
+  if v_gcc.major >= 15 and v < Version('17'):
     c_extra.append('-std=gnu11')
 
   cflags = cflags_B(

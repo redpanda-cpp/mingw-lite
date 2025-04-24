@@ -1,8 +1,8 @@
 from typing import Dict
 
 CHECKSUMS: Dict[str, str] = {
-  'Python-3.12.9.tar.xz': '7220835d9f90b37c006e9842a8dff4580aaca4318674f947302b8d28f3f81112',
-  'Python-3.13.2.tar.xz': 'd984bcc57cd67caab26f7def42e523b1c015bbc5dc07836cf4f0b63fa159eb56',
+  'Python-3.12.10.tar.xz': '07ab697474595e06f06647417d3c7fa97ded07afc1a7e4454c5639919b46eaea',
+  'Python-3.13.3.tar.xz': '40f868bcbdeb8149a3149580bb9bfd407b3321cd48f0be631af955ac92c0e041',
 
   'binutils-2.41.tar.xz': 'ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450',
   'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',
@@ -19,7 +19,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'gdb-14.2.tar.xz': '2d4dd8061d8ded12b6c63f55e45344881e8226105f4d2a9b234040efa5ce7772',
   'gdb-15.2.tar.xz': '83350ccd35b5b5a0cba6b334c41294ea968158c573940904f00b92f76345314d',
-  'gdb-16.2.tar.xz': '4002cb7f23f45c37c790536a13a720942ce4be0402d929c9085e92f10d480119',
+  'gdb-16.3.tar.xz': 'bcfcd095528a987917acf9fff3f1672181694926cc18d609c99d0042c00224c5',
 
   'gettext-0.23.1.tar.xz': 'c1f97a72a7385b7e71dd07b5fea6cdaf12c9b88b564976b23bd8c11857af2970',
   'gettext-0.24.tar.xz': 'e1620d518b26d7d3b16ac570e5018206e8b0d725fb65c02d048397718b5cf318',
@@ -27,6 +27,7 @@ CHECKSUMS: Dict[str, str] = {
   'gmp-6.3.0.tar.zst': '7f55d73f472c29cc14d7fa985f3654d48829415b649eaf61646b7b33f2a80e27',
 
   'libiconv-1.17.tar.gz': '8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313',
+  'libiconv-1.18.tar.gz': '3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8',
 
   'make-4.4.1.tar.lz': '8814ba072182b605d156d7589c19a43b89fc58ea479b9355146160946f8cf6e9',
 
@@ -39,7 +40,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'mpc-1.3.1.tar.gz': 'ab642492f5cf882b74aa0cb730cd410a81edcdbec895183ce930e706c1c759b8',
 
-  'mpfr-4.2.1.tar.xz': '277807353a6726978996945af13e52829e3abd7a9a5b7fb2793894e18f1fcbb2',
+  'mpfr-4.2.2.tar.xz': 'b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01',
 
   'xmake-v2.9.9.tar.gz': 'e92505b83bc9776286eae719d58bcea7ff2577afe12cb5ccb279c81e7dbc702d',
 
