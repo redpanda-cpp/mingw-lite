@@ -1,6 +1,8 @@
 from typing import Dict
 
 CHECKSUMS: Dict[str, str] = {
+  'PDCurses-3.9.tar.gz': '590dbe0f5835f66992df096d3602d0271103f90cf8557a5d124f693c2b40d7ec',
+
   'Python-3.12.10.tar.xz': '07ab697474595e06f06647417d3c7fa97ded07afc1a7e4454c5639919b46eaea',
   'Python-3.13.3.tar.xz': '40f868bcbdeb8149a3149580bb9bfd407b3321cd48f0be631af955ac92c0e041',
 

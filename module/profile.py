@@ -16,6 +16,7 @@ class BranchVersions:
   mingw: str
   mpc: str
   mpfr: str
+  pdcurses: str
   python: str
   python_z: str
   xmake: str
@@ -37,6 +38,7 @@ class BranchVersions:
     mingw: str,
     mpc: str,
     mpfr: str,
+    pdcurses: str,
     python: str,
     python_z: str,
     xmake: str,
@@ -55,6 +57,7 @@ class BranchVersions:
     self.mingw = mingw
     self.mpc = mpc
     self.mpfr = mpfr
+    self.pdcurses = pdcurses
     self.python = python
     self.python_z = python_z
     self.xmake = xmake
@@ -143,6 +146,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
+    pdcurses = '3.9',
     python = '3.13.3',
     python_z = '1.3.1',
     xmake = '2.9.9',
@@ -162,6 +166,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
+    pdcurses = '3.9',
     python = '3.13.3',
     python_z = '1.3.1',
     xmake = '2.9.9',
@@ -182,6 +187,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
+    pdcurses = '3.9',
     python = '3.13.3',
     python_z = '1.3.1',
     xmake = '2.9.9',
@@ -205,6 +211,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '11.0.1',
     mpc = '1.3.1',
     mpfr = '4.2.2',
+    pdcurses = '3.9',
     python = '3.12.10',
     python_z = '1.3.1',
     xmake = '2.9.9',

@@ -241,6 +241,12 @@ def _mpfr(ver: BranchProfile, paths: ProjectPaths):
   check_and_extract(paths.mpfr, paths.mpfr_arx)
   _patch_done(paths.mpfr)
 
+def _pdcurses(ver: BranchProfile, paths: ProjectPaths):
+  url = f'https://github.com/wmcbrine/PDCurses/archive/refs/tags/{ver.pdcurses}.tar.gz'
+  validate_and_download(paths.pdcurses_arx, url)
+  check_and_extract(paths.pdcurses, paths.pdcurses_arx)
+  _patch_done(paths.pdcurses)
+
 def _python(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://www.python.org/ftp/python/{ver.python}/{paths.python_arx.name}'
   z_url = f'https://zlib.net/fossils/{paths.python_z_arx.name}'
@@ -302,5 +308,6 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths):
   _mingw_target(ver, paths)
   _mpc(ver, paths)
   _mpfr(ver, paths)
+  _pdcurses(ver, paths)
   _python(ver, paths)
   _xmake(ver, paths)

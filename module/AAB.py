@@ -325,6 +325,19 @@ def _gettext(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
 
   fix_libtool_absolute_reference(paths.x_prefix / ver.target / 'lib' / 'libintl.la')
 
+def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  build_dir = paths.pdcurses / 'wincon'
+  make_custom('pdcurses', build_dir, [
+    'pdcurses.a',
+    f'CC={ver.target}-gcc',
+    f'AR={ver.target}-ar',
+    *cflags_B(
+      c_extra = ['-I..', '-DPDC_WIDE'],
+    ),
+  ], config.jobs)
+  shutil.copy(build_dir / 'pdcurses.a', paths.x_prefix / ver.target / 'lib' / 'libcurses.a')
+  shutil.copy(paths.pdcurses / 'curses.h', paths.x_prefix / ver.target / 'include' / 'curses.h')
+
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   config_args = []
   if ver.min_os.major < 6:
@@ -374,6 +387,8 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
 
   if ver.gettext:
     _gettext(ver, paths, config)
+
+  _pdcurses(ver, paths, config)
 
   _python(ver, paths, config)
   _python_packages(ver, paths, config)

@@ -40,6 +40,7 @@ class ProjectPaths:
   mingw_target: Path
   mpc: Path
   mpfr: Path
+  pdcurses: Path
   python: Path
   python_z: Path
   xmake: Path
@@ -56,6 +57,7 @@ class ProjectPaths:
   mingw_arx: Path
   mpc_arx: Path
   mpfr_arx: Path
+  pdcurses_arx: Path
   python_arx: Path
   python_z_arx: Path
   xmake_arx: Path
@@ -158,6 +160,10 @@ class ProjectPaths:
     mpfr = f'mpfr-{ver.mpfr}'
     self.mpfr = self.build / mpfr
     self.mpfr_arx = self.assets / f'{mpfr}.tar.xz'
+
+    pdcurses = f'PDCurses-{ver.pdcurses}'
+    self.pdcurses = self.build / pdcurses
+    self.pdcurses_arx = self.assets / f'{pdcurses}.tar.gz'
 
     python = f'Python-{ver.python}'
     python_z = f'zlib-{ver.python_z}'
