@@ -223,6 +223,16 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   if v_gcc.major >= 15 and v < Version('16.3'):
     c_extra.append('-std=gnu11')
 
+  cflags = cflags_B(
+    cpp_extra = [
+      f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}',
+      '-DPDC_WIDE',
+      # workaround: bfd and gnulib disagree about i686 time_t
+      '-D__MINGW_USE_VC2005_COMPAT',
+    ],
+    c_extra = c_extra,
+  )
+
   configure('gdb', build_dir, [
     '--prefix=',
     f'--target={ver.target}',
@@ -233,18 +243,14 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     # packages
     f'--with-system-gdbinit=/share/gdb/gdbinit',
     *python_flags,
-    *cflags_B(
-      cpp_extra = [
-        f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}',
-        '-DPDC_WIDE',
-      ],
-      c_extra = c_extra,
-    ),
+    *cflags,
   ])
 
   # workaround: top level configure does not pass CPPFLAGS to gdbsupport.
   # thus it defaults to _WIN32_WINNT=0x0501, breaking win32 and mcf thread model.
-  os.environ['CPPFLAGS'] = f'-DNDEBUG -D_WIN32_WINNT=0x{ver.min_winnt:04X} -DPDC_WIDE'
+  for item in cflags:
+    if item.startswith('CPPFLAGS='):
+      os.environ['CPPFLAGS'] = item[len('CPPFLAGS='):]
   make_custom('gdb (configure-host)', build_dir, ['configure-host'], config.jobs)
   del os.environ['CPPFLAGS']
 
