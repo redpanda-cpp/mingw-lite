@@ -52,7 +52,7 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
       f'mingw32-make DIR={build_dir} SUFFIX=.exe\n'
       'echo Please start gdbserver...\n'
       'pause\n'
-      'gdb < gdb_command.txt\n'
+      'gdb --batch --command=gdb_command.txt\n'
       'pause\n'
     )
     f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
@@ -81,7 +81,7 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
       'p fib[i]\n'  # i = 5, fib[i] = 5
       'c\n'
     )
-    f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
+    f.write(content.encode())
 
 def main():
   config = parse_args()

@@ -75,20 +75,23 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   port = available_port()
   comm = f'localhost:{port}'
 
-  gdb_command = (
-    f'file {in_gdb_inferior}\n'  # old releases disconnect when retriving symbol from gdbserver
-    f'target remote {comm}\n'
-    'b 12\n'
-    'c\n'
-    'p fib[i]\n'  # i = 2, fib[i] = 1
-    'c\n'
-    'p fib[i]\n'  # i = 3, fib[i] = 2
-    'c\n'
-    'p fib[i]\n'  # i = 4, fib[i] = 3
-    'c\n'
-    'p fib[i]\n'  # i = 5, fib[i] = 5
-    'c\n'
-  ).encode()
+  gdb_command_file = paths.test / 'gdb_command.txt'
+  with open(gdb_command_file, 'wb') as f:
+    content = (
+      f'file {in_gdb_inferior}\n'  # old releases disconnect when retriving symbol from gdbserver
+      f'target remote {comm}\n'
+      'b 12\n'
+      'c\n'
+      'p fib[i]\n'  # i = 2, fib[i] = 1
+      'c\n'
+      'p fib[i]\n'  # i = 3, fib[i] = 2
+      'c\n'
+      'p fib[i]\n'  # i = 4, fib[i] = 3
+      'c\n'
+      'p fib[i]\n'  # i = 5, fib[i] = 5
+      'c\n'
+    )
+    f.write(content.encode())
 
   expected_output = [
     '$1 = 1',
@@ -98,9 +101,7 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   ]
 
   gdbserver = subprocess.Popen([gdbserver_exe, comm, winepath(inferior)], cwd = paths.test)
-  gdb = subprocess.Popen([gdb_exe], cwd = paths.test, stdin = PIPE, stdout = PIPE)
-  gdb.stdin.write(gdb_command)
-  gdb.stdin.close()
+  gdb = subprocess.Popen([gdb_exe, '--batch', f'--command={gdb_command_file}'], cwd = paths.test, stdout = PIPE)
   gdb.wait(timeout = 10.0)
   if gdb.returncode != 0:
     raise Exception(f"gdb exited with code {gdb.returncode}")
