@@ -73,14 +73,11 @@ jobs:
     runs-on: windows-2022
     needs: build
 
-    # temporary workaround for xmake standard library module
-    continue-on-error: true
-
-    defaults:
-      run:
-        shell: msys2 {0}
-
     steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
 
       - uses: msys2/setup-msys2@v2
@@ -94,6 +91,7 @@ jobs:
           path: dist
 
       - name: Test
+        shell: msys2 {0}
         run: |
           python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 -v
 
