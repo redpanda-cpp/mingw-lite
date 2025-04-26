@@ -86,6 +86,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
     # Fix VT sequence
     _patch(paths.gcc, paths.patch / 'gcc' / 'fix-vt-seq.patch')
 
+    # Fix UCRT pipe
+    _patch(paths.gcc, paths.patch / 'gcc' / 'fix-ucrt-pipe.patch')
+
     # Fix locale directory
     _patch(paths.gcc, paths.patch / 'gcc' / 'fix-localedir.patch')
 
