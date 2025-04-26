@@ -70,7 +70,7 @@ def _expat(ver: BranchProfile, paths: ProjectPaths):
 
 def _gcc(ver: BranchProfile, paths: ProjectPaths):
   v = Version(ver.gcc)
-  if v.major >= 15:
+  if v.major >= 16:
     url = f'https://gcc.gnu.org/pub/gcc/snapshots/{ver.gcc}/{paths.gcc_arx.name}'
   else:
     url = f'https://ftpmirror.gnu.org/gnu/gcc/gcc-{ver.gcc}/{paths.gcc_arx.name}'

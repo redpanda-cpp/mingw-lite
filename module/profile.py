@@ -152,7 +152,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     xmake = '2.9.9',
   ),
   '15': BranchVersions(
-    gcc = '15.1.0-RC-20250418',
+    gcc = '15.1.0',
     rev = '0',
 
     binutils = '2.44',

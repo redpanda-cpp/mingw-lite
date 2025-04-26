@@ -29,6 +29,7 @@ jobs:
 
   create_test_archive_for_old_windows:
     name: Create test archive for old Windows (${{ inputs.profile }})
+    if: github.ref_type != 'tag'
     runs-on: ubuntu-24.04
     needs: build
 
