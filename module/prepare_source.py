@@ -3,6 +3,7 @@ import logging
 import os
 from packaging.version import Version
 from pathlib import Path
+import re
 import shutil
 import subprocess
 from urllib.error import URLError
@@ -70,10 +71,13 @@ def _expat(ver: BranchProfile, paths: ProjectPaths):
 
 def _gcc(ver: BranchProfile, paths: ProjectPaths):
   v = Version(ver.gcc)
-  if v.major >= 16:
+
+  is_snapshot = re.search(r'-\d{8}$', ver.gcc)
+  if is_snapshot:
     url = f'https://gcc.gnu.org/pub/gcc/snapshots/{ver.gcc}/{paths.gcc_arx.name}'
   else:
     url = f'https://ftpmirror.gnu.org/gnu/gcc/gcc-{ver.gcc}/{paths.gcc_arx.name}'
+
   validate_and_download(paths.gcc_arx, url)
   if check_and_extract(paths.gcc, paths.gcc_arx):
     # Fix make variable
