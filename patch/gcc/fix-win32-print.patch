@@ -1,0 +1,26 @@
+diff --git a/libstdc++-v3/include/std/ostream b/libstdc++-v3/include/std/ostream
+index 644e568e882..3a0a0d35df1 100644
+--- a/libstdc++-v3/include/std/ostream
++++ b/libstdc++-v3/include/std/ostream
+@@ -193,7 +193,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+       {
+ 	__format::_Str_sink<char> __buf;
+ 	std::vformat_to(__buf.out(), __os.getloc(), __fmt, __args);
+-	auto __out = __buf.view();
++	auto __out = __buf._M_span();
+ 
+ 	void* __open_terminal(streambuf*);
+ 	error_code __write_to_terminal(void*, span<char>);
+diff --git a/libstdc++-v3/include/std/print b/libstdc++-v3/include/std/print
+index ea1aaac4389..92dbe118fc3 100644
+--- a/libstdc++-v3/include/std/print
++++ b/libstdc++-v3/include/std/print
+@@ -73,7 +73,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ #else
+     __format::_Str_sink<char> __buf;
+     std::vformat_to(__buf.out(), __fmt, __args);
+-    auto __out = __buf.view();
++    auto __out = __buf._M_span();
+ 
+     void* __open_terminal(FILE*);
+     error_code __write_to_terminal(void*, span<char>);

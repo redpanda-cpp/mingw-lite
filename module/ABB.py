@@ -197,7 +197,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   # add `print.o` to `libstdc++.a`, allowing `<print>` without `-lstdc++exp`
   # it's okay since we only keep ABI stable in a major version
-  if 14 <= v.major < 16:
+  if 14 <= v.major < 17:
     res = subprocess.run([
       f'{ver.target}-ar', 'r',
       paths.mingw_prefix / 'lib' / 'libstdc++.a',
