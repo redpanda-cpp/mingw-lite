@@ -133,9 +133,9 @@ def xmake_config(component: str, cwd: Path, extra_args: List[str]):
     logging.critical(message)
     raise Exception(message)
 
-def xmake_install(component: str, cwd: Path, destdir: Path):
+def xmake_install(component: str, cwd: Path, destdir: Path, targets: List[str] = []):
   res = subprocess.run(
-    ['xmake', 'install', '-o', destdir],
+    ['xmake', 'install', '-o', destdir, *targets],
     cwd = cwd,
   )
   if res.returncode != 0:

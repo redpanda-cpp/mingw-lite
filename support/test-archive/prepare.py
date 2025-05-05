@@ -25,7 +25,7 @@ def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
   check_and_extract(paths.test_archive_mingw, paths.mingw_pkg)
 
 def test_mingw_compiler_batch(ver: BranchProfile, paths: ProjectPaths):
-  xmake = (paths.test_archive_mingw / 'bin' / 'xmake.exe').relative_to(paths.test_archive)
+  xmake = (paths.test_archive_mingw / 'lib' / 'xmake' / 'bin' / 'xmake.exe').relative_to(paths.test_archive)
   mingw = paths.test_archive_mingw.relative_to(paths.test_archive)
 
   with open(paths.test_archive / 'test_mingw_compiler.bat', 'wb') as f:

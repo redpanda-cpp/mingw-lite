@@ -10,7 +10,7 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, make_install, xmake_build, xmake_config
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, make_install, xmake_build, xmake_config, xmake_install
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.binutils / 'build-ABB'
@@ -303,10 +303,9 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     '--toolchain=cross',
     f'--sdk={paths.x_prefix}',
     f'--cross={ver.target}-',
-    '--embed=y',
   ])
   xmake_build('xmake', build_dir, config.jobs)
-  shutil.copy(build_dir / 'build' / 'xmake.exe', paths.mingw_prefix / 'bin' / 'xmake.exe')
+  xmake_install('xmake', build_dir, paths.mingw_prefix / 'lib' / 'xmake', ['cli'])
 
 def _licenses(ver: BranchProfile, paths: ProjectPaths):
   license_dir = paths.mingw_prefix / 'share' / 'licenses'

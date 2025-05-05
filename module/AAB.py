@@ -348,7 +348,7 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     *config_args,
   ])
   xmake_build('python', paths.python, config.jobs)
-  xmake_install('python', paths.python, paths.x_prefix / ver.target)
+  xmake_install('python', paths.python, paths.x_prefix / ver.target, ['pythoncore'])
 
 def _python_packages(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   x_prefix_mingw = paths.x_prefix / ver.target

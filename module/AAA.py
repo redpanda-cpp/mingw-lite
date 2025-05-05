@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 from packaging.version import Version
 from shutil import copyfile
 import subprocess
@@ -97,16 +98,18 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
   make_install('python', build_dir)
 
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  os.environ['LDFLAGS'] = '-static'
   res = subprocess.run([
     './configure',
-    f'--prefix={paths.x_prefix}',
+    f'--prefix=',
   ], cwd = paths.xmake)
   if (res.returncode != 0):
     message = f'Build fail: xmake configure returned {res.returncode}'
     logging.critical(message)
     raise Exception(message)
+  del os.environ['LDFLAGS']
   make_default('xmake', paths.xmake, config.jobs)
-  make_install('xmake', paths.xmake)
+  make_destdir_install('xmake', paths.xmake, paths.x_prefix)
 
 def build_AAA_tool(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _python(ver, paths, config)
