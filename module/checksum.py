@@ -34,7 +34,6 @@ CHECKSUMS: Dict[str, str] = {
   'make-4.4.1.tar.lz': '8814ba072182b605d156d7589c19a43b89fc58ea479b9355146160946f8cf6e9',
 
   'mcfgthread-1.8-ga.4.tar.gz': 'd2318ef761927860b7a8963308145065047d8ad2102313b26e6eb2d88d9ef1e3',
-  'mcfgthread-1.9-ga.2.tar.gz': '0c3dd0326b6e08064b96064215ec2bc78b059984da25c0b5bd043b657b9af57f',
   'mcfgthread-2.1-ga.1.tar.gz': '73d4ea39e8eee30738ed3f4a35f6cc4e5c6cba62570908ee37d1fc0bf5a7d722',
 
   'mingw-w64-v11.0.1.tar.bz2': '3f66bce069ee8bed7439a1a13da7cb91a5e67ea6170f21317ac7f5794625ee10',

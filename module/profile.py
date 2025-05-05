@@ -5,6 +5,9 @@ class BranchVersions:
   gcc: str
   rev: str
 
+  mcfgthread: str
+  mingw: str
+
   binutils: str
   expat: str
   gdb: str
@@ -12,20 +15,22 @@ class BranchVersions:
   gmp: str
   iconv: str
   make: str
-  mcfgthread: str
-  mingw: str
   mpc: str
   mpfr: str
   pdcurses: str
   python: str
   python_z: str
-  xmake: str
+
+  xmake = '2.9.9'
 
   def __init__(
     self,
 
     gcc: str,
     rev: str,
+
+    mcfgthread: str,
+    mingw: str,
 
     binutils: str,
     expat: str,
@@ -34,17 +39,17 @@ class BranchVersions:
     gmp: str,
     iconv: str,
     make: str,
-    mcfgthread: str,
-    mingw: str,
     mpc: str,
     mpfr: str,
     pdcurses: str,
     python: str,
     python_z: str,
-    xmake: str,
   ):
     self.gcc = gcc
     self.rev = rev
+
+    self.mcfgthread = mcfgthread
+    self.mingw = mingw
 
     self.binutils = binutils
     self.expat = expat
@@ -53,14 +58,11 @@ class BranchVersions:
     self.gmp = gmp
     self.iconv = iconv
     self.make = make
-    self.mcfgthread = mcfgthread
-    self.mingw = mingw
     self.mpc = mpc
     self.mpfr = mpfr
     self.pdcurses = pdcurses
     self.python = python
     self.python_z = python_z
-    self.xmake = xmake
 
 class ProfileInfo:
   arch: str
@@ -135,6 +137,9 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '16-20250504',
     rev = '0',
 
+    mcfgthread = '2.1-ga.1',
+    mingw = '12.0.0',
+
     binutils = '2.44',
     expat = '2.7.1',
     gdb = '16.3',
@@ -142,19 +147,19 @@ BRANCHES: Dict[str, BranchVersions] = {
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
-    mcfgthread = '2.1-ga.1',
-    mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
     python = '3.13.3',
     python_z = '1.3.1',
-    xmake = '2.9.9',
   ),
   '15': BranchVersions(
     gcc = '15.1.0',
     rev = '1',
 
+    mcfgthread = '2.1-ga.1',
+    mingw = '12.0.0',
+
     binutils = '2.44',
     expat = '2.7.1',
     gdb = '16.3',
@@ -162,20 +167,21 @@ BRANCHES: Dict[str, BranchVersions] = {
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
-    mcfgthread = '2.1-ga.1',
-    mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
     python = '3.13.3',
     python_z = '1.3.1',
-    xmake = '2.9.9',
   ),
   '14': BranchVersions(
     gcc = '14.2.0',
     rev = '5',
 
-    # freeze: 2025-01-01
+    # ABI critical: 2024-08-01
+    mcfgthread = '1.8-ga.4',
+    mingw = '12.0.0',
+
+    # freeze: 2024-12-21
     binutils = '2.43.1',
     expat = '2.6.4',
     gdb = '15.2',
@@ -183,20 +189,17 @@ BRANCHES: Dict[str, BranchVersions] = {
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
-    mcfgthread = '1.9-ga.2',
-    mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
     python = '3.13.3',
     python_z = '1.3.1',
-    xmake = '2.9.9',
   ),
   '13': BranchVersions(
     gcc = '13.3.0',
     rev = '0',
 
-    # freeze: 2024-01-01
+    # trace back: 2023-12-22
     binutils = '2.41',
     expat = '2.5.0',
     gdb = '14.2',
@@ -214,7 +217,6 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     python = '3.12.10',
     python_z = '1.3.1',
-    xmake = '2.9.9',
   ),
 }
 

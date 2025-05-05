@@ -33,8 +33,8 @@ Available branches:
 | ------ | ----------- | ----- | -------- | --- |
 | 16 | 16-20250504 | 12.0.0 | 2.44 | 16.3 |
 | 15 | 15.1.0 | 12.0.0 | 2.44 | 16.3 |
-| 14 | 14.2.0 | 12.0.0 | 2.43.1 | 15.2 |
-| 13 | 13.3.0 | 11.0.1 | 2.41 | 14.2 |
+| 14 | 14.2.0 | 12.0.0 ❄️ | 2.43.1 ❄️ | 15.2 ❄️ |
+| 13 | 13.3.0 | 11.0.1 ❄️ | 2.41 ❄️ | 14.2 ❄️ |
 
 A profile is composed of bitness and predefined ABI variant. The combination of CRT, thread model and exception model cannot be freely configured.
 
@@ -47,7 +47,7 @@ A profile is composed of bitness and predefined ABI variant. The combination of 
 
 ## Supported OS Versions
 
-The default `_WIN32_WINNT` value is based on the earliest Windows version that is supported at the end of the GCC’s release year. (Currently 0x0A00 for all branches.)
+The default `_WIN32_WINNT` value for each branch is based on the earliest Windows version that is supported at the freeze point, the winter solstice after GCC’s release. (Currently 0x0A00 for all branches.)
 
 Python (GDB scripting engine) often limits the toolchain’s minimum supported OS. However, Python is sometimes a bit aggressive, so we use some thunks to bring back support for earlier Windows versions. There is no well-defined rule for minimum supported OS; the one that costs “reasonable” effort is chosen.
 
