@@ -132,17 +132,17 @@ class BranchProfile(BranchVersions):
 
 BRANCHES: Dict[str, BranchVersions] = {
   '16': BranchVersions(
-    gcc = '16-20250427',
+    gcc = '16-20250504',
     rev = '0',
 
     binutils = '2.44',
     expat = '2.7.1',
     gdb = '16.3',
-    gettext = '0.24',
+    gettext = '0.24.1',
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
-    mcfgthread = '2.0-ga.1',
+    mcfgthread = '2.1-ga.1',
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',
@@ -153,16 +153,16 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '15': BranchVersions(
     gcc = '15.1.0',
-    rev = '0',
+    rev = '1',
 
     binutils = '2.44',
     expat = '2.7.1',
     gdb = '16.3',
-    gettext = '0.24',
+    gettext = '0.24.1',
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
-    mcfgthread = '2.0-ga.1',
+    mcfgthread = '2.1-ga.1',
     mingw = '12.0.0',
     mpc = '1.3.1',
     mpfr = '4.2.2',

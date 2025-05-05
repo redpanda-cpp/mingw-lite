@@ -107,11 +107,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
     # libcpp defines `setlocale` if `HAVE_SETLOCALE` not defined, but its configure.ac does not check `setlocale` at all
     _patch(paths.gcc, paths.patch / 'gcc' / 'fix-libcpp-setlocale.patch')
 
-    # Fix win32 print
-    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119970
-    if v.major == 16:
-      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-win32-print.patch')
-
     # Parser-friendly diagnostics
     po_dir = paths.gcc / 'gcc' / 'po'
     po_files = list(po_dir.glob('*.po'))

@@ -288,10 +288,6 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   c_extra = []
 
-  # GCC 15 defaults to C23
-  if v_gcc.major >= 15 and v < Version('1.18'):
-    c_extra.append('-std=gnu11')
-
   configure('iconv', build_dir, [
     '--prefix=',
     f'--host={ver.target}',
