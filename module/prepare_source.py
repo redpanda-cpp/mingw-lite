@@ -112,7 +112,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
     po_files = list(po_dir.glob('*.po'))
     res = subprocess.run([
       'sed',
-      '-iE',
+      '-i', '-E',
       '/^msgid "(error|warning): "/,+1 d',
       *po_files
     ])
