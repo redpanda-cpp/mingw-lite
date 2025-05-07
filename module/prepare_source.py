@@ -121,12 +121,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
       logging.critical(message)
       raise Exception(message)
 
-    if ver.min_os.major >= 6:
-      # Fix console code page
-      _patch(paths.gcc, paths.patch / 'gcc' / 'fix-console-cp.patch')
-    else:
-      pass  # disable UTF-8 manifest later
-
     _patch_done(paths.gcc)
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths):

@@ -122,6 +122,32 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   make_default('crt', build_dir, config.jobs)
   make_destdir_install('crt', build_dir, paths.x_prefix / ver.target)
 
+  # The future belongs to UTF-8.
+  # Piping is used so widely in GNU toolchain that we have to apply UTF-8 manifest to all programs.
+  if ver.min_os.major >= 6:
+    subprocess.run([
+      f'{ver.target}-gcc',
+      '-std=c11',
+      '-Os', '-c',
+      paths.utf8_src / 'utf8-init.c',
+      '-o', build_dir / 'utf8-init.o',
+    ], check = True)
+    subprocess.run([
+      f'{ver.target}-windres',
+      '-O', 'coff',
+      paths.utf8_src / 'utf8-manifest.rc',
+      '-o', build_dir / 'utf8-manifest.o',
+    ], check = True)
+    for crt_object in ['crt1.o', 'crt1u.o', 'crt2.o', 'crt2u.o']:
+      subprocess.run([
+        f'{ver.target}-gcc',
+        '-r',
+        build_dir / f'lib{ver.arch}' / crt_object,
+        build_dir / 'utf8-init.o',
+        build_dir / 'utf8-manifest.o',
+        '-o', paths.x_prefix / ver.target / 'lib' / crt_object,
+      ], check = True)
+
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.mingw_host / 'mingw-w64-libraries' / 'winpthreads' / 'build-AAB'
   ensure(build_dir)

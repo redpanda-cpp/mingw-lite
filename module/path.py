@@ -26,6 +26,7 @@ class ProjectPaths:
   build_target: Path
   dep: Path
   x_dep: Path
+  utf8_src: Path
 
   binutils: Path
   expat: Path
@@ -100,6 +101,7 @@ class ProjectPaths:
     self.build_target = self.build / 'target'
     self.dep = self.build / 'deps'
     self.x_dep = self.build / 'x-deps'
+    self.utf8_src = self.root / 'support' / 'utf8'
 
     binutils = f'binutils-{ver.binutils}'
     self.binutils = self.build / binutils
