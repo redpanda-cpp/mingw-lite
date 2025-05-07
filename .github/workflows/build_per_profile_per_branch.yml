@@ -102,10 +102,24 @@ jobs:
     needs: [build, test_on_linux, test_on_windows]
 
     steps:
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: 7zip libarchive-tools
+
       - uses: actions/download-artifact@v4
         with:
           name: mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
+
+      - name: 7z archive
+        run: |
+          cd dist
+          fn=$(ls mingw${{ inputs.profile }}-*.tar.zst)
+          bsdtar -xf $fn
+
+          bn=$(basename $fn .tar.zst)
+          dn=mingw${{ inputs.profile }}-${{ inputs.branch }}
+          7z a -t7z -mx9 -ms=on -m0=LZMA:d=64m:fb64 $bn.7z $dn
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -114,3 +128,4 @@ jobs:
           make_latest: ${{ inputs.make_latest }}
           files: |
             dist/*.tar.zst
+            dist/*.7z
