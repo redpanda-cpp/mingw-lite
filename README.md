@@ -2,6 +2,17 @@
 
 Extremely fast MinGW GCC build scripts for easy experiments.
 
+## Use
+
+- Native toolchain: same as [other distributions](https://www.mingw-w64.org/downloads/).
+- Cross toolchain: tools are organized by package. Mount required packages to `/usr/local`:
+  ```bash
+  layers=(/path/to/mingw/AAB/{binutils,crt,gcc,headers}/usr/local)
+  lowerdir=$(IFS=:; echo "${layers[*]}")
+  sudo mount -t overlay none /usr/local -o lowerdir=$lowerdir
+  ```
+  For container environment, `CAP_SYS_ADMIN` required (`--cap-add=sys_admin`).
+
 ## Build
 
 1. Prepare build environment. Linux:
@@ -11,14 +22,18 @@ Extremely fast MinGW GCC build scripts for easy experiments.
    For Windows host, [create an exclusive WSL distro for mingw-lite](doc/wsl-buildenv.md).
 2. Launch build environment. Linux:
    ```bash
-   podman run -it --rm -v $PWD:/mnt -w /mnt mingw-lite/buildenv-ubuntu
+   podman run -it --rm \
+     --cap-add=sys_admin \
+     -v $PWD:/mnt -w /mnt \
+     mingw-lite/buildenv-ubuntu
    ```
    To expose build directories for debugging:
    ```bash
    podman run -it --rm \
+     --cap-add=sys_admin \
      -v $PWD:/mnt -w /mnt \
      -v $PWD/build:/tmp/build \
-     -v $PWD/pkg:/opt \
+     -v $PWD/layer:/tmp/layer \
      mingw-lite/buildenv-ubuntu
    ```
    Windows: in “Terminal”, select “mingw-lite-buildenv” from the dropdown list.

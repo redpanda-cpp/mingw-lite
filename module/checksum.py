@@ -43,7 +43,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'mpfr-4.2.2.tar.xz': 'b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01',
 
-  'xmake-v2.9.9.tar.gz': 'e92505b83bc9776286eae719d58bcea7ff2577afe12cb5ccb279c81e7dbc702d',
+  'xmake-2.9.9.tar.gz': 'e92505b83bc9776286eae719d58bcea7ff2577afe12cb5ccb279c81e7dbc702d',
 
   'zlib-1.3.1.tar.gz': '9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23',
 }

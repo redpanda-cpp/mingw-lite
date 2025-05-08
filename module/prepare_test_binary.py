@@ -11,9 +11,9 @@ from module.path import ProjectPaths
 from module.profile import BranchProfile
 
 def _gcc_mingw(ver: BranchProfile, paths: ProjectPaths):
-  check_and_extract(paths.test_mingw, paths.mingw_pkg)
-  (paths.test_mingw / 'lib' / 'xmake' / 'bin' / 'xmake.exe').chmod(0o755)
-  (paths.test_mingw / '.patched').touch()
+  check_and_extract(paths.test_mingw_dir, paths.mingw_pkg)
+  (paths.test_mingw_dir / 'lib' / 'xmake' / 'bin' / 'xmake.exe').chmod(0o755)
+  (paths.test_mingw_dir / '.patched').touch()
 
 def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _gcc_mingw(ver, paths)

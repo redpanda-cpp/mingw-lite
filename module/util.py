@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import logging
 from pathlib import Path
 import re
@@ -112,6 +113,30 @@ def make_destdir_install(component: str, cwd: Path, destdir: Path):
 
 def make_install(component: str, cwd: Path):
   make_custom(component + ' (install)', cwd, ['install'], jobs = 1)
+
+@contextmanager
+def overlayfs_ro(merged: Path | str, lower: list[Path]):
+  try:
+    if len(lower) == 1:
+      subprocess.run([
+        'mount',
+        '--bind',
+        lower[0],
+        merged,
+        '-o', 'ro',
+      ])
+    else:
+      lowerdir = ':'.join(map(str, lower))
+      subprocess.run([
+        'mount',
+        '-t', 'overlay',
+        'none',
+        merged,
+        '-o', f'lowerdir={lowerdir}',
+      ], check = True)
+    yield
+  finally:
+    subprocess.run(['umount', merged])
 
 def xmake_build(component: str, cwd: Path, jobs: int):
   res = subprocess.run(

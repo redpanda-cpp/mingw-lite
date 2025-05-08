@@ -19,7 +19,7 @@ class BranchVersions:
   mpfr: str
   pdcurses: str
   python: str
-  python_z: str
+  z: str
 
   xmake = '2.9.9'
 
@@ -43,7 +43,7 @@ class BranchVersions:
     mpfr: str,
     pdcurses: str,
     python: str,
-    python_z: str,
+    z: str,
   ):
     self.gcc = gcc
     self.rev = rev
@@ -62,7 +62,7 @@ class BranchVersions:
     self.mpfr = mpfr
     self.pdcurses = pdcurses
     self.python = python
-    self.python_z = python_z
+    self.z = z
 
 class ProfileInfo:
   arch: str
@@ -151,7 +151,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     python = '3.13.3',
-    python_z = '1.3.1',
+    z = '1.3.1',
   ),
   '15': BranchVersions(
     gcc = '15.1.0',
@@ -171,7 +171,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     python = '3.13.3',
-    python_z = '1.3.1',
+    z = '1.3.1',
   ),
   '14': BranchVersions(
     gcc = '14.2.0',
@@ -193,7 +193,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     python = '3.13.3',
-    python_z = '1.3.1',
+    z = '1.3.1',
   ),
   '13': BranchVersions(
     gcc = '13.3.0',
@@ -216,7 +216,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     python = '3.12.10',
-    python_z = '1.3.1',
+    z = '1.3.1',
   ),
 }
 

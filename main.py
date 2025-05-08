@@ -8,11 +8,13 @@ from pathlib import Path
 import shutil
 import subprocess
 from subprocess import PIPE, Popen
+from tempfile import NamedTemporaryFile
 
 from module.args import parse_args
 from module.path import ProjectPaths
 from module.prepare_source import prepare_source
 from module.profile import resolve_profile
+from module.util import ensure, overlayfs_ro
 
 # A = x86_64-linux-gnu or x86_64-linux-musl
 # B = {i686,x86_64}-w64-mingw32
@@ -22,22 +24,51 @@ from module.AAB import build_AAB_compiler, build_AAB_library
 from module.ABB import build_ABB_toolchain
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
-  if paths.build.exists():
-    shutil.rmtree(paths.build)
-  if not config.no_cross and paths.x_prefix.exists():
-    shutil.rmtree(paths.x_prefix)
-  if paths.mingw_prefix.exists():
-    shutil.rmtree(paths.mingw_prefix)
+  if paths.build_dir.exists():
+    shutil.rmtree(paths.build_dir)
+  if not config.no_cross and paths.layer_AAA.prefix.exists():
+    shutil.rmtree(paths.layer_AAA.prefix)
+  if not config.no_cross and paths.layer_AAB.prefix.exists():
+    shutil.rmtree(paths.layer_AAB.prefix)
+  if paths.layer_ABB.prefix.exists():
+    shutil.rmtree(paths.layer_ABB.prefix)
 
 def prepare_dirs(paths: ProjectPaths):
-  paths.assets.mkdir(parents = True, exist_ok = True)
-  paths.build.mkdir(parents = True, exist_ok = True)
+  paths.assets_dir.mkdir(parents = True, exist_ok = True)
+  paths.build_dir.mkdir(parents = True, exist_ok = True)
   paths.build_host.mkdir(parents = True, exist_ok = True)
   paths.build_target.mkdir(parents = True, exist_ok = True)
-  paths.dist.mkdir(parents = True, exist_ok = True)
+  paths.dist_dir.mkdir(parents = True, exist_ok = True)
 
-def _package(root: Path | str, src: Path | str, dst: Path):
-  tar = Popen(['bsdtar', '-C', root, '-c', src], stdout = PIPE)
+def _sort_tarball(root: Path, src: Path):
+  files: map[str, list[str]] = {}
+  for file in src.glob('**/*'):
+    if not file.is_dir():
+      dn = file.relative_to(root).parent
+      fn = file.name
+      if dn not in files:
+        files[dn] = []
+      files[dn].append(fn)
+
+  result = []
+  for dn in sorted(files.keys()):
+    result.append(f'{dn}/')
+    for fn in sorted(files[dn]):
+      result.append(f'{dn}/{fn}')
+  return result
+
+def _package(root: Path, files: list[str], dst: Path):
+  with NamedTemporaryFile(delete = False) as listfile:
+    listname = listfile.name
+    for fn in files:
+      listfile.write(f'{fn}\n'.encode())
+
+  tar = Popen([
+    'bsdtar', '-c',
+    '-C', root,
+    '-T', listname, '-n',
+    '--numeric-owner',
+  ], stdout = PIPE)
   zstd = Popen([
     'zstd', '-f',
     '--zstd=strat=5,wlog=27,hlog=25,slog=6',
@@ -49,11 +80,41 @@ def _package(root: Path | str, src: Path | str, dst: Path):
   if tar.returncode != 0 or zstd.returncode != 0:
     raise Exception('bsdtar | zstd failed')
 
+  os.unlink(listname)
+
 def package_cross(paths: ProjectPaths):
-  _package(paths.x_prefix.parent, paths.x_prefix.name, paths.x_pkg)
+  files = [
+    *_sort_tarball(paths.layer_dir.parent, paths.layer_AAA.prefix),
+    *_sort_tarball(paths.layer_dir.parent, paths.layer_AAB.prefix),
+  ]
+
+  _package(paths.layer_dir.parent, files, paths.cross_pkg)
 
 def package_mingw(paths: ProjectPaths):
-  _package(paths.mingw_prefix.parent, paths.mingw_prefix.name, paths.mingw_pkg)
+  layers = [
+    # large layers first
+    paths.layer_ABB.crt,
+    paths.layer_ABB.gcc,
+
+    paths.layer_ABB.binutils,
+    paths.layer_ABB.gdb,
+    paths.layer_ABB.headers,
+    paths.layer_ABB.make,
+    paths.layer_ABB.xmake,
+
+    paths.layer_ABB.license,
+  ]
+
+  files = []
+  for layer in layers:
+    files.extend(map(
+      lambda fn: f'{paths.pkg_dir.name}/{fn}',
+      _sort_tarball(layer, layer)
+    ))
+
+  ensure(paths.pkg_dir)
+  with overlayfs_ro(paths.pkg_dir, layers):
+    _package(paths.pkg_dir.parent, files, paths.mingw_pkg)
 
 def main():
   config = parse_args()
@@ -77,7 +138,6 @@ def main():
 
   prepare_source(ver, paths)
 
-  os.environ['PATH'] = f'{paths.x_prefix}/bin:{os.environ["PATH"]}'
   if not config.no_cross:
     build_AAA_library(ver, paths, config)
     build_AAA_tool(ver, paths, config)

@@ -15,20 +15,20 @@ from module.profile import BranchProfile, resolve_profile
 from module.util import XMAKE_ARCH_MAP
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
-  if paths.test_archive.exists():
-    shutil.rmtree(paths.test_archive)
+  if paths.test_archive_dir.exists():
+    shutil.rmtree(paths.test_archive_dir)
 
 def prepare_dirs(paths: ProjectPaths):
-  shutil.copytree(paths.test_src, paths.test_archive)
+  shutil.copytree(paths.test_src_dir, paths.test_archive_dir)
 
 def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
-  check_and_extract(paths.test_archive_mingw, paths.mingw_pkg)
+  check_and_extract(paths.test_archive_mingw_dir, paths.mingw_pkg)
 
 def test_mingw_compiler_batch(ver: BranchProfile, paths: ProjectPaths):
-  xmake = (paths.test_archive_mingw / 'lib' / 'xmake' / 'bin' / 'xmake.exe').relative_to(paths.test_archive)
-  mingw = paths.test_archive_mingw.relative_to(paths.test_archive)
+  xmake = (paths.test_archive_mingw_dir / 'lib' / 'xmake' / 'bin' / 'xmake.exe').relative_to(paths.test_archive_dir)
+  mingw = paths.test_archive_mingw_dir.relative_to(paths.test_archive_dir)
 
-  with open(paths.test_archive / 'test_mingw_compiler.bat', 'wb') as f:
+  with open(paths.test_archive_dir / 'test_mingw_compiler.bat', 'wb') as f:
     content = (
       '@echo off\n'
       f'{xmake} f -v -p mingw -a {XMAKE_ARCH_MAP[ver.arch]} --mingw={mingw}\n'
@@ -39,12 +39,12 @@ def test_mingw_compiler_batch(ver: BranchProfile, paths: ProjectPaths):
     f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
 
 def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
-  mingw = paths.test_archive_mingw.relative_to(paths.test_archive)
+  mingw = paths.test_archive_mingw_dir.relative_to(paths.test_archive_dir)
 
   build_dir = f'build/mingw/{XMAKE_ARCH_MAP[ver.arch]}/debug'
   inferior = f'{build_dir}/breakpoint.exe'
 
-  with open(paths.test_archive / 'test_mingw_make_gdb.bat', 'wb') as f:
+  with open(paths.test_archive_dir / 'test_mingw_make_gdb.bat', 'wb') as f:
     content = (
       '@echo off\n'
       f'set PATH=%CD%/{mingw}/bin;%PATH%\n'
@@ -57,7 +57,7 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
     )
     f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
 
-  with open(paths.test_archive / 'test_mingw_make_gdb_run_gdbserver.bat', 'wb') as f:
+  with open(paths.test_archive_dir / 'test_mingw_make_gdb_run_gdbserver.bat', 'wb') as f:
     content = (
       '@echo off\n'
       f'set PATH=%CD%/{mingw}/bin;%PATH%\n'
@@ -66,7 +66,7 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
     )
     f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
 
-  with open(paths.test_archive / 'gdb_command.txt', 'wb') as f:
+  with open(paths.test_archive_dir / 'gdb_command.txt', 'wb') as f:
     content = (
       f'file {inferior}\n'
       f'target remote localhost:1234\n'

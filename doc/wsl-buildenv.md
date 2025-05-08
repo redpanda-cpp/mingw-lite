@@ -1,11 +1,10 @@
 # Prepare WSL Build Environment
 
-The build script requires root privileges, so AN EXCLUSIVE DISTRO is highly recommended.
+The build scripts make use of overlayfs and require root privileges, so AN EXCLUSIVE WSL 2 DISTRO is required.
 
 ## Install WSL
 
-- WSL 1: check “Windows Subsystem for Linux” in “Turn Windows features on or off” dialog is sufficient.
-- WSL 2: see [Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/install).
+See [Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 ## Create an Exclusive Distro
 

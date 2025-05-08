@@ -19,11 +19,11 @@ from module.profile import BranchProfile, resolve_profile
 from module.util import XMAKE_ARCH_MAP, ensure
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
-  if paths.test.exists():
-    shutil.rmtree(paths.test)
+  if paths.test_dir.exists():
+    shutil.rmtree(paths.test_dir)
 
 def prepare_dirs(paths: ProjectPaths):
-  shutil.copytree(paths.test_src, paths.test)
+  shutil.copytree(paths.test_src_dir, paths.test_dir)
 
 def winepath(path: Path):
   if platform.system() == 'Windows':
@@ -37,22 +37,22 @@ def available_port():
     return s.getsockname()[1]
 
 def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
-  xmake = paths.test_mingw / 'lib' / 'xmake' / 'bin' / 'xmake.exe'
+  xmake = paths.test_mingw_dir / 'lib' / 'xmake' / 'bin' / 'xmake.exe'
   subprocess.check_call([
     xmake, 'f', *verbose,
     '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
-    f'--mingw={winepath(paths.test_mingw)}',
-  ], cwd = paths.test)
-  subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test)
-  subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test)
+    f'--mingw={winepath(paths.test_mingw_dir)}',
+  ], cwd = paths.test_dir)
+  subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test_dir)
+  subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test_dir)
 
 def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
-  bin_dir = paths.test_mingw / 'bin'
+  bin_dir = paths.test_mingw_dir / 'bin'
   make_exe = bin_dir / 'mingw32-make.exe'
   gdb_exe = bin_dir / 'gdb.exe'
   gdbserver_exe = bin_dir / 'gdbserver.exe'
 
-  build_dir = paths.test / 'build' / 'mingw' / XMAKE_ARCH_MAP[ver.arch] / 'debug'
+  build_dir = paths.test_dir / 'build' / 'mingw' / XMAKE_ARCH_MAP[ver.arch] / 'debug'
   inferior = build_dir / 'breakpoint.exe'
   in_gdb_inferior = winepath(inferior).replace('\\', '/')
   ensure(build_dir)
@@ -64,7 +64,7 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   else:
     os.environ['WINEPATH'] = winepath(bin_dir)
 
-  subprocess.check_call([make_exe, f'DIR={build_dir}', 'SUFFIX=.exe'], cwd = paths.test)
+  subprocess.check_call([make_exe, f'DIR={build_dir}', 'SUFFIX=.exe'], cwd = paths.test_dir)
 
   if platform.system() == 'Windows':
     os.environ['PATH'] = saved_path
@@ -75,7 +75,7 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   port = available_port()
   comm = f'localhost:{port}'
 
-  gdb_command_file = paths.test / 'gdb_command.txt'
+  gdb_command_file = paths.test_dir / 'gdb_command.txt'
   with open(gdb_command_file, 'wb') as f:
     content = (
       f'file {in_gdb_inferior}\n'  # old releases disconnect when retriving symbol from gdbserver
@@ -100,8 +100,8 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
     '$4 = 5',
   ]
 
-  gdbserver = subprocess.Popen([gdbserver_exe, comm, winepath(inferior)], cwd = paths.test)
-  gdb = subprocess.Popen([gdb_exe, '--batch', f'--command={gdb_command_file}'], cwd = paths.test, stdout = PIPE)
+  gdbserver = subprocess.Popen([gdbserver_exe, comm, winepath(inferior)], cwd = paths.test_dir)
+  gdb = subprocess.Popen([gdb_exe, '--batch', f'--command={gdb_command_file}'], cwd = paths.test_dir, stdout = PIPE)
   gdb.wait(timeout = 10.0)
   if gdb.returncode != 0:
     raise Exception(f"gdb exited with code {gdb.returncode}")
