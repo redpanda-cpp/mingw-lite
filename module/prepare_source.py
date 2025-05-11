@@ -9,7 +9,7 @@ import subprocess
 from urllib.error import URLError
 from urllib.request import urlopen
 
-from module.fetch import validate_and_download, check_and_extract
+from module.fetch import validate_and_download, check_and_extract, patch_done
 from module.path import ProjectPaths
 from module.profile import BranchProfile
 
@@ -43,10 +43,6 @@ def _automake(path: Path):
     logging.critical(message)
     raise Exception(message)
 
-def _patch_done(path: Path):
-  mark = path / '.patched'
-  mark.touch()
-
 def _binutils(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/binutils/{paths.src_arx.binutils.name}'
   validate_and_download(paths.src_arx.binutils, url)
@@ -59,7 +55,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths):
     else:
       _patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.41.patch')
 
-    _patch_done(paths.src_dir.binutils)
+    patch_done(paths.src_dir.binutils)
 
 def _expat(ver: BranchProfile, paths: ProjectPaths):
   v = Version(ver.expat)
@@ -67,7 +63,7 @@ def _expat(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://github.com/libexpat/libexpat/releases/download/{tag}/{paths.src_arx.expat.name}'
   validate_and_download(paths.src_arx.expat, url)
   check_and_extract(paths.src_dir.expat, paths.src_arx.expat)
-  _patch_done(paths.src_dir.expat)
+  patch_done(paths.src_dir.expat)
 
 def _gcc(ver: BranchProfile, paths: ProjectPaths):
   v = Version(ver.gcc)
@@ -93,16 +89,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
     # Fix UCRT pipe
     _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ucrt-pipe.patch')
 
-    # Fix locale directory
-    _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-localedir.patch')
-
-    # Fix default locale
-    if v.major >= 14:
-      # provided by gettext library
-      pass
-    else:
-      _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-default-locale.patch')
-
     # Fix libcpp setlocale
     # libcpp defines `setlocale` if `HAVE_SETLOCALE` not defined, but its configure.ac does not check `setlocale` at all
     _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-libcpp-setlocale.patch')
@@ -121,7 +107,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
       logging.critical(message)
       raise Exception(message)
 
-    _patch_done(paths.src_dir.gcc)
+    patch_done(paths.src_dir.gcc)
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.src_arx.gdb.name}'
@@ -141,40 +127,34 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths):
     # Fix pythondir
     _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
 
-    _patch_done(paths.src_dir.gdb)
-
-def _gettext(ver: BranchProfile, paths: ProjectPaths):
-  url = f'https://ftpmirror.gnu.org/gnu/gettext/{paths.src_arx.gettext.name}'
-  validate_and_download(paths.src_arx.gettext, url)
-  if check_and_extract(paths.src_dir.gettext, paths.src_arx.gettext):
-    # Fix default locale
-    _patch(paths.src_dir.gettext, paths.patch_dir / 'gettext' / 'fix-default-locale.patch')
-
-    _patch_done(paths.src_dir.gettext)
+    patch_done(paths.src_dir.gdb)
 
 def _gmp(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/gmp/{paths.src_arx.gmp.name}'
   validate_and_download(paths.src_arx.gmp, url)
   check_and_extract(paths.src_dir.gmp, paths.src_arx.gmp)
-  _patch_done(paths.src_dir.gmp)
+  patch_done(paths.src_dir.gmp)
 
 def _iconv(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/libiconv/{paths.src_arx.iconv.name}'
   validate_and_download(paths.src_arx.iconv, url)
   check_and_extract(paths.src_dir.iconv, paths.src_arx.iconv)
-  _patch_done(paths.src_dir.iconv)
+  patch_done(paths.src_dir.iconv)
+
+def _intl(ver: BranchProfile, paths: ProjectPaths):
+  shutil.copytree(paths.in_tree_src_tree.intl, paths.in_tree_src_dir.intl, dirs_exist_ok = True)
 
 def _make(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/make/{paths.src_arx.make.name}'
   validate_and_download(paths.src_arx.make, url)
   check_and_extract(paths.src_dir.make, paths.src_arx.make)
-  _patch_done(paths.src_dir.make)
+  patch_done(paths.src_dir.make)
 
 def _mcfgthread(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://github.com/lhmouse/mcfgthread/archive/refs/tags/v{ver.mcfgthread}.tar.gz'
   validate_and_download(paths.src_arx.mcfgthread, url)
   check_and_extract(paths.src_dir.mcfgthread, paths.src_arx.mcfgthread)
-  _patch_done(paths.src_dir.mcfgthread)
+  patch_done(paths.src_dir.mcfgthread)
 
 def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw_host.name}'
@@ -201,7 +181,7 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
     _autoreconf(paths.src_dir.mingw_host / 'mingw-w64-crt')
     _automake(paths.src_dir.mingw_host / 'mingw-w64-crt')
 
-    _patch_done(paths.src_dir.mingw_host)
+    patch_done(paths.src_dir.mingw_host)
 
 def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw_target.name}'
@@ -228,25 +208,25 @@ def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
     _autoreconf(paths.src_dir.mingw_target / 'mingw-w64-crt')
     _automake(paths.src_dir.mingw_target / 'mingw-w64-crt')
 
-    _patch_done(paths.src_dir.mingw_target)
+    patch_done(paths.src_dir.mingw_target)
 
 def _mpc(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/mpc/{paths.src_arx.mpc.name}'
   validate_and_download(paths.src_arx.mpc, url)
   check_and_extract(paths.src_dir.mpc, paths.src_arx.mpc)
-  _patch_done(paths.src_dir.mpc)
+  patch_done(paths.src_dir.mpc)
 
 def _mpfr(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://ftpmirror.gnu.org/gnu/mpfr/{paths.src_arx.mpfr.name}'
   validate_and_download(paths.src_arx.mpfr, url)
   check_and_extract(paths.src_dir.mpfr, paths.src_arx.mpfr)
-  _patch_done(paths.src_dir.mpfr)
+  patch_done(paths.src_dir.mpfr)
 
 def _pdcurses(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://github.com/wmcbrine/PDCurses/archive/refs/tags/{ver.pdcurses}.tar.gz'
   validate_and_download(paths.src_arx.pdcurses, url)
   check_and_extract(paths.src_dir.pdcurses, paths.src_arx.pdcurses)
-  _patch_done(paths.src_dir.pdcurses)
+  patch_done(paths.src_dir.pdcurses)
 
 def _python(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://www.python.org/ftp/python/{ver.python}/{paths.src_arx.python.name}'
@@ -268,7 +248,7 @@ def _python(ver: BranchProfile, paths: ProjectPaths):
       _patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.12.patch')
     shutil.copy(paths.patch_dir / 'python' / 'python-config.sh', paths.src_dir.python / 'python-config.sh')
 
-    _patch_done(paths.src_dir.python)
+    patch_done(paths.src_dir.python)
 
 def _xmake(ver: BranchProfile, paths: ProjectPaths):
   release_name = paths.src_arx.xmake.name.replace('xmake-', 'xmake-v')
@@ -289,23 +269,22 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths):
     # Fix module mapper path
     _patch(paths.src_dir.xmake, paths.patch_dir / 'xmake' / 'fix-module-mapper-path.patch')
 
-    _patch_done(paths.src_dir.xmake)
+    patch_done(paths.src_dir.xmake)
 
 def _z(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://zlib.net/fossils/{paths.src_arx.z.name}'
   validate_and_download(paths.src_arx.z, url)
   check_and_extract(paths.src_dir.z, paths.src_arx.z)
-  _patch_done(paths.src_dir.z)
+  patch_done(paths.src_dir.z)
 
 def prepare_source(ver: BranchProfile, paths: ProjectPaths):
   _binutils(ver, paths)
   _expat(ver, paths)
   _gcc(ver, paths)
   _gdb(ver, paths)
-  if ver.gettext:
-    _gettext(ver, paths)
   _gmp(ver, paths)
   _iconv(ver, paths)
+  _intl(ver, paths)
   _make(ver, paths)
   if ver.thread == 'mcf':
     _mcfgthread(ver, paths)

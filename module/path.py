@@ -9,7 +9,6 @@ from module.profile import BranchProfile
 class SourcePaths(NamedTuple):
   binutils: Path
   expat: Path
-  gettext: Path
   gcc: Path
   gdb: Path
   gmp: Path
@@ -24,6 +23,9 @@ class SourcePaths(NamedTuple):
   python: Path
   xmake: Path
   z: Path
+
+class InTreeSourcePaths(NamedTuple):
+  intl: Path
 
 class LayerPathsAAA(NamedTuple):
   prefix: Path
@@ -45,9 +47,9 @@ class LayerPathsAAB(NamedTuple):
   headers: Path
 
   expat: Path
-  gettext: Path
   gmp: Path
   iconv: Path
+  intl: Path
   mpc: Path
   mpfr: Path
   pdcurses: Path
@@ -87,6 +89,9 @@ class ProjectPaths:
 
   src_dir: SourcePaths
   src_arx: SourcePaths
+
+  in_tree_src_dir: InTreeSourcePaths
+  in_tree_src_tree: InTreeSourcePaths
 
   layer_AAA: LayerPathsAAA
   layer_AAB: LayerPathsAAB
@@ -134,9 +139,6 @@ class ProjectPaths:
       expat = f'expat-{ver.expat}',
       gcc = f'gcc-{ver.gcc}',
       gdb = f'gdb-{ver.gdb}',
-      gettext = f'gettext-{ver.gettext}'
-        if ver.gettext
-        else None,
       gmp = f'gmp-{ver.gmp}',
       iconv = f'libiconv-{ver.iconv}',
       make = f'make-{ver.make}',
@@ -158,9 +160,6 @@ class ProjectPaths:
       expat = self.build_dir / src_name.expat,
       gcc = self.build_dir / src_name.gcc,
       gdb = self.build_dir / src_name.gdb,
-      gettext = self.build_dir / src_name.gettext
-        if ver.gettext
-        else None,
       gmp = self.build_dir / src_name.gmp,
       iconv = self.build_dir / src_name.iconv,
       make = self.build_dir / src_name.make,
@@ -184,9 +183,6 @@ class ProjectPaths:
       expat = self.assets_dir / f'{src_name.expat}.tar.xz',
       gcc = self.assets_dir / f'{src_name.gcc}.tar.xz',
       gdb = self.assets_dir / f'{src_name.gdb}.tar.xz',
-      gettext = self.assets_dir / f'{src_name.gettext}.tar.xz'
-        if ver.gettext
-        else None,
       gmp = self.assets_dir / f'{src_name.gmp}.tar.zst',
       iconv = self.assets_dir / f'{src_name.iconv}.tar.gz',
       make = self.assets_dir / f'{src_name.make}.tar.lz',
@@ -201,6 +197,14 @@ class ProjectPaths:
       python = self.assets_dir / f'{src_name.python}.tar.xz',
       xmake = self.assets_dir / f'{src_name.xmake}.tar.gz',
       z = self.assets_dir / f'{src_name.z}.tar.gz',
+    )
+
+    self.in_tree_src_dir = InTreeSourcePaths(
+      intl = self.build_dir / 'intl',
+    )
+
+    self.in_tree_src_tree = InTreeSourcePaths(
+      intl = self.root_dir / 'support/intl',
     )
 
     layer_AAA_prefix = self.layer_dir / 'AAA'
@@ -226,9 +230,9 @@ class ProjectPaths:
       headers = layer_AAB_prefix / 'headers',
 
       expat = layer_AAB_prefix / 'expat',
-      gettext = layer_AAB_prefix / 'gettext',
       gmp = layer_AAB_prefix / 'gmp',
       iconv = layer_AAB_prefix / 'iconv',
+      intl = layer_AAB_prefix / 'intl',
       mpc = layer_AAB_prefix / 'mpc',
       mpfr = layer_AAB_prefix / 'mpfr',
       pdcurses = layer_AAB_prefix / 'pdcurses',

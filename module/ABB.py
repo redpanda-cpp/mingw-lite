@@ -18,6 +18,8 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
+
+    paths.layer_AAB.intl / 'usr/local',
   ]):
     build_dir = paths.src_dir.binutils / 'build-ABB'
     ensure(build_dir)
@@ -31,7 +33,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       # features
       '--disable-install-libbfd',
       '--disable-multilib',
-      '--disable-nls',
+      '--enable-nls',
       # libtool eats `-static`
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
@@ -166,10 +168,6 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     shutil.copy(header_file, include_dir / header_file.name)
 
 def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  extra_layers = []
-  if ver.gettext:
-    extra_layers.append(paths.layer_AAB.gettext / 'usr/local')
-
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
@@ -180,7 +178,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.mpfr / 'usr/local',
     paths.layer_AAB.mpc / 'usr/local',
     paths.layer_AAB.iconv / 'usr/local',
-    *extra_layers,
+    paths.layer_AAB.intl / 'usr/local',
   ]):
     v = Version(ver.gcc)
     build_dir = paths.src_dir.gcc / 'build-ABB'
@@ -344,6 +342,9 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
+
+    paths.layer_AAB.iconv / 'usr/local',
+    paths.layer_AAB.intl / 'usr/local',
   ]):
     v = Version(ver.make)
     v_gcc = Version(ver.gcc)
@@ -358,19 +359,17 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
     configure('make', build_dir, [
       '--prefix=',
+      '--program-prefix=mingw32-',
       f'--host={ver.target}',
       f'--build={config.build}',
-      '--disable-nls',
+      '--enable-nls',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         c_extra = c_extra,
       ),
     ])
     make_default('make', build_dir, config.jobs)
-
-    bin_dir = paths.layer_ABB.make / 'bin'
-    ensure(bin_dir)
-    shutil.copy(build_dir / 'make.exe', bin_dir / 'mingw32-make.exe')
+    make_destdir_install('make', build_dir, paths.layer_ABB.make)
 
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -407,9 +406,8 @@ def _licenses(ver: BranchProfile, paths: ProjectPaths):
   for file in ['README', 'COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
     shutil.copy(paths.src_dir.gdb / file, license_dir / 'gdb' / file)
 
-  if ver.gettext:
-    ensure(license_dir / 'gettext-runtime-intl')
-    shutil.copy(paths.src_dir.gettext / 'gettext-runtime' / 'intl' / 'COPYING.LIB', license_dir / 'gettext-runtime-intl' / 'COPYING.LIB')
+  ensure(license_dir / 'intl')
+  shutil.copy(paths.in_tree_src_dir.intl / 'LICENSE', license_dir / 'intl' / 'LICENSE')
 
   ensure(license_dir / 'gmp')
   for file in ['README', 'COPYINGv2', 'COPYINGv3', 'COPYING.LESSERv3']:

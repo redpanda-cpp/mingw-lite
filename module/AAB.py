@@ -404,27 +404,27 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default('iconv', build_dir, config.jobs)
     make_destdir_install('iconv', build_dir, paths.layer_AAB.iconv)
 
-def _gettext(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+def _intl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
-    build_dir = paths.src_dir.gettext / 'gettext-runtime' / 'build-AAB'
-    ensure(build_dir)
-    configure('gettext', build_dir, [
-      f'--prefix=/usr/local/{ver.target}',
-      f'--host={ver.target}',
-      f'--build={config.build}',
-      '--enable-static',
-      '--disable-shared',
-      *cflags_B(
-        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-      ),
+    src_dir = paths.build_dir / 'intl'
+
+    xmake_config('intl', src_dir, [
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      '--toolchain=cross',
+      f'--cross={ver.target}-',
     ])
-    make_default('gettext', build_dir, config.jobs)
-    make_destdir_install('gettext', build_dir, paths.layer_AAB.gettext)
+    xmake_build('intl', src_dir, config.jobs)
+
+    install_dir = paths.layer_AAB.intl / 'usr/local' / ver.target
+    xmake_install('intl', src_dir, install_dir)
 
 def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -461,25 +461,27 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
+    src_dir = paths.src_dir.python
+
     config_args = []
     if ver.min_os.major < 6:
       config_args.append('--emulated-win-cv=1')
 
-    xmake_config('python', paths.src_dir.python, [
+    xmake_config('python', src_dir, [
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
       '--toolchain=cross',
       f'--cross={ver.target}-',
       *config_args,
     ])
-    xmake_build('python', paths.src_dir.python, config.jobs)
+    xmake_build('python', src_dir, config.jobs)
 
     install_dir = paths.layer_AAB.python / 'usr/local' / ver.target
-    xmake_install('python', paths.src_dir.python, install_dir, ['pythoncore'])
+    xmake_install('python', src_dir, install_dir, ['pythoncore'])
 
-    stdlib_package_dir = paths.src_dir.python / 'build/stdlib-package'
+    stdlib_package_dir = src_dir / 'build/stdlib-package'
     ensure(stdlib_package_dir)
-    xmake_install('python (stdlib)', paths.src_dir.python, stdlib_package_dir, ['stdlib'])
+    xmake_install('python (stdlib)', src_dir, stdlib_package_dir, ['stdlib'])
 
     python_lib = stdlib_package_dir / 'Lib'
     shutil.copytree(f'/usr/local/share/gcc-{config.branch}/python', python_lib, dirs_exist_ok = True)
@@ -511,8 +513,7 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
 
   _iconv(ver, paths, config)
 
-  if ver.gettext:
-    _gettext(ver, paths, config)
+  _intl(ver, paths, config)
 
   _pdcurses(ver, paths, config)
 
