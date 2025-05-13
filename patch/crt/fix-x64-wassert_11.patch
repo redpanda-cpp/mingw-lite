@@ -1,0 +1,27 @@
+diff --git a/mingw-w64-crt/Makefile.am b/mingw-w64-crt/Makefile.am
+index 0454ecec3..363dbd963 100644
+--- a/mingw-w64-crt/Makefile.am
++++ b/mingw-w64-crt/Makefile.am
+@@ -305,7 +305,8 @@ src_msvcrt64=\
+   misc/_create_locale.c \
+   misc/_free_locale.c \
+   misc/_get_current_locale.c \
+-  misc/seterrno.c
++  misc/seterrno.c \
++  misc/wassert.c
+ 
+ src_msvcrtarm32=\
+   $(src_msvcrt) \
+diff --git a/mingw-w64-crt/lib-common/msvcrt.def.in b/mingw-w64-crt/lib-common/msvcrt.def.in
+index 1f8f95b17..f491a7938 100644
+--- a/mingw-w64-crt/lib-common/msvcrt.def.in
++++ b/mingw-w64-crt/lib-common/msvcrt.def.in
+@@ -1160,7 +1160,7 @@ _waccess
+ ; _waccess_s Replaced by emu
+ _wasctime
+ ; _wasctime_s Replaced by emu
+-F_NON_I386(_wassert)
++F_ARM_ANY(_wassert)
+ _wchdir
+ _wchmod
+ _wcmdln DATA

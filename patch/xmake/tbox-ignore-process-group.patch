@@ -1,0 +1,15 @@
+diff --git a/src/tbox/platform/windows/process.c b/src/tbox/platform/windows/process.c
+index 50188544..51c47e29 100644
+--- a/src/tbox/platform/windows/process.c
++++ b/src/tbox/platform/windows/process.c
+@@ -140,6 +140,10 @@ tb_bool_t tb_process_group_init()
+ {
+     if (!g_process_group)
+     {
++        // ignore if not supported
++        if (!tb_kernel32()->CreateJobObjectW)
++            return tb_true;
++
+         // create process job
+         g_process_group = tb_kernel32()->CreateJobObjectW(tb_null, tb_null);
+         tb_assert_and_check_return_val(g_process_group && g_process_group != INVALID_HANDLE_VALUE, tb_false);

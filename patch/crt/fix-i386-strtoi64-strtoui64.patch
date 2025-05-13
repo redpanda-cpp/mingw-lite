@@ -1,0 +1,40 @@
+diff --git a/mingw-w64-crt/Makefile.am b/mingw-w64-crt/Makefile.am
+index 0454ecec3..f578c8c3c 100644
+--- a/mingw-w64-crt/Makefile.am
++++ b/mingw-w64-crt/Makefile.am
+@@ -291,6 +291,8 @@ src_msvcrt32=\
+   misc/imaxabs.c \
+   misc/lc_locale_func.c \
+   misc/seterrno.c \
++  misc/strtoimax.c \
++  misc/strtoumax.c \
+   misc/wassert.c \
+   stdio/_scprintf.c \
+   stdio/_vscprintf.c
+diff --git a/mingw-w64-crt/lib-common/msvcrt.def.in b/mingw-w64-crt/lib-common/msvcrt.def.in
+index 1f8f95b17..dc216b08c 100644
+--- a/mingw-w64-crt/lib-common/msvcrt.def.in
++++ b/mingw-w64-crt/lib-common/msvcrt.def.in
+@@ -1037,16 +1037,16 @@ _strset_s
+ _strtime
+ ; _strtime_s replaced by emu
+ _strtod_l
+-_strtoi64
+-strtoll == _strtoi64
+-strtoimax == _strtoi64
++F_NON_I386(_strtoi64) ; i386 _strtoi64 replaced by emu
++F_NON_I386(strtoll == _strtoi64) ; i386 strtoll alias provided by emu
++F_NON_I386(strtoimax == _strtoi64) ; i386 strtoimax alias provided by emu
+ _strtoi64_l
+ _strtoll_l == _strtoi64_l
+ _strtoimax_l == _strtoi64_l
+ _strtol_l
+-_strtoui64
+-strtoull == _strtoui64
+-strtoumax == _strtoui64
++F_NON_I386(_strtoui64) ; i386 _strtoui64 replaced by emu
++F_NON_I386(strtoull == _strtoui64) ; i386 strtoull alias provided by emu
++F_NON_I386(strtoumax == _strtoui64) ; i386 strtoumax alias provided by emu
+ _strtoui64_l
+ _strtoull_l == _strtoui64_l
+ _strtoumax_l == _strtoui64_l

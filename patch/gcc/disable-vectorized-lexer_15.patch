@@ -1,0 +1,36 @@
+diff --git a/libcpp/lex.cc b/libcpp/lex.cc
+index e7705a64f39..15ddcc983ce 100644
+--- a/libcpp/lex.cc
++++ b/libcpp/lex.cc
+@@ -24,6 +24,11 @@ along with this program; see the file COPYING3.  If not see
+ #include "cpplib.h"
+ #include "internal.h"
+ 
++#if defined(_WIN32) && !defined(_WIN64)
++#define WIN32_LEAN_AND_MEAN
++#include <windows.h>
++#endif
++
+ enum spell_type
+ {
+   SPELL_OPERATOR = 0,
+@@ -408,6 +413,19 @@ static search_line_fast_type search_line_fast
+ static inline void
+ init_vectorized_lexer (void)
+ {
++#if defined(_WIN32) && !defined(_WIN64)
++  /* Windows prior to 2000 does not enable SSE by default. If not enabled,
++     SSE bits are still set, but SSE instructions will trap #UD. Checking
++     availability is possible by invoking an SSE instruction, for example,
++     stmxcsr, and handling illegal instruction exception. But that's so tricky
++     that we simply check OS version and disable this optimization. */
++
++  OSVERSIONINFOA osvi = { sizeof(osvi) };
++  GetVersionExA(&osvi);
++  if (osvi.dwMajorVersion < 5)
++    return;
++#endif
++
+   unsigned ax, bx, cx, dx;
+ 
+   if (!__get_cpuid (1, &ax, &bx, &cx, &dx))

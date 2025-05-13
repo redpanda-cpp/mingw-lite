@@ -27,6 +27,8 @@ def parse_args() -> argparse.Namespace:
     choices = [
       '64-mcf', '64-win32', '64-ucrt', '64-msvcrt',
       '32-mcf', '32-win32', '32-ucrt', '32-msvcrt',
+      '64-ucrt_ws2003', '64-msvcrt_ws2003',
+      '32-ucrt_winxp', '32-msvcrt_winnt40',
     ],
     required = True,
     help = 'MinGW profile to build',

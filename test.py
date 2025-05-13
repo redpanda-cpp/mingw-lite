@@ -94,7 +94,8 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
     content = (
       f'file {in_gdb_inferior}\n'  # old releases disconnect when retriving symbol from gdbserver
       f'target remote {comm}\n'
-      'b 12\n'
+      'b 14\n'
+      'b 19\n'
       'c\n'
       'p fib[i]\n'  # i = 2, fib[i] = 1
       'c\n'
@@ -104,6 +105,8 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
       'c\n'
       'p fib[i]\n'  # i = 5, fib[i] = 5
       'c\n'
+      'p fib_vec\n'
+      'c\n'
     )
     f.write(content.encode())
 
@@ -112,6 +115,7 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
     '$2 = 2',
     '$3 = 3',
     '$4 = 5',
+    '$5 = std::vector of length 6, capacity', '= {0, 1, 1, 2, 3, 5}',
   ]
 
   gdbserver = subprocess.Popen([gdbserver_exe, comm, winepath(inferior)], cwd = paths.test_dir)

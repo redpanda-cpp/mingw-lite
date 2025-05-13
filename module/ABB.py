@@ -10,7 +10,7 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro, xmake_build, xmake_config, xmake_install
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro, xmake_build, xmake_config, xmake_install
 
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -277,15 +277,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     # add `print.o` to `libstdc++.a`, allowing `<print>` without `-lstdc++exp`
     # it's okay since we only keep ABI stable in a major version
     if 14 <= v.major < 17:
-      res = subprocess.run([
-        f'{ver.target}-ar', 'r',
-        paths.layer_ABB.gcc / 'lib' / 'libstdc++.a',
-        build_dir / ver.target / 'libstdc++-v3' / 'src' / 'c++23' / 'print.o',
-      ])
-      if res.returncode != 0:
-        message = f'Build fail: libstdc++ ar returned {res.returncode}'
-        logging.critical(message)
-        raise Exception(message)
+      add_objects_to_static_lib(f'{ver.target}-ar',
+        paths.layer_ABB.gcc / 'lib/libstdc++.a',
+        [build_dir / ver.target / 'libstdc++-v3/src/c++23/print.o'],
+      )
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -434,6 +429,9 @@ def _licenses(ver: BranchProfile, paths: ProjectPaths):
 
   ensure(license_dir / 'mingw-w64')
   shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'mingw-w64' / 'COPYING')
+
+  ensure(license_dir / 'thunk')
+  shutil.copy(paths.in_tree_src_tree.thunk / 'LICENSE', license_dir / 'thunk' / 'LICENSE')
 
   ensure(license_dir / 'mingw-w64-libraries-winpthreads')
   shutil.copy(paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'COPYING', license_dir / 'mingw-w64-libraries-winpthreads' / 'COPYING')

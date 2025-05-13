@@ -6,6 +6,12 @@ on:
       profile:
         required: true
         type: string
+      release_skip_profile:
+        required: true
+        type: boolean
+      release_do_release_xmake:
+        required: true
+        type: boolean
 
 jobs:
   build:
@@ -26,6 +32,9 @@ jobs:
       branch: ${{ matrix.branch }}
       prerelease: ${{ matrix.prerelease }}
       make_latest: ${{ matrix.make_latest }}
+      release_skip_profile_branch: ${{ github.ref_type == 'tag' && (inputs.release_skip_profile || !startsWith(github.ref_name, matrix.branch)) }}
+      release_do_release: ${{ github.ref_type == 'tag' && !inputs.release_skip_profile && startsWith(github.ref_name, matrix.branch) }}
+      release_do_release_xmake: ${{ inputs.release_do_release_xmake }}
 
   target_sat_archive:
     name: Target semi-automated testing archive (${{ inputs.profile }})

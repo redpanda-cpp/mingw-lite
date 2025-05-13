@@ -26,6 +26,7 @@ class SourcePaths(NamedTuple):
 
 class InTreeSourcePaths(NamedTuple):
   intl: Path
+  thunk: Path
 
 class LayerPathsAAA(NamedTuple):
   prefix: Path
@@ -204,10 +205,12 @@ class ProjectPaths:
 
     self.in_tree_src_dir = InTreeSourcePaths(
       intl = self.build_dir / 'intl',
+      thunk = None,
     )
 
     self.in_tree_src_tree = InTreeSourcePaths(
       intl = self.root_dir / 'support/intl',
+      thunk = self.root_dir / 'support/thunk',
     )
 
     layer_AAA_prefix = self.layer_dir / 'AAA'

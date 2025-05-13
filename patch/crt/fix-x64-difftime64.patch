@@ -1,0 +1,13 @@
+diff --git a/mingw-w64-crt/lib-common/msvcrt.def.in b/mingw-w64-crt/lib-common/msvcrt.def.in
+index 1f8f95b17..546a676ba 100644
+--- a/mingw-w64-crt/lib-common/msvcrt.def.in
++++ b/mingw-w64-crt/lib-common/msvcrt.def.in
+@@ -465,7 +465,7 @@ _cwscanf_s_l
+ F_X86_ANY(_dstbias DATA)
+ _daylight DATA
+ _difftime32 F_I386(== difftime)
+-_difftime64
++_difftime64 F_X64(== difftime) ; x64 _difftime64 replaced by alias
+ _dup
+ _dup2
+ _ecvt

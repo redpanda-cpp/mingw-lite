@@ -1,4 +1,4 @@
-name: Build
+name: Build per profile per branch
 
 on:
   workflow_call:
@@ -10,16 +10,25 @@ on:
         required: true
         type: string
       prerelease:
-        required: false
+        required: true
         type: boolean
       make_latest:
-        required: false
+        required: true
+        type: boolean
+      release_skip_profile_branch:
+        required: true
+        type: boolean
+      release_do_release:
+        required: true
+        type: boolean
+      release_do_release_xmake:
+        required: true
         type: boolean
 
 jobs:
   build:
     name: Build (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: github.ref_type != 'tag' || startsWith(github.ref_name, inputs.branch)
+    if: ${{ !inputs.release_skip_profile_branch }}
     runs-on: ubuntu-24.04
 
     steps:
@@ -38,7 +47,7 @@ jobs:
 
   test_on_linux:
     name: Test on Linux (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: github.ref_type != 'tag' || startsWith(github.ref_name, inputs.branch)
+    if: ${{ !inputs.release_skip_profile_branch }}
     runs-on: ubuntu-24.04
     needs: build
 
@@ -66,10 +75,10 @@ jobs:
       - name: Test
         run: |
           ./test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} -v
-  
+
   test_on_windows:
     name: Test on Windows (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: github.ref_type != 'tag' || startsWith(github.ref_name, inputs.branch)
+    if: ${{ !inputs.release_skip_profile_branch }}
     runs-on: windows-2022
     needs: build
 
@@ -97,7 +106,7 @@ jobs:
 
   release:
     name: Release (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: github.ref_type == 'tag' && startsWith(github.ref_name, inputs.branch)
+    if: inputs.release_do_release
     runs-on: ubuntu-24.04
     needs: [build, test_on_linux, test_on_windows]
 
@@ -138,7 +147,7 @@ jobs:
             dist/x-mingw*.tar.zst
 
       - name: Release Xmake
-        if: contains(fromJson('[]'), inputs.branch)
+        if: inputs.release_do_release_xmake
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ inputs.prerelease }}

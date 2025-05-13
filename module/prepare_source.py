@@ -93,6 +93,13 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
     # libcpp defines `setlocale` if `HAVE_SETLOCALE` not defined, but its configure.ac does not check `setlocale` at all
     _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-libcpp-setlocale.patch')
 
+    # Disable vectorized lexer
+    if ver.min_os.major < 5:
+      if v.major >= 15:
+        _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_15.patch')
+      else:
+        _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_13.patch')
+
     # Parser-friendly diagnostics
     po_dir = paths.src_dir.gcc / 'gcc' / 'po'
     po_files = list(po_dir.glob('*.po'))
@@ -126,6 +133,10 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths):
 
     # Fix pythondir
     _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
+
+    # Fix ui-style regex init
+    if v.major >= 16:
+      _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-ui-style-regex-init.patch')
 
     patch_done(paths.src_dir.gdb)
 
@@ -162,12 +173,20 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
   if check_and_extract(paths.src_dir.mingw_host, paths.src_arx.mingw_host):
     v = Version(ver.mingw)
 
-    # CRT: Fix missing function
-    if ver.min_os.major < 6:
+    # CRT: Fix x64 wassert
+    if ver.min_os.major < 6 and v.major < 13:
       if v.major >= 12:
-        _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-missing-function_12.patch')
+        _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-x64-wassert_12.patch')
       else:
-        _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-missing-function_7.patch')
+        _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-x64-wassert_11.patch')
+
+    # CRT: Fix x64 difftime64
+    if ver.min_os.major < 6 and v.major == 11:
+      _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-x64-difftime64.patch')
+
+    # CRT: Fix i386 strtoi64, strtoui64
+    if ver.min_os < Version('5.1') and v.major == 11:
+      _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
 
     # CRT: Add mingw thunks
     subprocess.run([
@@ -176,7 +195,7 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
       '-a', ver.arch,
       '--level', 'toolchain',
       '--nt-ver', str(ver.min_os),
-    ], cwd = paths.root_dir / 'thunk', check = True)
+    ], cwd = paths.in_tree_src_tree.thunk, check = True)
 
     _autoreconf(paths.src_dir.mingw_host / 'mingw-w64-crt')
     _automake(paths.src_dir.mingw_host / 'mingw-w64-crt')
@@ -189,12 +208,20 @@ def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
   if check_and_extract(paths.src_dir.mingw_target, paths.src_arx.mingw_target):
     v = Version(ver.mingw)
 
-    # CRT: Fix missing function
-    if ver.min_os.major < 6:
+    # CRT: Fix x64 wassert
+    if ver.min_os.major < 6 and v.major < 13:
       if v.major >= 12:
-        _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-missing-function_12.patch')
+        _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-x64-wassert_12.patch')
       else:
-        _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-missing-function_7.patch')
+        _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-x64-wassert_11.patch')
+
+    # CRT: Fix x64 difftime64
+    if ver.min_os.major < 6 and v.major == 11:
+      _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-x64-difftime64.patch')
+
+    # CRT: Fix i386 strtoi64, strtoui64
+    if ver.min_os < Version('5.1') and v.major == 11:
+      _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
 
     # CRT: Add mingw thunks
     subprocess.run([
@@ -203,7 +230,7 @@ def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
       '-a', ver.arch,
       '--level', 'core',
       '--nt-ver', str(ver.min_os),
-    ], cwd = paths.root_dir / 'thunk', check = True)
+    ], cwd = paths.in_tree_src_tree.thunk, check = True)
 
     _autoreconf(paths.src_dir.mingw_target / 'mingw-w64-crt')
     _automake(paths.src_dir.mingw_target / 'mingw-w64-crt')
@@ -260,6 +287,8 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths):
   url = f'https://github.com/xmake-io/xmake/releases/download/v{ver.xmake}/{release_name}'
   validate_and_download(paths.src_arx.xmake, url)
   if check_and_extract(paths.src_dir.xmake, paths.src_arx.xmake):
+    tbox = paths.src_dir.xmake / 'core/src/tbox/tbox'
+
     # disable werror
     xmake_lua = paths.src_dir.xmake / 'core' / 'xmake.lua'
     with open(xmake_lua, 'r') as f:
@@ -273,6 +302,9 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths):
 
     # Fix module mapper path
     _patch(paths.src_dir.xmake, paths.patch_dir / 'xmake' / 'fix-module-mapper-path.patch')
+
+    # Tbox: ignore process group
+    _patch(tbox, paths.patch_dir / 'xmake' / 'tbox-ignore-process-group.patch')
 
     patch_done(paths.src_dir.xmake)
 

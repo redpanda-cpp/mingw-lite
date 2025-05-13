@@ -59,7 +59,7 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
   with open(paths.sat_dir / 'test_mingw_make_gdb.bat', 'wb') as f:
     content = (
       '@echo off\n'
-      f'set PATH=%CD%/{mingw}/bin;%PATH%\n'
+      f'set PATH=%~dp0{mingw}/bin;%PATH%\n'
       f'mkdir {build_dir}\n'
       f'mingw32-make DIR={build_dir} SUFFIX=.exe\n'
       'echo Please start gdbserver...\n'
@@ -72,7 +72,7 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
   with open(paths.sat_dir / 'test_mingw_make_gdb_run_gdbserver.bat', 'wb') as f:
     content = (
       '@echo off\n'
-      f'set PATH=%CD%/{mingw}/bin;%PATH%\n'
+      f'set PATH=%~dp0{mingw}/bin;%PATH%\n'
       f'gdbserver localhost:1234 {inferior}\n'
       'pause\n'
     )
@@ -82,7 +82,8 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
     content = (
       f'file {inferior}\n'
       f'target remote localhost:1234\n'
-      'b 12\n'
+      'b 14\n'
+      'b 19\n'
       'c\n'
       'p fib[i]\n'  # i = 2, fib[i] = 1
       'c\n'
@@ -91,6 +92,8 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
       'p fib[i]\n'  # i = 4, fib[i] = 3
       'c\n'
       'p fib[i]\n'  # i = 5, fib[i] = 5
+      'c\n'
+      'p fib_vec\n'
       'c\n'
     )
     f.write(content.encode())
