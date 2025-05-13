@@ -21,7 +21,7 @@ from module.util import ensure, overlayfs_ro
 # XYZ: build = X, host = Y, target = Z
 from module.AAA import build_AAA_library, build_AAA_tool
 from module.AAB import build_AAB_compiler, build_AAB_library
-from module.ABB import build_ABB_toolchain
+from module.ABB import build_ABB_xmake, build_ABB_toolchain
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.build_dir.exists():
@@ -86,9 +86,29 @@ def package_cross(paths: ProjectPaths):
   files = [
     *_sort_tarball(paths.layer_dir.parent, paths.layer_AAA.prefix),
     *_sort_tarball(paths.layer_dir.parent, paths.layer_AAB.prefix),
+    *_sort_tarball(paths.layer_dir.parent, paths.layer_ABB.xmake),
   ]
 
   _package(paths.layer_dir.parent, files, paths.cross_pkg)
+
+def package_layers(pkg_dir: Path, layers: list[Path], dst: Path):
+  files = []
+  for layer in layers:
+    files.extend(map(
+      lambda fn: f'{pkg_dir.name}/{fn}',
+      _sort_tarball(layer, layer)
+    ))
+
+  ensure(pkg_dir)
+  with overlayfs_ro(pkg_dir, layers):
+    _package(pkg_dir.parent, files, dst)
+
+def package_xmake(paths: ProjectPaths):
+  layers = [
+    paths.layer_ABB.xmake,
+  ]
+
+  package_layers(paths.pkg_dir, layers, paths.xmake_pkg)
 
 def package_mingw(paths: ProjectPaths):
   layers = [
@@ -100,21 +120,11 @@ def package_mingw(paths: ProjectPaths):
     paths.layer_ABB.gdb,
     paths.layer_ABB.headers,
     paths.layer_ABB.make,
-    paths.layer_ABB.xmake,
 
     paths.layer_ABB.license,
   ]
 
-  files = []
-  for layer in layers:
-    files.extend(map(
-      lambda fn: f'{paths.pkg_dir.name}/{fn}',
-      _sort_tarball(layer, layer)
-    ))
-
-  ensure(paths.pkg_dir)
-  with overlayfs_ro(paths.pkg_dir, layers):
-    _package(paths.pkg_dir.parent, files, paths.mingw_pkg)
+  package_layers(paths.pkg_dir, layers, paths.mingw_pkg)
 
 def main():
   config = parse_args()
@@ -143,7 +153,9 @@ def main():
     build_AAA_tool(ver, paths, config)
     build_AAB_compiler(ver, paths, config)
     build_AAB_library(ver, paths, config)
+    build_ABB_xmake(ver, paths, config)
     package_cross(paths)
+    package_xmake(paths)
 
   build_ABB_toolchain(ver, paths, config)
   package_mingw(paths)

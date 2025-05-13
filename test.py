@@ -13,8 +13,8 @@ from subprocess import PIPE
 import sys
 
 from module.args import parse_args
+from module.fetch import check_and_extract
 from module.path import ProjectPaths
-from module.prepare_test_binary import prepare_test_binary
 from module.profile import BranchProfile, resolve_profile
 from module.util import XMAKE_ARCH_MAP, ensure
 
@@ -24,6 +24,20 @@ def clean(config: argparse.Namespace, paths: ProjectPaths):
 
 def prepare_dirs(paths: ProjectPaths):
   shutil.copytree(paths.test_src_dir, paths.test_dir)
+
+def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
+  check_and_extract(paths.test_mingw_dir, paths.mingw_pkg)
+
+  root = paths.layer_dir.parent
+  ensure(root)
+  subprocess.run([
+    'bsdtar', '-x',
+    '-C', root,
+    '-f', paths.cross_pkg,
+    paths.layer_ABB.xmake.relative_to(root),
+  ], check = True)
+
+  shutil.copytree(paths.layer_ABB.xmake, paths.test_mingw_dir, dirs_exist_ok = True)
 
 def winepath(path: Path):
   if platform.system() == 'Windows':
@@ -37,7 +51,7 @@ def available_port():
     return s.getsockname()[1]
 
 def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
-  xmake = paths.test_mingw_dir / 'lib' / 'xmake' / 'bin' / 'xmake.exe'
+  xmake = paths.test_mingw_dir / 'bin/xmake.exe'
   subprocess.check_call([
     xmake, 'f', *verbose,
     '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
@@ -139,7 +153,7 @@ def main():
 
   prepare_dirs(paths)
 
-  prepare_test_binary(ver, paths, config)
+  prepare_test_binary(ver, paths)
 
   test_report = {
     'fail': False,

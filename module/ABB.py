@@ -12,6 +12,32 @@ from module.path import ProjectPaths
 from module.profile import BranchProfile
 from module.util import XMAKE_ARCH_MAP, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro, xmake_build, xmake_config, xmake_install
 
+def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt / 'usr/local',
+  ]):
+    build_dir = paths.src_dir.xmake / 'core'
+    xmake_config('xmake', build_dir, [
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      '--toolchain=cross',
+      f'--cross={ver.target}-',
+    ])
+    xmake_build('xmake', build_dir, config.jobs)
+    xmake_install('xmake', build_dir, paths.layer_ABB.xmake, ['cli'])
+
+    license_dir = paths.layer_ABB.license / 'share/licenses/xmake'
+    ensure(license_dir)
+    shutil.copy(paths.src_dir.xmake / 'LICENSE.md', license_dir / 'LICENSE.md')
+
+def build_ABB_xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  _xmake(ver, paths, config)
+
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
@@ -371,25 +397,6 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default('make', build_dir, config.jobs)
     make_destdir_install('make', build_dir, paths.layer_ABB.make)
 
-def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  with overlayfs_ro('/usr/local', [
-    paths.layer_AAA.xmake / 'usr/local',
-
-    paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
-    paths.layer_AAB.gcc / 'usr/local',
-    paths.layer_AAB.crt / 'usr/local',
-  ]):
-    build_dir = paths.src_dir.xmake / 'core'
-    xmake_config('xmake', build_dir, [
-      '--plat=mingw',
-      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
-      '--toolchain=cross',
-      f'--cross={ver.target}-',
-    ])
-    xmake_build('xmake', build_dir, config.jobs)
-    xmake_install('xmake', build_dir, paths.layer_ABB.xmake / 'lib' / 'xmake', ['cli'])
-
 def _licenses(ver: BranchProfile, paths: ProjectPaths):
   license_dir = paths.layer_ABB.license / 'share' / 'licenses'
   ensure(license_dir)
@@ -440,9 +447,6 @@ def _licenses(ver: BranchProfile, paths: ProjectPaths):
   ensure(license_dir / 'python')
   shutil.copy(paths.src_dir.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
 
-  ensure(license_dir / 'xmake')
-  shutil.copy(paths.src_dir.xmake / 'LICENSE.md', license_dir / 'xmake' / 'LICENSE.md')
-
   ensure(license_dir / 'zlib')
   shutil.copy(paths.src_dir.z / 'LICENSE', license_dir / 'zlib' / 'LICENSE')
 
@@ -463,7 +467,5 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
   _gdb(ver, paths, config)
 
   _gmake(ver, paths, config)
-
-  _xmake(ver, paths, config)
 
   _licenses(ver, paths)

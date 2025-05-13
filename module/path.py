@@ -70,22 +70,24 @@ class LayerPathsABB(NamedTuple):
 
 class ProjectPaths:
   root_dir: Path
+  abi_name: str
 
   assets_dir: Path
   dist_dir: Path
   patch_dir: Path
 
   mingw_pkg: Path
+  xmake_pkg: Path
   cross_pkg: Path
 
   # build phase
 
+  utf8_src_dir: Path
   build_dir: Path
   build_host: Path
   build_target: Path
-  pkg_dir: Path
   layer_dir: Path
-  utf8_src_dir: Path
+  pkg_dir: Path
 
   src_dir: SourcePaths
   src_arx: SourcePaths
@@ -106,8 +108,8 @@ class ProjectPaths:
 
   # target test archive phase
 
-  test_archive_dir: Path
-  test_archive_mingw_dir: Path
+  sat_dir: Path
+  sat_mingw_dir: Path
 
   def __init__(
     self,
@@ -115,24 +117,25 @@ class ProjectPaths:
     ver: BranchProfile,
   ):
     self.root_dir = Path.cwd()
+    abi_name = f'mingw{config.profile}-{config.branch}'
+    self.abi_name = abi_name
 
     self.assets_dir = self.root_dir / 'assets'
     self.dist_dir = self.root_dir / 'dist'
     self.patch_dir = self.root_dir / 'patch'
 
-    dir = f'mingw{config.profile}-{config.branch}'
-
     self.mingw_pkg = self.dist_dir / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
+    self.xmake_pkg = self.dist_dir / f'xmake-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.cross_pkg = self.dist_dir / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
 
     # build phase
 
-    self.build_dir = Path(f'/tmp/build/{dir}')
+    self.utf8_src_dir = self.root_dir / 'support' / 'utf8'
+    self.build_dir = Path(f'/tmp/build/{abi_name}')
     self.build_host = self.build_dir / 'host'
     self.build_target = self.build_dir / 'target'
-    self.pkg_dir = Path(f'/tmp/pkg/{dir}')
-    self.layer_dir = Path(f'/tmp/layer/{dir}')
-    self.utf8_src_dir = self.root_dir / 'support' / 'utf8'
+    self.layer_dir = Path(f'{tempfile.gettempdir()}/layer/{abi_name}')
+    self.pkg_dir = Path(f'/tmp/pkg/{abi_name}')
 
     src_name = SourcePaths(
       binutils = f'binutils-{ver.binutils}',
@@ -256,12 +259,12 @@ class ProjectPaths:
 
     # test phase
 
-    self.test_dir = Path(f'{tempfile.gettempdir()}/{dir}')
+    self.test_dir = Path(f'{tempfile.gettempdir()}/{abi_name}')
     self.test_src_dir = self.root_dir / 'support' / 'test'
 
-    self.test_mingw_dir = self.test_dir / dir
+    self.test_mingw_dir = self.test_dir / abi_name
 
-    # target test archive phase
+    # target semi-automated testing archive phase
 
-    self.test_archive_dir = self.root_dir / 'pkg' / f'test-archive-{config.profile}' / str(config.branch)
-    self.test_archive_mingw_dir = self.test_archive_dir / dir
+    self.sat_dir = self.root_dir / 'pkg' / f'sat{config.profile}' / str(config.branch)
+    self.sat_mingw_dir = self.sat_dir / abi_name

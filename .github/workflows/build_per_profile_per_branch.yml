@@ -114,12 +114,18 @@ jobs:
       - name: 7z archive
         run: |
           cd dist
-          fn=$(ls mingw${{ inputs.profile }}-*.tar.zst)
-          bsdtar -xf $fn
-
-          bn=$(basename $fn .tar.zst)
           dn=mingw${{ inputs.profile }}-${{ inputs.branch }}
+
+          fn=$(ls mingw${{ inputs.profile }}-*.tar.zst)
+          bn=$(basename $fn .tar.zst)
+          bsdtar -xf $fn
           7z a -t7z -mx9 -ms=on -m0=LZMA:d=64m:fb64 $bn.7z $dn
+          rm -rf $dn
+
+          fn=$(ls xmake-mingw${{ inputs.profile }}-*.tar.zst)
+          bn=$(basename $fn .tar.zst)
+          bsdtar -xf $fn
+          7z a -t7z -mx9 -ms=on -m0=LZMA:d=1m:fb64 $bn.7z $dn
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -127,5 +133,15 @@ jobs:
           prerelease: ${{ inputs.prerelease }}
           make_latest: ${{ inputs.make_latest }}
           files: |
-            dist/*.tar.zst
-            dist/*.7z
+            dist/mingw*.tar.zst
+            dist/mingw*.7z
+            dist/x-mingw*.tar.zst
+
+      - name: Release Xmake
+        if: contains(fromJson('[]'), inputs.branch)
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ inputs.prerelease }}
+          make_latest: ${{ inputs.make_latest }}
+          files: |
+            dist/xmake-mingw*.7z
