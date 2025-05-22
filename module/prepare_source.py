@@ -238,6 +238,11 @@ def _python(ver: BranchProfile, paths: ProjectPaths):
     if ver >= Version('3.12') and ver < Version('3.13'):
       _patch(paths.src_dir.python, paths.patch_dir / 'python' / 'disable-shared-xxlimited_3.12.patch')
 
+    # Fix thread touch last error
+    # https://github.com/python/cpython/pull/104531
+    if ver >= Version('3.12') and ver < Version('3.13'):
+      _patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-thread-touch-last-error_3.12.patch')
+
     # Alternative build system
     os.symlink(paths.src_dir.z, paths.src_dir.python / 'zlib', target_is_directory = True)
     if ver >= Version('3.13'):

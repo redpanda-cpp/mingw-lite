@@ -1,0 +1,24 @@
+diff --git a/Python/ceval_gil.c b/Python/ceval_gil.c
+index c1ab5883568..9ede73b35c6 100644
+--- a/Python/ceval_gil.c
++++ b/Python/ceval_gil.c
+@@ -703,11 +703,19 @@ PyEval_SaveThread(void)
+ void
+ PyEval_RestoreThread(PyThreadState *tstate)
+ {
++#ifdef MS_WINDOWS
++    int err = GetLastError();
++#endif
++
+     _Py_EnsureTstateNotNULL(tstate);
+ 
+     take_gil(tstate);
+ 
+     _PyThreadState_SwapNoGIL(tstate);
++
++#ifdef MS_WINDOWS
++    SetLastError(err);
++#endif
+ }
+ 
+ 
