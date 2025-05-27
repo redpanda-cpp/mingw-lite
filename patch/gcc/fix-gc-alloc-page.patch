@@ -1,0 +1,13 @@
+diff --git a/gcc/ggc-page.cc b/gcc/ggc-page.cc
+index 0f674c0d6d7..b7d76d02a4d 100644
+--- a/gcc/ggc-page.cc
++++ b/gcc/ggc-page.cc
+@@ -955,7 +955,7 @@ alloc_page (unsigned order)
+       /* If we allocated multiple pages, put the rest on the free list.  */
+       if (multiple_pages)
+ 	{
+-	  struct page_entry *e, *f = G.free_pages;
++	  struct page_entry *e, *f = free_list->free_pages;
+ 	  for (a = enda - G.pagesize; a != page; a -= G.pagesize)
+ 	    {
+ 	      e = XCNEWVAR (struct page_entry, page_entry_size);
