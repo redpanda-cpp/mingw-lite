@@ -311,10 +311,6 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.python, paths.src_arx.python):
     ver = Version(ver.python)
 
-    # Disable xxlimited shared library if `--disable-test-modules`
-    if ver >= Version('3.12') and ver < Version('3.13'):
-      _patch(paths.src_dir.python, paths.patch_dir / 'python' / 'disable-shared-xxlimited_3.12.patch')
-
     # Fix thread touch last error
     # https://github.com/python/cpython/pull/104531
     if ver >= Version('3.12') and ver < Version('3.13'):

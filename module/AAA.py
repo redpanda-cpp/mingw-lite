@@ -94,13 +94,12 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
       '--disable-test-modules',
       # packages
       '--without-static-libpython',
-      *cflags_A(ld_extra = ['-static']),
+      *cflags_A(),
     ])
-    make_custom('python', build_dir, ['LDFLAGS=-static', 'LINKFORSHARED= '], config.jobs)
+    make_default('python', build_dir, config.jobs)
     make_destdir_install('python', build_dir, paths.layer_AAA.python)
 
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  os.environ['LDFLAGS'] = '-static'
   res = subprocess.run([
     './configure',
     f'--prefix=/usr/local',
@@ -109,7 +108,6 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     message = f'Build fail: xmake configure returned {res.returncode}'
     logging.critical(message)
     raise Exception(message)
-  del os.environ['LDFLAGS']
   make_default('xmake', paths.src_dir.xmake, config.jobs)
   make_destdir_install('xmake', paths.src_dir.xmake, paths.layer_AAA.xmake)
 

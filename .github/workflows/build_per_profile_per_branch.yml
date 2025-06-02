@@ -42,8 +42,8 @@ jobs:
 
       - name: Build
         run: |
-          podman build -t mingw-lite/buildenv-alpine support/buildenv-alpine
-          podman run --rm --cap-add=sys_admin -v $PWD:/mnt -w /mnt mingw-lite/buildenv-alpine \
+          podman build -t mingw-lite/buildenv support/buildenv
+          podman run --rm --cap-add=sys_admin -v $PWD:/mnt -w /mnt mingw-lite/buildenv \
             ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
 
       - uses: actions/upload-artifact@v4

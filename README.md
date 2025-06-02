@@ -17,7 +17,7 @@ Extremely fast MinGW GCC build scripts for easy experiments.
 
 1. Prepare build environment. Linux:
    ```bash
-   podman build -t mingw-lite/buildenv-ubuntu support/buildenv-ubuntu
+   podman build -t mingw-lite/buildenv support/buildenv
    ```
    For Windows host, [create an exclusive WSL distro for mingw-lite](doc/wsl-buildenv.md).
 2. Launch build environment. Linux:
@@ -25,7 +25,7 @@ Extremely fast MinGW GCC build scripts for easy experiments.
    podman run -it --rm \
      --cap-add=sys_admin \
      -v $PWD:/mnt -w /mnt \
-     mingw-lite/buildenv-ubuntu
+     mingw-lite/buildenv
    ```
    To expose build directories for debugging:
    ```bash
@@ -34,7 +34,7 @@ Extremely fast MinGW GCC build scripts for easy experiments.
      -v $PWD:/mnt -w /mnt \
      -v $PWD/build:/tmp/build \
      -v $PWD/layer:/tmp/layer \
-     mingw-lite/buildenv-ubuntu
+     mingw-lite/buildenv
    ```
    Windows: in “Terminal”, select “mingw-lite-buildenv” from the dropdown list.
 3. In the build environment, run:
@@ -64,7 +64,7 @@ A profile is composed of bitness and predefined ABI variant. The combination of 
 
 The “64”-bit profiles target the baseline “x86-64” (sse2, 2003); the “32”-bit profiles target “pentium4” (sse2, 2000).
 
-For better performance, there are “64”-bit “x86-64-v2” (sse4.2, 2008) variants: 64-v2-mcf, 64-v2-win32, 64-v2-ucrt, 64-v2-msvcrt.
+For better performance, there are “64”-bit “x86-64-v2” (sse4.2, 2008) variants: 64-v2-mcf, 64-v2-win32, 64-v2-ucrt, 64-v2-msvcrt. In addition, they are built with `-O2` instead of `-Os`, and have LTO enabled for GCC and Binutils.
 
 For compatibility with older CPUs, there are “32”-bit “i686” (cmov, 1995) and “i486” [atomic (bswap, cmpxchg, xadd), 1989] variants for earlier Windows versions (see below).
 

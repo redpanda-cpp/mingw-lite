@@ -16,17 +16,14 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     f'--prefix=/usr/local',
     f'--target={ver.target}',
     f'--build={config.build}',
-    # static build
-    '--disable-plugins',
+    # prefer static
     '--disable-shared',
     '--enable-static',
-    '--disable-werror',
     # features
     '--disable-install-libbfd',
     '--disable-multilib',
     '--disable-nls',
-    # libtool eats `-static`
-    *cflags_A(ld_extra = ['--static']),
+    *cflags_A(),
   ])
   make_default('binutils', build_dir, config.jobs)
   make_destdir_install('binutils', build_dir, paths.layer_AAB.binutils)
@@ -76,18 +73,16 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-gcc-major-version-only',
       f'--target={ver.target}',
       f'--build={config.build}',
-      # static build
-      '--disable-plugin',
+      # prefer static
       '--disable-shared',
       '--enable-static',
-      '--without-pic',
       # features
       '--disable-bootstrap',
       '--enable-checking=release',
+      '--enable-host-pie',
       '--enable-languages=c,c++',
       '--disable-libgomp',
       '--disable-libmpx',
-      '--disable-lto',
       '--disable-multilib',
       '--disable-nls',
       f'--enable-threads={ver.thread}',
@@ -95,11 +90,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-arch={ver.march}',
       '--without-libcc1',
       *config_flags,
-      # libtool eats `-static`
-      *cflags_A(ld_extra = ['--static']),
+      *cflags_A(),
       *cflags_B('_FOR_TARGET',
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        ld_extra = ['--static'],
+        optimize_for_size = ver.optimize_for_size,
       ),
     ])
 
@@ -176,10 +170,9 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--host={ver.target}',
       f'--build={config.build}',
       f'--with-default-msvcrt={ver.default_crt}',
-      # use target definition since we use same source for both
       f'--with-default-win32-winnt=0x{ver.win32_winnt:04X}',
       *multilib_flags,
-      *cflags_B(),
+      *cflags_B(optimize_for_size = ver.optimize_for_size),
     ])
     make_default('crt', build_dir, config.jobs)
     make_destdir_install('crt', build_dir, paths.layer_AAB.crt)
@@ -227,6 +220,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
       ),
     ])
     make_default('winpthreads', build_dir, config.jobs)
@@ -258,6 +252,7 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
       'env',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
       ),
       'meson',
       'compile',
@@ -331,6 +326,7 @@ def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         c_extra = c_extra,
+        optimize_for_size = ver.optimize_for_size,
       ),
       # To determine build system compiler, the configure script will firstly try host
       # compiler (i.e. *-w64-mingw32-gcc) and check whether the output is executable
@@ -361,6 +357,7 @@ def _mpfr(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
       ),
     ])
     make_default('mpfr', build_dir, config.jobs)
@@ -386,6 +383,7 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
       ),
     ])
     make_default('mpc', build_dir, config.jobs)
@@ -408,6 +406,7 @@ def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
       )
     ])
     make_default('expat', build_dir, config.jobs)
@@ -432,6 +431,7 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
       ),
     ])
     make_default('iconv', build_dir, config.jobs)
@@ -471,6 +471,7 @@ def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       f'AR={ver.target}-ar',
       *cflags_B(
         c_extra = ['-I..', '-DPDC_WIDE'],
+        optimize_for_size = ver.optimize_for_size,
       ),
     ], config.jobs)
 

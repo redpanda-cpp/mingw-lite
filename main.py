@@ -71,7 +71,7 @@ def _package(root: Path, files: list[str], dst: Path):
   ], stdout = PIPE)
   zstd = Popen([
     'zstd', '-f',
-    '--zstd=strat=5,wlog=27,hlog=25,slog=6',
+    '--zstd=strat=5,wlog=27,hlog=25,slog=6,ovlog=9',
     '-o', dst,
   ], stdin = tar.stdout)
   tar.stdout.close()
@@ -112,11 +112,9 @@ def package_xmake(paths: ProjectPaths):
 
 def package_mingw(paths: ProjectPaths):
   layers = [
-    # large layers first
+    paths.layer_ABB.binutils,
     paths.layer_ABB.crt,
     paths.layer_ABB.gcc,
-
-    paths.layer_ABB.binutils,
     paths.layer_ABB.gdb,
     paths.layer_ABB.headers,
     paths.layer_ABB.make,

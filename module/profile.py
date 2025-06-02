@@ -66,6 +66,7 @@ class ProfileInfo:
   fpmath: Optional[str]
   march: str
   target: str
+  optimize_for_size: bool
 
   default_crt: str
   exception: str
@@ -81,6 +82,7 @@ class ProfileInfo:
     fpmath: Optional[str],
     march: str,
     target: str,
+    optimize_for_size: bool,
 
     default_crt: str,
     exception: str,
@@ -93,6 +95,7 @@ class ProfileInfo:
     self.fpmath = fpmath
     self.march = march
     self.target = target
+    self.optimize_for_size = optimize_for_size
 
     self.default_crt = default_crt
     self.exception = exception
@@ -106,6 +109,7 @@ class BranchProfile(BranchVersions):
   fpmath: Optional[str]
   march: str
   target: str
+  optimize_for_size: bool
 
   default_crt: str
   exception: str
@@ -126,6 +130,7 @@ class BranchProfile(BranchVersions):
     self.fpmath = info.fpmath
     self.march = info.march
     self.target = info.target
+    self.optimize_for_size = info.optimize_for_size
 
     self.default_crt = info.default_crt
     self.exception = info.exception
@@ -247,18 +252,29 @@ _ARCH_VARIANT_2_FPMATH_MAP: dict[str, Optional[str]] = {
   '32_486': None,
 }
 
+_ARCH_VARIANT_2_OPTIMIZE_FOR_SIZE_MAP: dict[str, bool] = {
+  '64_v2': False,
+  '64': True,
+  'arm64': False,
+  '32': True,
+  '32_686': True,
+  '32_486': True,
+}
+
 def _create_profile(arch: str, crt: str, thread: str, min_os: str) -> ProfileInfo:
   mingw_arch = arch.split('_')[0]
   exception = 'dwarf' if mingw_arch == '32' else 'seh'
   triplet = _MINGW_ARCH_2_TRIPLET_MAP[mingw_arch]
   march = _ARCH_VARIANT_2_MARCH_MAP[arch]
   fpmath = _ARCH_VARIANT_2_FPMATH_MAP[arch]
+  optimize_for_size = _ARCH_VARIANT_2_OPTIMIZE_FOR_SIZE_MAP[arch]
 
   return ProfileInfo(
     arch = mingw_arch,
     fpmath = fpmath,
     march = march,
     target = triplet,
+    optimize_for_size = optimize_for_size,
 
     default_crt = crt,
     exception = exception,
