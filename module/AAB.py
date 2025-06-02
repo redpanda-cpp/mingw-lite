@@ -7,7 +7,7 @@ import subprocess
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, cflags_A, cflags_B, configure, ensure, fix_libtool_absolute_reference, make_custom, make_default, make_destdir_install, overlayfs_ro, xmake_build, xmake_config, xmake_install
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_A, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro, xmake_build, xmake_config, xmake_install
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.binutils / 'build-AAB'
@@ -67,6 +67,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.exception == 'dwarf':
       config_flags.append('--disable-sjlj-exceptions')
       config_flags.append('--with-dwarf2')
+    if ver.fpmath:
+      config_flags.append(f'--with-fpmath={ver.fpmath}')
 
     configure('gcc', build_dir, [
       f'--prefix=/usr/local',
@@ -90,6 +92,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-nls',
       f'--enable-threads={ver.thread}',
       # packages
+      f'--with-arch={ver.march}',
       '--without-libcc1',
       *config_flags,
       # libtool eats `-static`
@@ -118,6 +121,36 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
+    # target missing atomic instructions, and gcc will yield function calls.
+    # here we add libatomic to libgcc, so we don't need to handle build flags later.
+    if ver.march in ['i386', 'i486']:
+      make_custom('gcc (all-target-libgcc)', build_dir, ['all-target-libgcc'], config.jobs)
+
+      libgcc_a = build_dir / ver.target / 'libgcc' / 'libgcc.a'
+      xgcc_libgcc_a = build_dir / 'gcc' / 'libgcc.a'
+
+      # bootstrapping i386 libatomic is tricky.
+      # the configure script checks whether GCC can compile program.
+      # however, CRT startup code depends on libatomic, which is not built yet.
+      # here we provide fake symbols to pass the check.
+      if ver.march == 'i386':
+        libatomic_fake_object = build_dir / 'cas_4_.o'
+        subprocess.run([
+          f'{ver.target}-gcc', '-x', 'c', '-c', '-', '-o', libatomic_fake_object,
+        ], check = True, input = b''.join([
+          b'int __atomic_compare_exchange_1;',
+          b'int __atomic_compare_exchange_2;',
+          b'int __atomic_compare_exchange_4;',
+        ]))
+
+        add_objects_to_static_lib(f'{ver.target}-ar', xgcc_libgcc_a, [libatomic_fake_object])
+
+      make_custom('gcc (all-target-libatomic)', build_dir, ['all-target-libatomic'], config.jobs)
+
+      atomic_objects = (build_dir / ver.target / 'libatomic').glob('*.o')
+      add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
+      shutil.copy(libgcc_a, xgcc_libgcc_a)
+
     make_default('gcc', build_dir, config.jobs)
     make_destdir_install('gcc', build_dir, paths.layer_AAB.gcc)
   yield
@@ -436,8 +469,6 @@ def _intl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     xmake_config('intl', src_dir, [
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
-      '--toolchain=cross',
-      f'--cross={ver.target}-',
     ])
     xmake_build('intl', src_dir, config.jobs)
 
@@ -488,8 +519,6 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     xmake_config('python', src_dir, [
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
-      '--toolchain=cross',
-      f'--cross={ver.target}-',
       *config_args,
     ])
     xmake_build('python', src_dir, config.jobs)

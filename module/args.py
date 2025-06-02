@@ -4,6 +4,8 @@ import os
 import subprocess
 from subprocess import PIPE
 
+from module.profile import BRANCHES, PROFILES
+
 def get_gcc_triplet():
   try:
     result = subprocess.run(['gcc', '-dumpmachine'], stdout = PIPE, stderr = PIPE, check = True)
@@ -17,19 +19,14 @@ def parse_args() -> argparse.Namespace:
   parser.add_argument(
     '-b', '--branch',
     type = str,
-    choices = ['16', '15', '14', '13'],
+    choices = BRANCHES.keys(),
     required = True,
     help = 'GCC branch to build',
   )
   parser.add_argument(
     '-p', '--profile',
     type = str,
-    choices = [
-      '64-mcf', '64-win32', '64-ucrt', '64-msvcrt',
-      '32-mcf', '32-win32', '32-ucrt', '32-msvcrt',
-      '64-ucrt_ws2003', '64-msvcrt_ws2003',
-      '32-ucrt_winxp', '32-msvcrt_winnt40',
-    ],
+    choices = PROFILES.keys(),
     required = True,
     help = 'MinGW profile to build',
   )

@@ -12,12 +12,14 @@ jobs:
           64-mcf, 64-win32, 64-ucrt, 64-msvcrt,
           32-mcf, 32-win32, 32-ucrt, 32-msvcrt,
 
-          # profile variants
+          # profile variants for earlier Windows versions
           64-ucrt_ws2003, 64-msvcrt_ws2003,
-          32-ucrt_winxp, 32-msvcrt_winnt40,
+          32-ucrt_winxp, 32-msvcrt_win2000,
+          32_686-msvcrt_winnt40,
+          32_486-msvcrt_winnt40,
         ]
     uses: ./.github/workflows/build_per_profile.yml
     with:
       profile: ${{ matrix.profile }}
       release_skip_profile: ${{ contains(fromJson('["64-ucrt_ws2003", "64-msvcrt_ws2003", "32-ucrt_winxp"]'), matrix.profile) }}
-      release_do_release_xmake: ${{ contains(fromJson('["32-msvcrt_winnt40"]'), matrix.profile) }}
+      release_do_release_xmake: ${{ contains(fromJson('["32-msvcrt_win2000", "32_686-msvcrt_winnt40", "32_486-msvcrt_winnt40"]'), matrix.profile) }}

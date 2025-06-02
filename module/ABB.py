@@ -25,8 +25,6 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     xmake_config('xmake', build_dir, [
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
-      '--toolchain=cross',
-      f'--cross={ver.target}-',
     ])
     xmake_build('xmake', build_dir, config.jobs)
     xmake_install('xmake', build_dir, paths.layer_ABB.xmake, ['cli'])
@@ -222,6 +220,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       pass
     else:
       config_flags.append('--disable-win32-utf8-manifest')
+    if ver.fpmath:
+      config_flags.append(f'--with-fpmath={ver.fpmath}')
 
     configure('gcc', build_dir, [
       '--prefix=',
@@ -245,6 +245,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--enable-threads={ver.thread}',
       '--disable-win32-registry',
       # packages
+      f'--with-arch={ver.march}',
       '--without-libcc1',
       '--with-libiconv',
       *config_flags,
@@ -281,6 +282,12 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         paths.layer_ABB.gcc / 'lib/libstdc++.a',
         [build_dir / ver.target / 'libstdc++-v3/src/c++23/print.o'],
       )
+
+    # add libatomic to libgcc for convenience
+    if ver.march in ['i386', 'i486']:
+      libgcc_a = paths.layer_ABB.gcc / 'lib/gcc' / ver.target / str(v.major) / 'libgcc.a'
+      atomic_objects = (build_dir / ver.target / 'libatomic').glob('*.o')
+      add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
