@@ -64,6 +64,8 @@ A profile is composed of bitness and predefined ABI variant. The combination of 
 
 The “64”-bit profiles target the baseline “x86-64” (sse2, 2003); the “32”-bit profiles target “pentium4” (sse2, 2000).
 
+For better performance, there are “64”-bit “x86-64-v2” (sse4.2, 2008) variants: 64-v2-mcf, 64-v2-win32, 64-v2-ucrt, 64-v2-msvcrt.
+
 For compatibility with older CPUs, there are “32”-bit “i686” (cmov, 1995) and “i486” [atomic (bswap, cmpxchg, xadd), 1989] variants for earlier Windows versions (see below).
 
 ## Supported OS Versions

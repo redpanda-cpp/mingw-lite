@@ -230,6 +230,7 @@ _MINGW_ARCH_2_TRIPLET_MAP: dict[str, str] = {
 }
 
 _ARCH_VARIANT_2_MARCH_MAP: dict[str, str] = {
+  '64_v2': 'x86-64-v2',
   '64': 'x86-64',
   'arm64': 'armv8-a',
   '32': 'pentium4',
@@ -238,6 +239,7 @@ _ARCH_VARIANT_2_MARCH_MAP: dict[str, str] = {
 }
 
 _ARCH_VARIANT_2_FPMATH_MAP: dict[str, Optional[str]] = {
+  '64_v2': None,
   '64': None,
   'arm64': None,
   '32': 'sse',
@@ -280,6 +282,15 @@ PROFILES: Dict[str, ProfileInfo] = {
   '32-win32':  _create_profile('32', 'ucrt',   'win32', '6.0'),
   '32-ucrt':   _create_profile('32', 'ucrt',   'posix', '6.0'),
   '32-msvcrt': _create_profile('32', 'msvcrt', 'posix', '6.0'),
+
+  ############################################
+  # profile variants for micro architectures #
+  ############################################
+
+  '64_v2-mcf':    _create_profile('64_v2', 'ucrt',   'mcf',   '6.1'),
+  '64_v2-win32':  _create_profile('64_v2', 'ucrt',   'win32', '6.0'),
+  '64_v2-ucrt':   _create_profile('64_v2', 'ucrt',   'posix', '6.0'),
+  '64_v2-msvcrt': _create_profile('64_v2', 'msvcrt', 'posix', '6.0'),
 
   #################################################
   # profile variants for earlier Windows versions #
