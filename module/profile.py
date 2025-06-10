@@ -135,7 +135,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '0',
 
     mcfgthread = '2.1-ga.1',
-    mingw = '12.0.0',
+    mingw = '13.0.0',
 
     binutils = '2.44',
     expat = '2.7.1',
@@ -146,15 +146,15 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    python = '3.13.3',
+    python = '3.13.4',
     z = '1.3.1',
   ),
   '15': BranchVersions(
     gcc = '15.1.0',
-    rev = '2',
+    rev = '3',
 
     mcfgthread = '2.1-ga.1',
-    mingw = '12.0.0',
+    mingw = '13.0.0',
 
     binutils = '2.44',
     expat = '2.7.1',
@@ -165,7 +165,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    python = '3.13.3',
+    python = '3.13.4',
     z = '1.3.1',
   ),
   '14': BranchVersions(
@@ -186,11 +186,11 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    python = '3.13.3',
+    python = '3.13.4',
     z = '1.3.1',
   ),
   '13': BranchVersions(
-    gcc = '13.3.0',
+    gcc = '13.4.0',
     rev = '0',
 
     # trace back: 2023-12-22
@@ -208,7 +208,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    python = '3.12.10',
+    python = '3.12.11',
     z = '1.3.1',
   ),
 }
