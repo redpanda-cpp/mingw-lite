@@ -188,6 +188,10 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
     if ver.min_os < Version('5.1') and v.major == 11:
       _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
 
+    # Winpthreads: Fix linkage
+    if v.major == 13:
+      _patch(paths.src_dir.mingw_host, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
+
     # CRT: Add mingw thunks
     subprocess.run([
       './patch.py',
@@ -222,6 +226,10 @@ def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
     # CRT: Fix i386 strtoi64, strtoui64
     if ver.min_os < Version('5.1') and v.major == 11:
       _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
+
+    # Winpthreads: Fix linkage
+    if v.major == 13:
+      _patch(paths.src_dir.mingw_target, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
 
     # CRT: Add mingw thunks
     subprocess.run([

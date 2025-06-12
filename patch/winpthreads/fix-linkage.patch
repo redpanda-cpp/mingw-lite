@@ -1,0 +1,37 @@
+diff --git a/mingw-w64-libraries/winpthreads/include/pthread_compat.h b/mingw-w64-libraries/winpthreads/include/pthread_compat.h
+index b682a3a17..edb6eb38e 100644
+--- a/mingw-w64-libraries/winpthreads/include/pthread_compat.h
++++ b/mingw-w64-libraries/winpthreads/include/pthread_compat.h
+@@ -118,25 +118,25 @@ typedef int     pid_t;
+ #endif
+ 
+ #ifndef WINPTHREAD_CLOCK_DECL
+-#define WINPTHREAD_CLOCK_DECL static WINPTHREADS_ALWAYS_INLINE
++#define WINPTHREAD_CLOCK_DECL WINPTHREADS_ALWAYS_INLINE
+ #endif
+ #ifndef WINPTHREAD_COND_DECL
+-#define WINPTHREAD_COND_DECL static WINPTHREADS_ALWAYS_INLINE
++#define WINPTHREAD_COND_DECL WINPTHREADS_ALWAYS_INLINE
+ #endif
+ #ifndef WINPTHREAD_MUTEX_DECL
+-#define WINPTHREAD_MUTEX_DECL static WINPTHREADS_ALWAYS_INLINE
++#define WINPTHREAD_MUTEX_DECL WINPTHREADS_ALWAYS_INLINE
+ #endif
+ #ifndef WINPTHREAD_NANOSLEEP_DECL
+-#define WINPTHREAD_NANOSLEEP_DECL static WINPTHREADS_ALWAYS_INLINE
++#define WINPTHREAD_NANOSLEEP_DECL WINPTHREADS_ALWAYS_INLINE
+ #endif
+ #ifndef WINPTHREAD_RWLOCK_DECL
+-#define WINPTHREAD_RWLOCK_DECL static WINPTHREADS_ALWAYS_INLINE
++#define WINPTHREAD_RWLOCK_DECL WINPTHREADS_ALWAYS_INLINE
+ #endif
+ #ifndef WINPTHREAD_SEM_DECL
+-#define WINPTHREAD_SEM_DECL static WINPTHREADS_ALWAYS_INLINE
++#define WINPTHREAD_SEM_DECL WINPTHREADS_ALWAYS_INLINE
+ #endif
+ #ifndef WINPTHREAD_THREAD_DECL
+-#define WINPTHREAD_THREAD_DECL static WINPTHREADS_ALWAYS_INLINE
++#define WINPTHREAD_THREAD_DECL WINPTHREADS_ALWAYS_INLINE
+ #endif
+ 
+ #endif
