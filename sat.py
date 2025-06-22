@@ -1,19 +1,14 @@
 #!/usr/bin/python3
 
-import os
-import sys
-
-sys.path.append(os.getcwd())
-
 import argparse
+from pathlib import Path
 import shutil
 import subprocess
 
 from module.args import parse_args
-from module.fetch import check_and_extract
 from module.path import ProjectPaths
 from module.profile import BranchProfile, resolve_profile
-from module.util import XMAKE_ARCH_MAP, ensure
+from module.util import XMAKE_ARCH_MAP
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.sat_dir.exists():
@@ -22,19 +17,17 @@ def clean(config: argparse.Namespace, paths: ProjectPaths):
 def prepare_dirs(paths: ProjectPaths):
   shutil.copytree(paths.test_src_dir, paths.sat_dir)
 
-def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
-  check_and_extract(paths.sat_mingw_dir, paths.mingw_pkg)
-
-  root = paths.layer_dir.parent
-  ensure(root)
+def extract(path: Path, arx: Path):
   subprocess.run([
-    'bsdtar', '-x',
-    '-C', root,
-    '-f', paths.cross_pkg,
-    paths.layer_ABB.xmake.relative_to(root),
+    'bsdtar',
+    '-C', path.parent,
+    '-xf', arx,
+    '--no-same-owner',
   ], check = True)
 
-  shutil.copytree(paths.layer_ABB.xmake, paths.sat_mingw_dir, dirs_exist_ok = True)
+def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
+  extract(paths.sat_mingw_dir, paths.mingw_pkg)
+  extract(paths.sat_mingw_dir, paths.xmake_pkg)
 
 def test_mingw_compiler_batch(ver: BranchProfile, paths: ProjectPaths):
   xmake = (paths.sat_mingw_dir / 'bin/xmake.exe').relative_to(paths.sat_dir)

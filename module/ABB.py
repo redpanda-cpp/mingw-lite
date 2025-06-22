@@ -341,6 +341,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--host={ver.target}',
       f'--build={config.build}',
       # features
+      '--disable-install-libbfd',
       '--enable-tui',
       # packages
       f'--with-system-gdbinit=/share/gdb/gdbinit',

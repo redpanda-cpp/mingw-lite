@@ -13,7 +13,6 @@ from subprocess import PIPE
 import sys
 
 from module.args import parse_args
-from module.fetch import check_and_extract
 from module.path import ProjectPaths
 from module.profile import BranchProfile, resolve_profile
 from module.util import XMAKE_ARCH_MAP, ensure
@@ -25,19 +24,17 @@ def clean(config: argparse.Namespace, paths: ProjectPaths):
 def prepare_dirs(paths: ProjectPaths):
   shutil.copytree(paths.test_src_dir, paths.test_dir)
 
-def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
-  check_and_extract(paths.test_mingw_dir, paths.mingw_pkg)
-
-  root = paths.layer_dir.parent
-  ensure(root)
+def extract(path: Path, arx: Path):
   subprocess.run([
-    'bsdtar', '-x',
-    '-C', root,
-    '-f', paths.cross_pkg,
-    paths.layer_ABB.xmake.relative_to(root),
+    'bsdtar',
+    '-C', path.parent,
+    '-xf', arx,
+    '--no-same-owner',
   ], check = True)
 
-  shutil.copytree(paths.layer_ABB.xmake, paths.test_mingw_dir, dirs_exist_ok = True)
+def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
+  extract(paths.test_mingw_dir, paths.mingw_pkg)
+  extract(paths.test_mingw_dir, paths.xmake_pkg)
 
 def winepath(path: Path):
   if platform.system() == 'Windows':

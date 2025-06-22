@@ -86,7 +86,6 @@ def package_cross(paths: ProjectPaths):
   files = [
     *_sort_tarball(paths.layer_dir.parent, paths.layer_AAA.prefix),
     *_sort_tarball(paths.layer_dir.parent, paths.layer_AAB.prefix),
-    *_sort_tarball(paths.layer_dir.parent, paths.layer_ABB.xmake),
   ]
 
   _package(paths.layer_dir.parent, files, paths.cross_pkg)
@@ -154,12 +153,12 @@ def main():
     build_AAA_tool(ver, paths, config)
     build_AAB_compiler(ver, paths, config)
     build_AAB_library(ver, paths, config)
-    build_ABB_xmake(ver, paths, config)
     package_cross(paths)
-    package_xmake(paths)
 
   build_ABB_toolchain(ver, paths, config)
   package_mingw(paths)
+  build_ABB_xmake(ver, paths, config)
+  package_xmake(paths)
 
 if __name__ == '__main__':
   main()
