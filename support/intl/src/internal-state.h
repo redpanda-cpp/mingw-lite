@@ -1,11 +1,8 @@
 #pragma once
 
-#include <memory>
-
-#include <stdlib.h>
-#include <string>
+#include <nostl/string.h>
 
 namespace intl
 {
-  inline std::string default_domain;
+  extern stl::string default_domain;
 } // namespace intl

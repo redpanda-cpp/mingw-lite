@@ -2,6 +2,3 @@
 .vscode
 .xmake
 build
-pkg
-
-*.mo

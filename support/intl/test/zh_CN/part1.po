@@ -1,0 +1,39 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "'"
+msgstr "’"
+
+msgid "Part 1 Message 1"
+msgstr "第 1 部分第 1 条消息"
+
+msgid "Part 1 Message 2"
+msgstr "第 1 部分第 2 条消息"
+
+msgid "Part 1 Message 3"
+msgstr "第 1 部分第 3 条消息"
+
+msgid "Part 1 Message 4"
+msgstr "第 1 部分第 4 条消息"
+
+msgid "Part 1 Message 5"
+msgstr "第 1 部分第 5 条消息"
+
+msgid "Part 1 Message 6"
+msgstr "第 1 部分第 6 条消息"
+
+msgid "Part 1 Message 7"
+msgstr "第 1 部分第 7 条消息"
+
+msgid "Part 1 Message 8"
+msgstr "第 1 部分第 8 条消息"
+
+msgid "`"
+msgstr "‘"

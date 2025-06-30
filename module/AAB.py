@@ -209,21 +209,6 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
           build_dir / 'utf8-manifest.o',
           '-o', paths.layer_AAB.crt / 'usr/local' / ver.target / 'lib' / crt_object,
         ], check = True)
-    yield
-
-    # Add libstdc++.a to libmsvcrt.a to make autotools happy. (We implement libintl in C++.)
-    install_libmsvcrt = paths.layer_AAB.crt / 'usr/local' / ver.target / 'lib' / 'libmsvcrt.a'
-    build_libmsvcrt = build_dir / f'lib{ver.arch}' / 'libmsvcrt.a'
-    libstdcxx = paths.layer_AAB.gcc / 'usr/local' / ver.target / 'lib' / 'libstdc++.a'
-
-    subprocess.run([f'{ver.target}-ar', '-M'], check = True, input = (
-      f'create {install_libmsvcrt}\n'
-      f'addlib {build_libmsvcrt}\n'
-      f'addlib {libstdcxx}\n'
-      'save\n'
-      'end\n'
-    ).encode())
-    yield
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -308,8 +293,7 @@ def build_AAB_compiler(ver: BranchProfile, paths: ProjectPaths, config: argparse
   gcc = _gcc(ver, paths, config)
   gcc.__next__()
 
-  crt = _crt(ver, paths, config)
-  crt.__next__()
+  _crt(ver, paths, config)
 
   _winpthreads(ver, paths, config)
   headers.__next__()
@@ -318,8 +302,6 @@ def build_AAB_compiler(ver: BranchProfile, paths: ProjectPaths, config: argparse
     _mcfgthread(ver, paths, config)
 
   gcc.__next__()
-
-  crt.__next__()
 
 def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
