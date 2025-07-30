@@ -100,6 +100,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
       else:
         _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_13.patch')
 
+    # Fix diagnostics namespace
+    if v.major == 16:
+      _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-diagnostics-namespace.patch')
+
     # Parser-friendly diagnostics
     po_dir = paths.src_dir.gcc / 'gcc' / 'po'
     po_files = list(po_dir.glob('*.po'))

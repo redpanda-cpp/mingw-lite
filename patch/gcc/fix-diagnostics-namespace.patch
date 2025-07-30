@@ -1,0 +1,83 @@
+diff --git a/gcc/diagnostics/changes.cc b/gcc/diagnostics/changes.cc
+index 290d6022b5a..e1caab0e59f 100644
+--- a/gcc/diagnostics/changes.cc
++++ b/gcc/diagnostics/changes.cc
+@@ -1850,8 +1850,13 @@ run_all_tests ()
+ }
+ 
+ } // namespace diagnostics::changes::selftest
++
++#endif /* CHECKING_P */
++
+ } // namespace diagnostics::changes
+ 
++#if CHECKING_P
++
+ namespace selftest { // diagnostics::selftest
+ 
+ /* Run all of the selftests within this file.  */
+@@ -1863,6 +1868,7 @@ changes_cc_tests ()
+ }
+ 
+ } // namespace selftest
+-} // namespace diagnostics
+ 
+ #endif /* CHECKING_P */
++
++} // namespace diagnostics
+diff --git a/gcc/diagnostics/context.cc b/gcc/diagnostics/context.cc
+index 0dbc1481039..85f7d2a357a 100644
+--- a/gcc/diagnostics/context.cc
++++ b/gcc/diagnostics/context.cc
+@@ -2130,10 +2130,11 @@ context_cc_tests ()
+ }
+ 
+ } // namespace diagnostics::selftest
+-} // namespace diagnostics
+ 
+ #endif /* #if CHECKING_P */
+ 
++} // namespace diagnostics
++
+ #if __GNUC__ >= 10
+ #  pragma GCC diagnostic pop
+ #endif
+diff --git a/gcc/diagnostics/html-sink.cc b/gcc/diagnostics/html-sink.cc
+index 07e71871d18..13d6309b7a4 100644
+--- a/gcc/diagnostics/html-sink.cc
++++ b/gcc/diagnostics/html-sink.cc
+@@ -1702,6 +1702,7 @@ html_sink_cc_tests ()
+ }
+ 
+ } // namespace selftest
+-} // namespace diagnostics
+ 
+ #endif /* CHECKING_P */
++
++} // namespace diagnostics
+diff --git a/gcc/diagnostics/output-spec.cc b/gcc/diagnostics/output-spec.cc
+index 08128a92add..83f128cc536 100644
+--- a/gcc/diagnostics/output-spec.cc
++++ b/gcc/diagnostics/output-spec.cc
+@@ -846,6 +846,7 @@ output_spec_cc_tests ()
+ }
+ 
+ } // namespace diagnostics::selftest
+-} // namespace diagnostics
+ 
+ #endif /* #if CHECKING_P */
++
++} // namespace diagnostics
+diff --git a/gcc/diagnostics/sarif-sink.cc b/gcc/diagnostics/sarif-sink.cc
+index 05c0a8eb3a9..4738ae9c300 100644
+--- a/gcc/diagnostics/sarif-sink.cc
++++ b/gcc/diagnostics/sarif-sink.cc
+@@ -5072,6 +5072,7 @@ sarif_sink_cc_tests ()
+ }
+ 
+ } // namespace diagnostics::selftest
+-} // namespace diagnostics
+ 
+ #endif /* CHECKING_P */
++
++} // namespace diagnostics
