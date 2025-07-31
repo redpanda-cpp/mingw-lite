@@ -43,9 +43,12 @@ def _automake(path: Path):
     logging.critical(message)
     raise Exception(message)
 
-def _binutils(ver: BranchProfile, paths: ProjectPaths):
+def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/binutils/{paths.src_arx.binutils.name}'
   validate_and_download(paths.src_arx.binutils, url)
+  if download_only:
+    return
+
   if check_and_extract(paths.src_dir.binutils, paths.src_arx.binutils):
     v = Version(ver.binutils)
 
@@ -57,15 +60,18 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths):
 
     patch_done(paths.src_dir.binutils)
 
-def _expat(ver: BranchProfile, paths: ProjectPaths):
+def _expat(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   v = Version(ver.expat)
   tag = f'R_{v.major}_{v.minor}_{v.micro}'
   url = f'https://github.com/libexpat/libexpat/releases/download/{tag}/{paths.src_arx.expat.name}'
   validate_and_download(paths.src_arx.expat, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.expat, paths.src_arx.expat)
   patch_done(paths.src_dir.expat)
 
-def _gcc(ver: BranchProfile, paths: ProjectPaths):
+def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   v = Version(ver.gcc)
 
   is_snapshot = re.search(r'-\d{8}$', ver.gcc)
@@ -75,6 +81,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
     url = f'https://ftpmirror.gnu.org/gnu/gcc/gcc-{ver.gcc}/{paths.src_arx.gcc.name}'
 
   validate_and_download(paths.src_arx.gcc, url)
+  if download_only:
+    return
+
   if check_and_extract(paths.src_dir.gcc, paths.src_arx.gcc):
     # Fix make variable
     # - gcc 12 use `override CFLAGS +=` to handle PGO build, which breaks workaround for ucrt `access`
@@ -120,9 +129,12 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths):
 
     patch_done(paths.src_dir.gcc)
 
-def _gdb(ver: BranchProfile, paths: ProjectPaths):
+def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.src_arx.gdb.name}'
   validate_and_download(paths.src_arx.gdb, url)
+  if download_only:
+    return
+
   if check_and_extract(paths.src_dir.gdb, paths.src_arx.gdb):
     v = Version(ver.gdb)
 
@@ -144,36 +156,51 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths):
 
     patch_done(paths.src_dir.gdb)
 
-def _gmp(ver: BranchProfile, paths: ProjectPaths):
+def _gmp(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/gmp/{paths.src_arx.gmp.name}'
   validate_and_download(paths.src_arx.gmp, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.gmp, paths.src_arx.gmp)
   patch_done(paths.src_dir.gmp)
 
-def _iconv(ver: BranchProfile, paths: ProjectPaths):
+def _iconv(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/libiconv/{paths.src_arx.iconv.name}'
   validate_and_download(paths.src_arx.iconv, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.iconv, paths.src_arx.iconv)
   patch_done(paths.src_dir.iconv)
 
 def _intl(ver: BranchProfile, paths: ProjectPaths):
   shutil.copytree(paths.in_tree_src_tree.intl, paths.in_tree_src_dir.intl, dirs_exist_ok = True)
 
-def _make(ver: BranchProfile, paths: ProjectPaths):
+def _make(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/make/{paths.src_arx.make.name}'
   validate_and_download(paths.src_arx.make, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.make, paths.src_arx.make)
   patch_done(paths.src_dir.make)
 
-def _mcfgthread(ver: BranchProfile, paths: ProjectPaths):
+def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://github.com/lhmouse/mcfgthread/archive/refs/tags/v{ver.mcfgthread}.tar.gz'
   validate_and_download(paths.src_arx.mcfgthread, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.mcfgthread, paths.src_arx.mcfgthread)
   patch_done(paths.src_dir.mcfgthread)
 
-def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
+def _mingw_host(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw_host.name}'
   validate_and_download(paths.src_arx.mingw_host, url)
+  if download_only:
+    return
+
   if check_and_extract(paths.src_dir.mingw_host, paths.src_arx.mingw_host):
     v = Version(ver.mingw)
 
@@ -210,9 +237,12 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths):
 
     patch_done(paths.src_dir.mingw_host)
 
-def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
+def _mingw_target(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw_target.name}'
   validate_and_download(paths.src_arx.mingw_target, url)
+  if download_only:
+    return
+
   if check_and_extract(paths.src_dir.mingw_target, paths.src_arx.mingw_target):
     v = Version(ver.mingw)
 
@@ -249,27 +279,39 @@ def _mingw_target(ver: BranchProfile, paths: ProjectPaths):
 
     patch_done(paths.src_dir.mingw_target)
 
-def _mpc(ver: BranchProfile, paths: ProjectPaths):
+def _mpc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/mpc/{paths.src_arx.mpc.name}'
   validate_and_download(paths.src_arx.mpc, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.mpc, paths.src_arx.mpc)
   patch_done(paths.src_dir.mpc)
 
-def _mpfr(ver: BranchProfile, paths: ProjectPaths):
+def _mpfr(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/mpfr/{paths.src_arx.mpfr.name}'
   validate_and_download(paths.src_arx.mpfr, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.mpfr, paths.src_arx.mpfr)
   patch_done(paths.src_dir.mpfr)
 
-def _pdcurses(ver: BranchProfile, paths: ProjectPaths):
+def _pdcurses(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://github.com/wmcbrine/PDCurses/archive/refs/tags/{ver.pdcurses}.tar.gz'
   validate_and_download(paths.src_arx.pdcurses, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.pdcurses, paths.src_arx.pdcurses)
   patch_done(paths.src_dir.pdcurses)
 
-def _python(ver: BranchProfile, paths: ProjectPaths):
+def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://www.python.org/ftp/python/{ver.python}/{paths.src_arx.python.name}'
   validate_and_download(paths.src_arx.python, url)
+  if download_only:
+    return
+
   if check_and_extract(paths.src_dir.python, paths.src_arx.python):
     ver = Version(ver.python)
 
@@ -294,10 +336,13 @@ def _python(ver: BranchProfile, paths: ProjectPaths):
 
     patch_done(paths.src_dir.python)
 
-def _xmake(ver: BranchProfile, paths: ProjectPaths):
+def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   release_name = paths.src_arx.xmake.name.replace('xmake-', 'xmake-v')
   url = f'https://github.com/xmake-io/xmake/releases/download/v{ver.xmake}/{release_name}'
   validate_and_download(paths.src_arx.xmake, url)
+  if download_only:
+    return
+
   if check_and_extract(paths.src_dir.xmake, paths.src_arx.xmake):
     tbox = paths.src_dir.xmake / 'core/src/tbox/tbox'
 
@@ -320,28 +365,31 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths):
 
     patch_done(paths.src_dir.xmake)
 
-def _z(ver: BranchProfile, paths: ProjectPaths):
+def _z(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://zlib.net/fossils/{paths.src_arx.z.name}'
   validate_and_download(paths.src_arx.z, url)
+  if download_only:
+    return
+
   check_and_extract(paths.src_dir.z, paths.src_arx.z)
   patch_done(paths.src_dir.z)
 
-def prepare_source(ver: BranchProfile, paths: ProjectPaths):
-  _binutils(ver, paths)
-  _expat(ver, paths)
-  _gcc(ver, paths)
-  _gdb(ver, paths)
-  _gmp(ver, paths)
-  _iconv(ver, paths)
+def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  _binutils(ver, paths, download_only)
+  _expat(ver, paths, download_only)
+  _gcc(ver, paths, download_only)
+  _gdb(ver, paths, download_only)
+  _gmp(ver, paths, download_only)
+  _iconv(ver, paths, download_only)
   _intl(ver, paths)
-  _make(ver, paths)
+  _make(ver, paths, download_only)
   if ver.thread == 'mcf':
-    _mcfgthread(ver, paths)
-  _mingw_host(ver, paths)
-  _mingw_target(ver, paths)
-  _mpc(ver, paths)
-  _mpfr(ver, paths)
-  _pdcurses(ver, paths)
-  _python(ver, paths)
-  _xmake(ver, paths)
-  _z(ver, paths)
+    _mcfgthread(ver, paths, download_only)
+  _mingw_host(ver, paths, download_only)
+  _mingw_target(ver, paths, download_only)
+  _mpc(ver, paths, download_only)
+  _mpfr(ver, paths, download_only)
+  _pdcurses(ver, paths, download_only)
+  _python(ver, paths, download_only)
+  _xmake(ver, paths, download_only)
+  _z(ver, paths, download_only)

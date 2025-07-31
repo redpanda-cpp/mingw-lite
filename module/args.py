@@ -56,6 +56,11 @@ def parse_args() -> argparse.Namespace:
     help = 'Do not build cross toolchain',
   )
   parser.add_argument(
+    '--download-only',
+    action = 'store_true',
+    help = 'Download sources only',
+  )
+  parser.add_argument(
     '-v', '--verbose',
     action = 'count',
     default = 0,

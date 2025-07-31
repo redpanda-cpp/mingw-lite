@@ -146,7 +146,10 @@ def main():
 
   prepare_dirs(paths)
 
-  prepare_source(ver, paths)
+  prepare_source(ver, paths, config.download_only)
+
+  if config.download_only:
+    return
 
   if not config.no_cross:
     build_AAA_library(ver, paths, config)
