@@ -89,6 +89,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       # packages
       f'--with-arch={ver.march}',
       '--without-libcc1',
+      '--with-tune=generic',
       *config_flags,
       *cflags_A(),
       *cflags_B('_FOR_TARGET',

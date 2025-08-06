@@ -252,6 +252,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-arch={ver.march}',
       '--without-libcc1',
       '--with-libiconv',
+      '--with-tune=generic',
       *config_flags,
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
