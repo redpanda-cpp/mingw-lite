@@ -171,7 +171,19 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   patch_done(paths.src_dir.iconv)
 
 def _intl(ver: BranchProfile, paths: ProjectPaths):
-  shutil.copytree(paths.in_tree_src_tree.intl, paths.in_tree_src_dir.intl, dirs_exist_ok = True)
+  shutil.copytree(
+    paths.in_tree_src_tree.intl,
+    paths.in_tree_src_dir.intl,
+    ignore = shutil.ignore_patterns(
+      '.cache',
+      '.vscode',
+      '.xmake',
+      'build',
+      'pkg',
+      '*.mo',
+    ),
+    dirs_exist_ok = True,
+  )
 
 def _make(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/make/{paths.src_arx.make.name}'

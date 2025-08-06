@@ -22,7 +22,16 @@ def clean(config: argparse.Namespace, paths: ProjectPaths):
     shutil.rmtree(paths.test_dir)
 
 def prepare_dirs(paths: ProjectPaths):
-  shutil.copytree(paths.test_src_dir, paths.test_dir)
+  shutil.copytree(
+    paths.test_src_dir,
+    paths.test_dir,
+    ignore = shutil.ignore_patterns(
+      '.cache',
+      '.vscode',
+      '.xmake',
+      'build',
+    ),
+  )
 
 def extract(path: Path, arx: Path):
   subprocess.run([
