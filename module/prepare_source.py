@@ -361,9 +361,6 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
         else:
           f.write(line)
 
-    # Fix module mapper path
-    _patch(paths.src_dir.xmake, paths.patch_dir / 'xmake' / 'fix-module-mapper-path.patch')
-
     # Tbox: ignore process group
     _patch(tbox, paths.patch_dir / 'xmake' / 'tbox-ignore-process-group.patch')
 

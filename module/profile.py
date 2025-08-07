@@ -20,7 +20,7 @@ class BranchVersions:
   python: str
   z: str
 
-  xmake = '2.9.9'
+  xmake = '3.0.1'
 
   def __init__(
     self,
@@ -152,7 +152,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mcfgthread = '2.1-ga.1',
     mingw = '13.0.0',
 
-    binutils = '2.44',
+    binutils = '2.45',
     expat = '2.7.1',
     gdb = '16.3',
     gmp = '6.3.0',
@@ -161,7 +161,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    python = '3.13.4',
+    python = '3.13.6',
     z = '1.3.1',
   ),
   '15': BranchVersions(
@@ -171,7 +171,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mcfgthread = '2.1-ga.1',
     mingw = '13.0.0',
 
-    binutils = '2.44',
+    binutils = '2.45',
     expat = '2.7.1',
     gdb = '16.3',
     gmp = '6.3.0',
@@ -180,7 +180,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    python = '3.13.4',
+    python = '3.13.6',
     z = '1.3.1',
   ),
   '14': BranchVersions(
@@ -201,7 +201,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpc = '1.3.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
-    python = '3.13.4',
+    python = '3.13.6',
     z = '1.3.1',
   ),
   '13': BranchVersions(

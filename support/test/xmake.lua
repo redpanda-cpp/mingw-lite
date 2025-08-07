@@ -1,5 +1,5 @@
 add_rules("mode.debug", "mode.release")
-set_policy("build.c++.gcc.modules.cxx11abi", true)
+set_policy("build.c++.modules.gcc.cxx11abi", true)
 
 includes("chimaera.lua")
 includes("enable_if.lua")

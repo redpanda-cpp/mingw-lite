@@ -4,11 +4,11 @@ CHECKSUMS: Dict[str, str] = {
   'PDCurses-3.9.tar.gz': '590dbe0f5835f66992df096d3602d0271103f90cf8557a5d124f693c2b40d7ec',
 
   'Python-3.12.11.tar.xz': 'c30bb24b7f1e9a19b11b55a546434f74e739bb4c271a3e3a80ff4380d49f7adb',
-  'Python-3.13.4.tar.xz': '27b15a797562a2971dce3ffe31bb216042ce0b995b39d768cf15f784cc757365',
+  'Python-3.13.6.tar.xz': '17ba5508819d8736a14fbfc47d36e184946a877851b2e9c4b6c43acb44a3b104',
 
   'binutils-2.41.tar.xz': 'ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450',
   'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',
-  'binutils-2.44.tar.zst': '79cb120b39a195ad588cd354aed886249bfab36c808e746b30208d15271cc95c',
+  'binutils-2.45.tar.zst': '7f288c9a869582d53dc645bf1b9e90cc5123f6862738850472ddbca69def47a3',
 
   'expat-2.5.0.tar.xz': 'ef2420f0232c087801abf705e89ae65f6257df6b7931d37846a193ef2e8cdcbe',
   'expat-2.6.4.tar.xz': 'a695629dae047055b37d50a0ff4776d1d45d0a4c842cf4ccee158441f55ff7ee',
@@ -41,7 +41,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'mpfr-4.2.2.tar.xz': 'b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01',
 
-  'xmake-2.9.9.tar.gz': 'e92505b83bc9776286eae719d58bcea7ff2577afe12cb5ccb279c81e7dbc702d',
+  'xmake-3.0.1.tar.gz': '2b5db9586d57f35392ad59a6386c714598a5148d91acac2945f35a5ed32bef79',
 
   'zlib-1.3.1.tar.gz': '9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23',
 }
