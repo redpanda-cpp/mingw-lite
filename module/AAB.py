@@ -80,7 +80,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-bootstrap',
       '--enable-checking=release',
       '--enable-host-pie',
-      '--enable-languages=c,c++',
+      '--enable-languages=c,c++,fortran',
       '--disable-libgomp',
       '--disable-libmpx',
       '--disable-multilib',
