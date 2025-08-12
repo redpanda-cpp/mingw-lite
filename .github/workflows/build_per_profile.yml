@@ -9,9 +9,6 @@ on:
       release_skip_profile:
         required: true
         type: boolean
-      release_do_release_xmake:
-        required: true
-        type: boolean
 
 jobs:
   build:
@@ -33,8 +30,6 @@ jobs:
       prerelease: ${{ matrix.prerelease }}
       make_latest: ${{ matrix.make_latest }}
       release_skip_profile_branch: ${{ github.ref_type == 'tag' && (inputs.release_skip_profile || !startsWith(github.ref_name, matrix.branch)) }}
-      release_do_release: ${{ github.ref_type == 'tag' && !inputs.release_skip_profile && startsWith(github.ref_name, matrix.branch) }}
-      release_do_release_xmake: ${{ inputs.release_do_release_xmake }}
 
   target_sat_archive:
     name: Target semi-automated testing archive (${{ inputs.profile }})
@@ -53,11 +48,10 @@ jobs:
         with:
           pattern: mingw${{ inputs.profile }}-*
           path: dist
+          merge-multiple: true
 
       - name: Create test archive
         run: |
-          mv dist/*/*.tar.zst dist/
-
           ./sat.py -b 16 -p ${{ inputs.profile }}
           ./sat.py -b 15 -p ${{ inputs.profile }}
           ./sat.py -b 14 -p ${{ inputs.profile }}

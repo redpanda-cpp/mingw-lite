@@ -18,12 +18,6 @@ on:
       release_skip_profile_branch:
         required: true
         type: boolean
-      release_do_release:
-        required: true
-        type: boolean
-      release_do_release_xmake:
-        required: true
-        type: boolean
 
 jobs:
   build:
@@ -109,54 +103,3 @@ jobs:
         shell: msys2 {0}
         run: |
           python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 -v
-
-  release:
-    name: Release (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: inputs.release_do_release
-    runs-on: ubuntu-24.04
-    needs: [build, test_on_linux, test_on_windows]
-
-    steps:
-      - uses: ConorMacBride/install-package@v1
-        with:
-          apt: 7zip libarchive-tools
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
-          path: dist
-
-      - name: 7z archive
-        run: |
-          cd dist
-          dn=mingw${{ inputs.profile }}-${{ inputs.branch }}
-
-          fn=$(ls mingw${{ inputs.profile }}-*.tar.zst)
-          bn=$(basename $fn .tar.zst)
-          bsdtar -xf $fn
-          7z a -t7z -mx9 -ms=on -m0=LZMA:d=64m:fb64 $bn.7z $dn
-          rm -rf $dn
-
-          fn=$(ls xmake-mingw${{ inputs.profile }}-*.tar.zst)
-          bn=$(basename $fn .tar.zst)
-          bsdtar -xf $fn
-          7z a -t7z -mx9 -ms=on -m0=LZMA:d=1m:fb64 $bn.7z $dn
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          prerelease: ${{ inputs.prerelease }}
-          make_latest: ${{ inputs.make_latest }}
-          files: |
-            dist/mingw*.tar.zst
-            dist/mingw*.7z
-            dist/x-mingw*.tar.zst
-
-      - name: Release Xmake
-        if: inputs.release_do_release_xmake
-        uses: softprops/action-gh-release@v2
-        with:
-          prerelease: ${{ inputs.prerelease }}
-          make_latest: ${{ inputs.make_latest }}
-          files: |
-            dist/xmake-mingw*.7z

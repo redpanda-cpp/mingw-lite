@@ -36,4 +36,99 @@ jobs:
     with:
       profile: ${{ matrix.profile }}
       release_skip_profile: ${{ contains(fromJson('["64-ucrt_ws2003", "64-msvcrt_ws2003", "32-ucrt_winxp"]'), matrix.profile) }}
-      release_do_release_xmake: ${{ contains(fromJson('["32-msvcrt_win2000", "32_686-msvcrt_winnt40", "32_486-msvcrt_winnt40"]'), matrix.profile) }}
+
+  release:
+    name: Release
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: 7zip libarchive-tools
+
+      - name: Determine parameter
+        id: param
+        run: |
+          ref_name="${{ github.ref_name }}"
+          branch="${ref_name%%-*}"
+          branch="${branch%%.*}"
+
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+          if [[ $branch == 16 ]] ; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ $branch == 15 ]] ; then
+            echo "make_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "make_latest=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          mingw_list=(
+            {64,64_v2,32}-{mcf,win32,ucrt,msvcrt}
+            32-msvcrt_win2000
+            32_{686,486}-msvcrt_winnt40
+          )
+          echo "mingw_list=${mingw_list[*]}" >> "$GITHUB_OUTPUT"
+
+          xmake_list=(
+            32-msvcrt_win2000
+            32_{686,486}-msvcrt_winnt40
+          )
+          echo "xmake_list=${xmake_list[*]}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mingw*
+          path: dist
+          merge-multiple: true
+
+      - name: 7z archive
+        run: |
+          cd dist
+          jobs=$(nproc)
+
+          for pn in ${{ steps.param.outputs.mingw_list }} ; do
+            {
+              dn=mingw$pn-${{ steps.param.outputs.branch }}
+              fn=$(ls mingw$pn-*.tar.zst)
+              bn=$(basename $fn .tar.zst)
+              bsdtar -xf $fn
+              7z a -t7z -mx9 -ms=on -m0=LZMA:d=64m:fb64 $bn.7z $dn
+              rm -rf $dn
+            } &
+            while [[ $(jobs -r -p | wc -l) -ge $jobs ]] ; do
+              sleep 1
+            done
+          done
+          wait
+
+          for pn in ${{ steps.param.outputs.xmake_list }} ; do
+            {
+              dn=mingw$pn-${{ steps.param.outputs.branch }}
+              fn=$(ls xmake-mingw$pn-*.tar.zst)
+              bn=$(basename $fn .tar.zst)
+              bsdtar -xf $fn
+              7z a -t7z -mx9 -ms=on -m0=LZMA:d=64m:fb64 $bn.7z $dn
+              rm -rf $dn
+            } &
+            while [[ $(jobs -r -p | wc -l) -ge $jobs ]] ; do
+              sleep 1
+            done
+          done
+          wait
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ steps.param.outputs.prerelease }}
+          make_latest: ${{ steps.param.outputs.make_latest }}
+          files: |
+            dist/mingw*.tar.zst
+            dist/mingw*.7z
+            dist/x-mingw*.tar.zst
+            dist/xmake-mingw*.7z
