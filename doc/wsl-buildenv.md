@@ -8,10 +8,10 @@ See [Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 ## Create an Exclusive Distro
 
-1. Download Ubuntu 24.04 WSL rootfs tarball from [Ubuntu Cloud Images](https://cloud-images.ubuntu.com/wsl/noble/current/).
+1. Download Ubuntu 24.04 WSL rootfs tarball from [Ubuntu CD Images](https://cdimages.ubuntu.com/ubuntu-wsl/noble/daily-live/current/).
 2. Import it into WSL, for example:
    ```pwsh
-   wsl --import mingw-lite-buildenv C:\wsl\mingw-lite-buildenv Downloads\ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz
+   wsl --import mingw-lite-buildenv C:\wsl\mingw-lite-buildenv Downloads\noble-wsl-amd64.wsl
    ```
 3. Restart Windows Terminal. “mingw-lite-buildenv” now appears in the dropdown list.
 
@@ -22,7 +22,7 @@ See [Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/install).
    ```bash
    apt update
    apt install --no-install-recommends -y \
-     autoconf automake build-essential flex libtool meson texinfo \
+     autoconf automake build-essential cmake flex gettext libtool meson texinfo xmake \
      7zip ca-certificates curl file gawk libarchive-tools python3 python3-packaging zstd
    ```
 
@@ -30,10 +30,10 @@ See [Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 Cloning to Windows filesystem is recommended. For example with Windows Git Bash:
 ```bash
-git clone https://github.com/redpanda-cpp/mingw-lite.git /d/mingw-lite --config=core.autocrlf=false
+git clone https://github.com/redpanda-cpp/mingw-lite.git /d/mingw-lite --config core.autocrlf=false --config core.symlinks=true
 ```
 
-Auto-converting line endings must be disabled. To disable in an existing repo, run:
+`core.autocrlf` must be disabled, and `core.symlinks` must be enabled. To convert an existing repo, run:
 ```bash
 # save workspace
 git add *
@@ -41,6 +41,7 @@ git stash
 
 # do convertion
 git config core.autocrlf false
+git config core.symlinks true
 git reset --hard
 
 # restore workspace

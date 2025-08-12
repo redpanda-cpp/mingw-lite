@@ -14,8 +14,6 @@ from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_B, con
 
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
-    paths.layer_AAA.xmake / 'usr/local',
-
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',

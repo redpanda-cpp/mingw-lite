@@ -99,19 +99,5 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     make_default('python', build_dir, config.jobs)
     make_destdir_install('python', build_dir, paths.layer_AAA.python)
 
-def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  res = subprocess.run([
-    './configure',
-    f'--prefix=/usr/local',
-  ], cwd = paths.src_dir.xmake)
-  if (res.returncode != 0):
-    message = f'Build fail: xmake configure returned {res.returncode}'
-    logging.critical(message)
-    raise Exception(message)
-  make_default('xmake', paths.src_dir.xmake, config.jobs)
-  make_destdir_install('xmake', paths.src_dir.xmake, paths.layer_AAA.xmake)
-
 def build_AAA_tool(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _python(ver, paths, config)
-
-  _xmake(ver, paths, config)

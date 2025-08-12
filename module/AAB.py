@@ -440,8 +440,6 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
 def _intl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
-    paths.layer_AAA.xmake / 'usr/local',
-
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
@@ -487,7 +485,6 @@ def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.python / 'usr/local',
-    paths.layer_AAA.xmake / 'usr/local',
 
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',

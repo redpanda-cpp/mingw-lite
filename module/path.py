@@ -37,7 +37,6 @@ class LayerPathsAAA(NamedTuple):
   z: Path
 
   python: Path
-  xmake: Path
 
 class LayerPathsAAB(NamedTuple):
   prefix: Path
@@ -223,7 +222,6 @@ class ProjectPaths:
       z = layer_AAA_prefix / 'z',
 
       python = layer_AAA_prefix / 'python',
-      xmake = layer_AAA_prefix / 'xmake',
     )
 
     layer_AAB_prefix = self.layer_dir / 'AAB'
