@@ -34,9 +34,14 @@ jobs:
           name: src-${{ inputs.branch }}
           path: assets
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: buildenv
+          path: assets
+
       - name: Build
         run: |
-          podman build -t mingw-lite/buildenv support/buildenv
+          zstdcat assets/buildenv.tar.zst | podman load
           podman run --rm --cap-add=sys_admin -v $PWD:/mnt -w /mnt mingw-lite/buildenv \
             ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
 

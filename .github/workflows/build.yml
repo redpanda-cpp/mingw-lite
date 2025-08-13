@@ -13,9 +13,28 @@ jobs:
     with:
       branch: ${{ matrix.branch }}
 
+  build_container:
+    name: Build container
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build container
+        run: |
+          podman build -t mingw-lite/buildenv support/buildenv
+
+          mkdir assets
+          podman save mingw-lite/buildenv:latest | zstd -o assets/buildenv.tar.zst
+
+      - name: Upload container
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildenv
+          path: assets/buildenv.tar.zst
+
   build:
     name: Build (${{ matrix.profile }})
-    needs: download_source
+    needs: [download_source, build_container]
     strategy:
       fail-fast: false
       matrix:
