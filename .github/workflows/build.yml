@@ -81,12 +81,6 @@ jobs:
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
-          if [[ $branch == 15 ]] ; then
-            echo "make_latest=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "make_latest=false" >> "$GITHUB_OUTPUT"
-          fi
-
           mingw_list=(
             {64,64_v2,32}-{mcf,win32,ucrt,msvcrt}
             32-msvcrt_win2000
@@ -145,7 +139,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ steps.param.outputs.prerelease }}
-          make_latest: ${{ steps.param.outputs.make_latest }}
+          make_latest: 'false'
           files: |
             dist/mingw*.tar.zst
             dist/mingw*.7z
