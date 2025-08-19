@@ -166,7 +166,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '15': BranchVersions(
     gcc = '15.2.0',
-    rev = '0',
+    rev = '1',
 
     mcfgthread = '2.1-ga.1',
     mingw = '13.0.0',
@@ -185,7 +185,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '14': BranchVersions(
     gcc = '14.3.0',
-    rev = '0',
+    rev = '1',
 
     # ABI critical: 2024-08-01
     mcfgthread = '1.8-ga.4',
@@ -206,7 +206,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '13': BranchVersions(
     gcc = '13.4.0',
-    rev = '0',
+    rev = '1',
 
     # trace back: 2023-12-22
     binutils = '2.41',

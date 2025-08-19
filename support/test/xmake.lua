@@ -79,3 +79,5 @@ target("c++23/import-std")
   add_files("c++23/import-std.cc")
   add_tests("default", {pass_outputs = "Hello, world!\n"})
   chimaera()
+
+includes("openmp/xmake.lua")

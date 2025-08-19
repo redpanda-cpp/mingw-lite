@@ -241,6 +241,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-bootstrap',
       '--enable-checking=release',
       '--enable-languages=c,c++',
+      '--enable-libgomp',
       '--disable-libmpx',
       '--disable-multilib',
       '--enable-nls',
