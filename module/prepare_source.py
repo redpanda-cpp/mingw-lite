@@ -314,6 +314,15 @@ def _pdcurses(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   check_and_extract(paths.src_dir.pdcurses, paths.src_arx.pdcurses)
   patch_done(paths.src_dir.pdcurses)
 
+def _pkgconf(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-{ver.pkgconf}.tar.gz'
+  validate_and_download(paths.src_arx.pkgconf, url)
+  if download_only:
+    return
+
+  check_and_extract(paths.src_dir.pkgconf, paths.src_arx.pkgconf)
+  patch_done(paths.src_dir.pkgconf)
+
 def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://www.python.org/ftp/python/{ver.python}/{paths.src_arx.python.name}'
   validate_and_download(paths.src_arx.python, url)
@@ -391,6 +400,7 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _mpc(ver, paths, download_only)
   _mpfr(ver, paths, download_only)
   _pdcurses(ver, paths, download_only)
+  _pkgconf(ver, paths, download_only)
   _python(ver, paths, download_only)
   _xmake(ver, paths, download_only)
   _z(ver, paths, download_only)

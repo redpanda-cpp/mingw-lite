@@ -7,7 +7,10 @@ import subprocess
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_A, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro, xmake_build, xmake_config, xmake_install
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro
+from module.util import cflags_A, cflags_B, configure, make_custom, make_default, make_destdir_install
+from module.util import meson_build, meson_config, meson_flags_B, meson_install
+from module.util import xmake_build, xmake_config, xmake_install
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.binutils / 'build-AAB'
@@ -236,46 +239,38 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
-    build_dir = paths.src_dir.mcfgthread / 'build-AAB'
-    ensure(build_dir)
+    build_dir = 'build-AAB'
 
-    ret = subprocess.run([
-      'meson',
-      'setup',
-      '--cross-file', f'meson.cross.{ver.target}',
-      build_dir,
-    ], cwd = paths.src_dir.mcfgthread)
-    if ret.returncode != 0:
-      message = 'Build failed: mcfgthread meson setup returned %d' % ret.returncode
-      logging.critical(message)
-      raise Exception(message)
-    ret = subprocess.run([
-      'env',
-      *cflags_B(
-        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
-      ),
-      'meson',
-      'compile',
-      'mcfgthread:static_library',
-      '-j', str(config.jobs),
-    ], cwd = build_dir)
-    if ret.returncode != 0:
-      message = 'Build failed: mcfgthread ninja returned %d' % ret.returncode
-      logging.critical(message)
-      raise Exception(message)
+    meson_config(
+      paths.src_dir.mcfgthread,
+      extra_args = [
+        '--cross-file', f'meson.cross.{ver.target}',
+        *meson_flags_B(
+          cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+          optimize_for_size = ver.optimize_for_size,
+        ),
+      ],
+      build_dir = build_dir,
+    )
+    meson_build(
+      paths.src_dir.mcfgthread,
+      jobs = config.jobs,
+      build_dir = build_dir,
+      targets = ['mcfgthread:static_library'],
+    )
 
   # as the basis of gthread interface, it should be considered as part of gcc
+  full_build_dir = paths.src_dir.mcfgthread / build_dir
   lib_dir = paths.layer_AAB.gcc / 'usr/local' / ver.target / 'lib'
   ensure(lib_dir)
-  shutil.copy(build_dir / 'libmcfgthread.a', lib_dir / 'libmcfgthread.a')
+  shutil.copy(full_build_dir / 'libmcfgthread.a', lib_dir / 'libmcfgthread.a')
 
   include_dir = paths.layer_AAB.gcc / 'usr/local' / ver.target / 'include' / 'mcfgthread'
   ensure(include_dir)
   header_files = [
     *paths.src_dir.mcfgthread.glob('mcfgthread/*.h'),
     *paths.src_dir.mcfgthread.glob('mcfgthread/*.hpp'),
-    build_dir / 'version.h',
+    full_build_dir / 'version.h',
   ]
   for header_file in header_files:
     shutil.copy(header_file, include_dir / header_file.name)

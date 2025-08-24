@@ -41,6 +41,10 @@ CHECKSUMS: Dict[str, str] = {
 
   'mpfr-4.2.2.tar.xz': 'b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01',
 
+  'pkgconf-pkgconf-2.1.1.tar.gz': '6a181e0bf1195e95b7cd535a1854827aedb383b26b1fc24ca13586cb5e8e55af',
+  'pkgconf-pkgconf-2.3.0.tar.gz': '0ee103cd390c3ee0e77a7a1c71dcb79a50a426fa2a648f6d07f2678c23adc5e3',
+  'pkgconf-pkgconf-2.5.1.tar.gz': '79721badcad1987dead9c3609eb4877ab9b58821c06bdacb824f2c8897c11f2a',
+
   'xmake-3.0.1.tar.gz': '2b5db9586d57f35392ad59a6386c714598a5148d91acac2945f35a5ed32bef79',
 
   'zlib-1.3.1.tar.gz': '9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23',

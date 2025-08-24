@@ -10,7 +10,10 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, cflags_B, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro, xmake_build, xmake_config, xmake_install
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro
+from module.util import cflags_B, configure, make_custom, make_default, make_destdir_install
+from module.util import meson_build, meson_config, meson_flags_B, meson_install
+from module.util import xmake_build, xmake_config, xmake_install
 
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -152,45 +155,38 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
-    build_dir = paths.src_dir.mcfgthread / 'build-ABB'
-    ensure(build_dir)
+    build_dir = 'build-AAB'
 
-    ret = subprocess.run([
-      'meson',
-      'setup',
-      '--cross-file', f'meson.cross.{ver.target}',
-      build_dir,
-    ], cwd = paths.src_dir.mcfgthread)
-    if ret.returncode != 0:
-      message = 'Build failed: mcfgthread meson setup returned %d' % ret.returncode
-      logging.critical(message)
-      raise Exception(message)
-    ret = subprocess.run([
-      'env',
-      *cflags_B(
-        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
-      ),
-      'meson',
-      'compile',
-      'mcfgthread:static_library',
-    ], cwd = build_dir)
-    if ret.returncode != 0:
-      message = 'Build failed: mcfgthread ninja returned %d' % ret.returncode
-      logging.critical(message)
-      raise Exception(message)
+    meson_config(
+      paths.src_dir.mcfgthread,
+      extra_args = [
+        '--cross-file', f'meson.cross.{ver.target}',
+        *meson_flags_B(
+          cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+          optimize_for_size = ver.optimize_for_size,
+        ),
+      ],
+      build_dir = build_dir,
+    )
+    meson_build(
+      paths.src_dir.mcfgthread,
+      jobs = config.jobs,
+      build_dir = build_dir,
+      targets = ['mcfgthread:static_library'],
+    )
 
   # as the basis of gthread interface, it should be considered as part of gcc
+  full_build_dir = paths.src_dir.mcfgthread / build_dir
   lib_dir = paths.layer_ABB.gcc / 'lib'
   ensure(lib_dir)
-  shutil.copy(build_dir / 'libmcfgthread.a', paths.layer_ABB.gcc / 'lib' / 'libmcfgthread.a')
+  shutil.copy(full_build_dir / 'libmcfgthread.a', lib_dir / 'libmcfgthread.a')
 
   include_dir = paths.layer_ABB.gcc / 'include' / 'mcfgthread'
   ensure(include_dir)
   header_files = [
     *paths.src_dir.mcfgthread.glob('mcfgthread/*.h'),
     *paths.src_dir.mcfgthread.glob('mcfgthread/*.hpp'),
-    build_dir / 'version.h',
+    full_build_dir / 'version.h',
   ]
   for header_file in header_files:
     shutil.copy(header_file, include_dir / header_file.name)
@@ -409,6 +405,45 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default('make', build_dir, config.jobs)
     make_destdir_install('make', build_dir, paths.layer_ABB.make)
 
+def _pkgconf(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt / 'usr/local',
+  ]):
+    build_dir = 'build-ABB'
+
+    meson_config(
+      paths.src_dir.pkgconf,
+      extra_args = [
+        '--cross-file', paths.meson_cross_file,
+        '--prefix', '/',
+        '--default-library', 'static',
+        '--prefer-static',
+        '-Dtests=disabled',
+        *meson_flags_B(
+          cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+          optimize_for_size = ver.optimize_for_size,
+        ),
+      ],
+      build_dir = build_dir,
+    )
+    meson_build(
+      paths.src_dir.pkgconf,
+      jobs = config.jobs,
+      build_dir = build_dir,
+    )
+    meson_install(
+      paths.src_dir.pkgconf,
+      build_dir = build_dir,
+      destdir = paths.layer_ABB.pkgconf,
+    )
+
+  license_dir = paths.layer_ABB.pkgconf / 'share/licenses/pkgconf'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.pkgconf / 'COPYING', license_dir / 'COPYING')
+
 def _licenses(ver: BranchProfile, paths: ProjectPaths):
   license_dir = paths.layer_ABB.license / 'share' / 'licenses'
   ensure(license_dir)
@@ -482,5 +517,7 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
   _gdb(ver, paths, config)
 
   _gmake(ver, paths, config)
+
+  _pkgconf(ver, paths, config)
 
   _licenses(ver, paths)

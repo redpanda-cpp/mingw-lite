@@ -117,6 +117,7 @@ def package_mingw(paths: ProjectPaths):
     paths.layer_ABB.gdb,
     paths.layer_ABB.headers,
     paths.layer_ABB.make,
+    paths.layer_ABB.pkgconf,
 
     paths.layer_ABB.license,
   ]

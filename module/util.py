@@ -125,6 +125,63 @@ def make_destdir_install(component: str, cwd: Path, destdir: Path):
 def make_install(component: str, cwd: Path):
   make_custom(component + ' (install)', cwd, ['install'], jobs = 1)
 
+def meson_build(
+  cwd: Path,
+  jobs: int,
+  targets: List[str] = [],
+  build_dir: str = 'build',
+):
+  subprocess.run(
+    ['meson', 'compile', '-C', build_dir, f'-j{jobs}', *targets],
+    cwd = cwd,
+    check = True,
+  )
+
+def meson_config(
+  cwd: Path,
+  extra_args: List[str],
+  build_dir: str = 'build',
+):
+  subprocess.run(
+    ['meson', 'setup', *extra_args, build_dir],
+    cwd = cwd,
+    check = True
+  )
+
+def meson_flags_B(
+  cpp_extra: List[str] = [],
+  common_extra: List[str] = [],
+  ld_extra: List[str] = [],
+  c_extra: List[str] = [],
+  cxx_extra: List[str] = [],
+  optimize_for_size: bool = False,
+) -> List[str]:
+  cpp = ['-DNDEBUG']
+  common = ['-pipe']
+  if optimize_for_size:
+    build_type = 'minsize'
+  else:
+    build_type = 'release'
+  return [
+    '-Dc_args=' + ' '.join(cpp + cpp_extra + common + common_extra + c_extra),
+    '-Dc_link_args=' + ' '.join(ld_extra),
+    '-Dcpp_args=' + ' '.join(cpp + cpp_extra + common + common_extra + cxx_extra),
+    '-Dcpp_link_args=' + ' '.join(ld_extra),
+    f'--buildtype={build_type}',
+    '--strip',
+  ]
+
+def meson_install(
+  cwd: Path,
+  destdir: Path,
+  build_dir: str = 'build',
+):
+  subprocess.run(
+    ['meson', 'install', '-C', build_dir, '--destdir', destdir],
+    cwd = cwd,
+    check = True,
+  )
+
 @contextmanager
 def overlayfs_ro(merged: Path | str, lower: list[Path]):
   try:

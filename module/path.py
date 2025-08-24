@@ -20,6 +20,7 @@ class SourcePaths(NamedTuple):
   mpc: Path
   mpfr: Path
   pdcurses: Path
+  pkgconf: Path
   python: Path
   xmake: Path
   z: Path
@@ -64,6 +65,7 @@ class LayerPathsABB(NamedTuple):
   gdb: Path
   headers: Path
   make: Path
+  pkgconf: Path
   xmake: Path
 
   license: Path
@@ -75,6 +77,8 @@ class ProjectPaths:
   assets_dir: Path
   dist_dir: Path
   patch_dir: Path
+
+  meson_cross_file: Path
 
   mingw_pkg: Path
   xmake_pkg: Path
@@ -124,6 +128,8 @@ class ProjectPaths:
     self.dist_dir = self.root_dir / 'dist'
     self.patch_dir = self.root_dir / 'patch'
 
+    self.meson_cross_file = self.root_dir / 'support/meson' / f'{ver.target}.txt'
+
     self.mingw_pkg = self.dist_dir / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.xmake_pkg = self.dist_dir / f'xmake-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.cross_pkg = self.dist_dir / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
@@ -153,6 +159,7 @@ class ProjectPaths:
       mpc = f'mpc-{ver.mpc}',
       mpfr = f'mpfr-{ver.mpfr}',
       pdcurses = f'PDCurses-{ver.pdcurses}',
+      pkgconf = f'pkgconf-pkgconf-{ver.pkgconf}',
       python = f'Python-{ver.python}',
       xmake = f'xmake-{ver.xmake}',
       z = f'zlib-{ver.z}',
@@ -174,6 +181,7 @@ class ProjectPaths:
       mpc = self.build_dir / src_name.mpc,
       mpfr = self.build_dir / src_name.mpfr,
       pdcurses = self.build_dir / src_name.pdcurses,
+      pkgconf = self.build_dir / src_name.pkgconf,
       python = self.build_dir / src_name.python,
       xmake = self.build_dir / src_name.xmake,
       z = self.build_dir / src_name.z,
@@ -198,6 +206,7 @@ class ProjectPaths:
       mpfr = self.assets_dir / f'{src_name.mpfr}.tar.xz',
       pdcurses = self.assets_dir / f'{src_name.pdcurses}.tar.gz',
       python = self.assets_dir / f'{src_name.python}.tar.xz',
+      pkgconf = self.assets_dir / f'{src_name.pkgconf}.tar.gz',
       xmake = self.assets_dir / f'{src_name.xmake}.tar.gz',
       z = self.assets_dir / f'{src_name.z}.tar.gz',
     )
@@ -253,6 +262,7 @@ class ProjectPaths:
       gdb = layer_ABB_prefix / 'gdb',
       headers = layer_ABB_prefix / 'headers',
       make = layer_ABB_prefix / 'make',
+      pkgconf = layer_ABB_prefix / 'pkgconf',
       xmake = layer_ABB_prefix / 'xmake',
 
       license = layer_ABB_prefix / 'license',
