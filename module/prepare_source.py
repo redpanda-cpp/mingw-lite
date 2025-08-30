@@ -320,8 +320,16 @@ def _pkgconf(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if download_only:
     return
 
-  check_and_extract(paths.src_dir.pkgconf, paths.src_arx.pkgconf)
-  patch_done(paths.src_dir.pkgconf)
+  if check_and_extract(paths.src_dir.pkgconf, paths.src_arx.pkgconf):
+    ver = Version(ver.pkgconf)
+
+    # Build for static toolchain
+    if ver >= Version('2.5.0'):
+      _patch(paths.src_dir.pkgconf, paths.patch_dir / 'pkgconf/static-toolchain_2.5.patch')
+    else:
+      _patch(paths.src_dir.pkgconf, paths.patch_dir / 'pkgconf/static-toolchain_2.1.patch')
+
+    patch_done(paths.src_dir.pkgconf)
 
 def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://www.python.org/ftp/python/{ver.python}/{paths.src_arx.python.name}'

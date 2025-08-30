@@ -1,0 +1,16 @@
+diff --git a/cli/main.c b/cli/main.c
+index 53eee4c..18235cf 100644
+--- a/cli/main.c
++++ b/cli/main.c
+@@ -1102,7 +1102,11 @@ main(int argc, char *argv[])
+ 		return EXIT_FAILURE;
+ 	}
+ 
++#ifdef _WIN32
++	want_flags = PKG_STATIC;
++#else
+ 	want_flags = 0;
++#endif
+ 
+ #ifdef _WIN32
+ 	/* When running regression tests in cygwin, and building native

@@ -1,0 +1,31 @@
+diff --git a/cli/main.c b/cli/main.c
+index ca8bf88..f458d1d 100644
+--- a/cli/main.c
++++ b/cli/main.c
+@@ -879,7 +879,11 @@ main(int argc, char *argv[])
+ 		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
+ 	};
+ 
++#ifdef _WIN32
++	want_flags = PKG_STATIC;
++#else
+ 	want_flags = 0;
++#endif
+ 
+ #ifdef _WIN32
+ 	/* When running regression tests in cygwin, and building native
+diff --git a/libpkgconf/personality.c b/libpkgconf/personality.c
+index 29447f2..9cdfce5 100644
+--- a/libpkgconf/personality.c
++++ b/libpkgconf/personality.c
+@@ -37,10 +37,6 @@ static unsigned default_personality_init = 0;
+ 
+ static pkgconf_cross_personality_t default_personality = {
+ 	.name = "default",
+-#ifdef _WIN32
+-	.want_default_static = true,
+-	.want_default_pure = true,
+-#endif
+ };
+ 
+ static inline void
