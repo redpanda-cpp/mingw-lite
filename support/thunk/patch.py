@@ -9,6 +9,7 @@ import shutil
 
 from module.thunk_list_core import THUNK_LIST_CORE
 from module.thunk_list_toolchain import THUNK_LIST_TOOLCHAIN
+from module.thunk_list_qt import THUNK_LIST_QT
 
 ARCH_DEFAULT_VERSION_MAP = {
   '32': '4.0',
@@ -53,7 +54,7 @@ def parse_args():
   parser.add_argument(
     '--level',
     type = str,
-    choices = ['core', 'toolchain'],
+    choices = ['core', 'toolchain', 'qt'],
     required = True,
     help = 'Thunk level'
   )
@@ -215,8 +216,10 @@ def main():
   args = parse_args()
   modules = {}
   resolve_modules_and_add_thunk_sources(args, modules, THUNK_LIST_CORE)
-  if args.level == 'toolchain':
+  if args.level in ('toolchain', 'qt'):
     resolve_modules_and_add_thunk_sources(args, modules, THUNK_LIST_TOOLCHAIN)
+  if args.level == 'qt':
+    resolve_modules_and_add_thunk_sources(args, modules, THUNK_LIST_QT)
   patch_automake_template(args, modules)
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 from hashlib import sha256
 import logging
 from pathlib import Path
+import shutil
 import subprocess
 import time
 from urllib.error import URLError
@@ -52,9 +53,9 @@ def check_and_extract(path: Path, arx: Path):
     if mark.exists():
       return False
     else:
-      message = 'Extract fail: %s exists but not marked as fully patched' % path.name
+      message = f'Extract fail: {path.name} exists but not marked as fully patched'
       logging.critical(message)
-      logging.info('Please delete %s and try again' % path.name)
+      logging.info(f'Please delete {path.name} and try again')
       raise Exception(message)
 
   # extract
@@ -70,6 +71,29 @@ def check_and_extract(path: Path, arx: Path):
     raise Exception(message)
 
   return True
+
+def check_and_sync(dest: Path, src: Path):
+  if dest.exists():
+    mark = dest / '.patched'
+    if mark.exists():
+      return False
+    else:
+      message = f'Sync fail: {dest.name} exists but not marked as fully patched'
+      logging.critical(message)
+      logging.info(f'Please delete {dest.name} and try again')
+      raise Exception(message)
+
+  # sync
+  shutil.copytree(src, dest, ignore = shutil.ignore_patterns('.patched'))
+
+  return True
+
+def patch(path: Path, patch: Path):
+  subprocess.run(
+    ['patch', '-Np1', '-i', patch],
+    cwd = path,
+    check = True,
+  )
 
 def patch_done(path: Path):
   mark = path / '.patched'

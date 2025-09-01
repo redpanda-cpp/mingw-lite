@@ -123,6 +123,35 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default('crt', build_dir, config.jobs)
     make_destdir_install('crt', build_dir, paths.layer_ABB.crt)
 
+def _crt_qt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt / 'usr/local',
+  ]):
+    build_dir = paths.src_dir.mingw_qt / 'mingw-w64-crt' / 'build-ABB'
+    ensure(build_dir)
+
+    multilib_flags = [
+      '--enable-lib64' if ver.arch == '64' else '--disable-lib64',
+      '--enable-libarm64' if ver.arch == 'arm64' else '--disable-libarm64',
+      '--enable-lib32' if ver.arch == '32' else '--disable-lib32',
+      '--disable-libarm32',
+    ]
+
+    configure('mingw-w64-crt', build_dir, [
+      '--prefix=',
+      f'--host={ver.target}',
+      f'--build={config.build}',
+      f'--with-default-msvcrt={ver.default_crt}',
+      f'--with-default-win32-winnt=0x{max(ver.win32_winnt, 0x0400):04X}',
+      *multilib_flags,
+      *cflags_B(optimize_for_size = ver.optimize_for_size),
+    ])
+    make_default('crt', build_dir, config.jobs)
+    make_destdir_install('crt', build_dir, paths.layer_ABB.crt_qt)
+
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
@@ -506,6 +535,9 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
   _headers(ver, paths, config)
 
   _crt(ver, paths, config)
+
+  if config.qt:
+    _crt_qt(ver, paths, config)
 
   _winpthreads(ver, paths, config)
 

@@ -9,20 +9,9 @@ import subprocess
 from urllib.error import URLError
 from urllib.request import urlopen
 
-from module.fetch import validate_and_download, check_and_extract, patch_done
+from module.fetch import validate_and_download, check_and_extract, check_and_sync, patch, patch_done
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-
-def _patch(path: Path, patch: Path):
-  res = subprocess.run([
-    'patch',
-    '-Np1',
-    '-i', patch,
-  ], cwd = path)
-  if res.returncode != 0:
-    message = 'Patch fail: applying %s to %s' % (patch.name, path.name)
-    logging.critical(message)
-    raise Exception(message)
 
 def _autoreconf(path: Path):
   res = subprocess.run([
@@ -54,9 +43,9 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     # Fix path corruption
     if v >= Version('2.43'):
-      _patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.43.patch')
+      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.43.patch')
     else:
-      _patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.41.patch')
+      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.41.patch')
 
     patch_done(paths.src_dir.binutils)
 
@@ -88,26 +77,26 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Fix make variable
     # - gcc 12 use `override CFLAGS +=` to handle PGO build, which breaks workaround for ucrt `access`
     if v.major >= 14:
-      _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-make-variable_14.patch')
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-make-variable_14.patch')
     else:
-      _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-make-variable_12.patch')
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-make-variable_12.patch')
 
     # Fix VT sequence
-    _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-vt-seq.patch')
+    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-vt-seq.patch')
 
     # Fix UCRT pipe
-    _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ucrt-pipe.patch')
+    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ucrt-pipe.patch')
 
     # Fix libcpp setlocale
     # libcpp defines `setlocale` if `HAVE_SETLOCALE` not defined, but its configure.ac does not check `setlocale` at all
-    _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-libcpp-setlocale.patch')
+    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-libcpp-setlocale.patch')
 
     # Disable vectorized lexer
     if ver.min_os.major < 5:
       if v.major >= 15:
-        _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_15.patch')
+        patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_15.patch')
       else:
-        _patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_13.patch')
+        patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_13.patch')
 
     # Parser-friendly diagnostics
     po_dir = paths.src_dir.gcc / 'gcc' / 'po'
@@ -136,19 +125,19 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     # Fix thread
     if v.major >= 16:
-      _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-thread_16.patch')
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-thread_16.patch')
     else:
-      _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-thread_14.patch')
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-thread_14.patch')
 
     # Fix iconv 'CP65001'
-    _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-iconv-cp65001.patch')
+    patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-iconv-cp65001.patch')
 
     # Fix pythondir
-    _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
+    patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
 
     # Fix ui-style regex init
     if v.major >= 16:
-      _patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-ui-style-regex-init.patch')
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-ui-style-regex-init.patch')
 
     patch_done(paths.src_dir.gdb)
 
@@ -203,34 +192,41 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   check_and_extract(paths.src_dir.mcfgthread, paths.src_arx.mcfgthread)
   patch_done(paths.src_dir.mcfgthread)
 
-def _mingw_host(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw_host.name}'
-  validate_and_download(paths.src_arx.mingw_host, url)
+def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw.name}'
+  validate_and_download(paths.src_arx.mingw, url)
   if download_only:
     return
 
-  if check_and_extract(paths.src_dir.mingw_host, paths.src_arx.mingw_host):
+  if check_and_extract(paths.src_dir.mingw, paths.src_arx.mingw):
     v = Version(ver.mingw)
 
     # CRT: Fix x64 wassert
     if ver.min_os.major < 6 and v.major < 13:
       if v.major >= 12:
-        _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-x64-wassert_12.patch')
+        patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-wassert_12.patch')
       else:
-        _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-x64-wassert_11.patch')
+        patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-wassert_11.patch')
 
     # CRT: Fix x64 difftime64
     if ver.min_os.major < 6 and v.major == 11:
-      _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-x64-difftime64.patch')
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-difftime64.patch')
 
     # CRT: Fix i386 strtoi64, strtoui64
     if ver.min_os < Version('5.1') and v.major == 11:
-      _patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
 
     # Winpthreads: Fix linkage
     if v.major == 13:
-      _patch(paths.src_dir.mingw_host, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
+      patch(paths.src_dir.mingw, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
 
+    patch_done(paths.src_dir.mingw)
+
+def _mingw_host(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  if download_only:
+    return
+
+  if check_and_sync(paths.src_dir.mingw_host, paths.src_dir.mingw):
     # CRT: Add mingw thunks
     subprocess.run([
       './patch.py',
@@ -246,33 +242,10 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     patch_done(paths.src_dir.mingw_host)
 
 def _mingw_target(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw_target.name}'
-  validate_and_download(paths.src_arx.mingw_target, url)
   if download_only:
     return
 
-  if check_and_extract(paths.src_dir.mingw_target, paths.src_arx.mingw_target):
-    v = Version(ver.mingw)
-
-    # CRT: Fix x64 wassert
-    if ver.min_os.major < 6 and v.major < 13:
-      if v.major >= 12:
-        _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-x64-wassert_12.patch')
-      else:
-        _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-x64-wassert_11.patch')
-
-    # CRT: Fix x64 difftime64
-    if ver.min_os.major < 6 and v.major == 11:
-      _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-x64-difftime64.patch')
-
-    # CRT: Fix i386 strtoi64, strtoui64
-    if ver.min_os < Version('5.1') and v.major == 11:
-      _patch(paths.src_dir.mingw_target, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
-
-    # Winpthreads: Fix linkage
-    if v.major == 13:
-      _patch(paths.src_dir.mingw_target, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
-
+  if check_and_sync(paths.src_dir.mingw_target, paths.src_dir.mingw):
     # CRT: Add mingw thunks
     subprocess.run([
       './patch.py',
@@ -286,6 +259,25 @@ def _mingw_target(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     _automake(paths.src_dir.mingw_target / 'mingw-w64-crt')
 
     patch_done(paths.src_dir.mingw_target)
+
+def _mingw_qt(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  if download_only:
+    return
+
+  if check_and_sync(paths.src_dir.mingw_qt, paths.src_dir.mingw):
+    # CRT: Add mingw thunks
+    subprocess.run([
+      './patch.py',
+      paths.src_dir.mingw_qt,
+      '-a', ver.arch,
+      '--level', 'qt',
+      '--nt-ver', str(ver.min_os),
+    ], cwd = paths.in_tree_src_tree.thunk, check = True)
+
+    _autoreconf(paths.src_dir.mingw_qt / 'mingw-w64-crt')
+    _automake(paths.src_dir.mingw_qt / 'mingw-w64-crt')
+
+    patch_done(paths.src_dir.mingw_qt)
 
 def _mpc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/mpc/{paths.src_arx.mpc.name}'
@@ -325,9 +317,9 @@ def _pkgconf(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     # Build for static toolchain
     if ver >= Version('2.5.0'):
-      _patch(paths.src_dir.pkgconf, paths.patch_dir / 'pkgconf/static-toolchain_2.5.patch')
+      patch(paths.src_dir.pkgconf, paths.patch_dir / 'pkgconf/static-toolchain_2.5.patch')
     else:
-      _patch(paths.src_dir.pkgconf, paths.patch_dir / 'pkgconf/static-toolchain_2.1.patch')
+      patch(paths.src_dir.pkgconf, paths.patch_dir / 'pkgconf/static-toolchain_2.1.patch')
 
     patch_done(paths.src_dir.pkgconf)
 
@@ -343,16 +335,16 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Fix thread touch last error
     # https://github.com/python/cpython/pull/104531
     if ver >= Version('3.12') and ver < Version('3.13'):
-      _patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-thread-touch-last-error_3.12.patch')
+      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-thread-touch-last-error_3.12.patch')
 
     # Alternative build system
     os.symlink(paths.src_dir.z, paths.src_dir.python / 'zlib', target_is_directory = True)
     if ver >= Version('3.13'):
       shutil.copy(paths.patch_dir / 'python' / 'xmake_3.13.lua', paths.src_dir.python / 'xmake.lua')
-      _patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.13.patch')
+      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.13.patch')
     else:
       shutil.copy(paths.patch_dir / 'python' / 'xmake_3.12.lua', paths.src_dir.python / 'xmake.lua')
-      _patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.12.patch')
+      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.12.patch')
     shutil.copy(paths.patch_dir / 'python' / 'python-config.sh', paths.src_dir.python / 'python-config.sh')
 
     patch_done(paths.src_dir.python)
@@ -379,7 +371,7 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
           f.write(line)
 
     # Tbox: ignore process group
-    _patch(tbox, paths.patch_dir / 'xmake' / 'tbox-ignore-process-group.patch')
+    patch(tbox, paths.patch_dir / 'xmake' / 'tbox-ignore-process-group.patch')
 
     patch_done(paths.src_dir.xmake)
 
@@ -403,8 +395,10 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _make(ver, paths, download_only)
   if ver.thread == 'mcf':
     _mcfgthread(ver, paths, download_only)
+  _mingw(ver, paths, download_only)
   _mingw_host(ver, paths, download_only)
   _mingw_target(ver, paths, download_only)
+  _mingw_qt(ver, paths, download_only)
   _mpc(ver, paths, download_only)
   _mpfr(ver, paths, download_only)
   _pdcurses(ver, paths, download_only)

@@ -15,8 +15,10 @@ class SourcePaths(NamedTuple):
   iconv: Path
   make: Path
   mcfgthread: Path
+  mingw: Path
   mingw_host: Path
   mingw_target: Path
+  mingw_qt: Path
   mpc: Path
   mpfr: Path
   pdcurses: Path
@@ -68,6 +70,8 @@ class LayerPathsABB(NamedTuple):
   pkgconf: Path
   xmake: Path
 
+  crt_qt: Path
+
   license: Path
 
 class ProjectPaths:
@@ -81,6 +85,7 @@ class ProjectPaths:
   meson_cross_file: Path
 
   mingw_pkg: Path
+  mingw_qt_pkg: Path
   xmake_pkg: Path
   cross_pkg: Path
 
@@ -88,8 +93,6 @@ class ProjectPaths:
 
   utf8_src_dir: Path
   build_dir: Path
-  build_host: Path
-  build_target: Path
   layer_dir: Path
   pkg_dir: Path
 
@@ -131,6 +134,7 @@ class ProjectPaths:
     self.meson_cross_file = self.root_dir / 'support/meson' / f'{ver.target}.txt'
 
     self.mingw_pkg = self.dist_dir / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
+    self.mingw_qt_pkg = self.dist_dir / f'q-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.xmake_pkg = self.dist_dir / f'xmake-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.cross_pkg = self.dist_dir / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
 
@@ -138,8 +142,6 @@ class ProjectPaths:
 
     self.utf8_src_dir = self.root_dir / 'support' / 'utf8'
     self.build_dir = Path(f'/tmp/build/{abi_name}')
-    self.build_host = self.build_dir / 'host'
-    self.build_target = self.build_dir / 'target'
     self.layer_dir = Path(f'{tempfile.gettempdir()}/layer/{abi_name}')
     self.pkg_dir = Path(f'/tmp/pkg/{abi_name}')
 
@@ -154,8 +156,10 @@ class ProjectPaths:
       mcfgthread = f'mcfgthread-{ver.mcfgthread}'
         if ver.thread == 'mcf'
         else None,
-      mingw_host = f'mingw-w64-v{ver.mingw}',
-      mingw_target = f'mingw-w64-v{ver.mingw}',
+      mingw = f'mingw-w64-v{ver.mingw}',
+      mingw_host = f'mingw-w64-v{ver.mingw}-host',
+      mingw_target = f'mingw-w64-v{ver.mingw}-target',
+      mingw_qt = f'mingw-w64-v{ver.mingw}-qt',
       mpc = f'mpc-{ver.mpc}',
       mpfr = f'mpfr-{ver.mpfr}',
       pdcurses = f'PDCurses-{ver.pdcurses}',
@@ -176,8 +180,10 @@ class ProjectPaths:
       mcfgthread = self.build_dir / src_name.mcfgthread
         if ver.thread == 'mcf'
         else None,
-      mingw_host = self.build_host / src_name.mingw_host,
-      mingw_target = self.build_target / src_name.mingw_target,
+      mingw = self.build_dir / src_name.mingw,
+      mingw_host = self.build_dir / src_name.mingw_host,
+      mingw_target = self.build_dir / src_name.mingw_target,
+      mingw_qt = self.build_dir / src_name.mingw_qt,
       mpc = self.build_dir / src_name.mpc,
       mpfr = self.build_dir / src_name.mpfr,
       pdcurses = self.build_dir / src_name.pdcurses,
@@ -200,8 +206,10 @@ class ProjectPaths:
       mcfgthread = self.assets_dir / f'{src_name.mcfgthread}.tar.gz'
         if ver.thread == 'mcf'
         else None,
-      mingw_host = self.assets_dir / f'{src_name.mingw_host}.tar.bz2',
-      mingw_target = self.assets_dir / f'{src_name.mingw_target}.tar.bz2',
+      mingw = self.assets_dir / f'{src_name.mingw}.tar.bz2',
+      mingw_host = None,
+      mingw_target = None,
+      mingw_qt = None,
       mpc = self.assets_dir / f'{src_name.mpc}.tar.gz',
       mpfr = self.assets_dir / f'{src_name.mpfr}.tar.xz',
       pdcurses = self.assets_dir / f'{src_name.pdcurses}.tar.gz',
@@ -264,6 +272,8 @@ class ProjectPaths:
       make = layer_ABB_prefix / 'make',
       pkgconf = layer_ABB_prefix / 'pkgconf',
       xmake = layer_ABB_prefix / 'xmake',
+
+      crt_qt = layer_ABB_prefix / 'crt_qt',
 
       license = layer_ABB_prefix / 'license',
     )
