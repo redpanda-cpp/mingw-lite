@@ -1,0 +1,42 @@
+diff --git a/gdb/mingw-hdep.c b/gdb/mingw-hdep.c
+index 137a63eb244..3c7c4de2ee0 100644
+--- a/gdb/mingw-hdep.c
++++ b/gdb/mingw-hdep.c
+@@ -51,11 +51,14 @@ int
+ gdb_select (int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+ 	    struct timeval *timeout)
+ {
+-  static HANDLE never_handle;
++  // Windows 9x cannot add same handle more than once.
++  // so we keep a list of unique never handles.
++  static HANDLE never_handle[MAXIMUM_WAIT_OBJECTS];
+   HANDLE handles[MAXIMUM_WAIT_OBJECTS];
+   HANDLE h;
+   DWORD event;
+   DWORD num_handles;
++  DWORD num_never_handles;
+   /* SCBS contains serial control objects corresponding to file
+      descriptors in READFDS and WRITEFDS.  */
+   struct serial *scbs[MAXIMUM_WAIT_OBJECTS];
+@@ -78,6 +81,7 @@ gdb_select (int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+ 
+   num_ready = 0;
+   num_handles = 0;
++  num_never_handles = 0;
+   num_scbs = 0;
+   for (fd = 0; fd < n; ++fd)
+     {
+@@ -104,10 +108,10 @@ gdb_select (int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+ 	read = (HANDLE) _get_osfhandle (fd);
+       if (except == NULL)
+ 	{
+-	  if (!never_handle)
+-	    never_handle = CreateEvent (0, FALSE, FALSE, 0);
++	  if (!never_handle[num_never_handles])
++	    never_handle[num_never_handles] = CreateEvent (0, FALSE, FALSE, 0);
+ 
+-	  except = never_handle;
++	  except = never_handle[num_never_handles++];
+ 	}
+ 
+       if (readfds && FD_ISSET (fd, readfds))

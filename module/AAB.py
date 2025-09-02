@@ -1,13 +1,14 @@
 import argparse
 import logging
 from packaging.version import Version
+from pathlib import Path
 import shutil
 import subprocess
 
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro, temporary_rw_overlay
 from module.util import cflags_A, cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
@@ -124,30 +125,45 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.march in ['i386', 'i486']:
       make_custom(build_dir, ['all-target-libgcc'], config.jobs)
 
-      libgcc_a = build_dir / ver.target / 'libgcc' / 'libgcc.a'
-      xgcc_libgcc_a = build_dir / 'gcc' / 'libgcc.a'
+      libgcc_a = build_dir / ver.target / 'libgcc/libgcc.a'
 
-      # bootstrapping i386 libatomic is tricky.
-      # the configure script checks whether GCC can compile program.
-      # however, CRT startup code depends on libatomic, which is not built yet.
-      # here we provide fake symbols to pass the check.
       if ver.march == 'i386':
-        libatomic_fake_object = build_dir / 'cas_4_.o'
+        # bootstrapping i386 libatomic is tricky.
+        # the configure script checks whether GCC can compile program.
+        # however, CRT startup code depends on libatomic, which is not built yet.
+        # here we provide fake symbols to pass the check.
+        libatomic_fake_object = build_dir / 'libatomic_fake.o'
         subprocess.run([
           f'{ver.target}-gcc', '-x', 'c', '-c', '-', '-o', libatomic_fake_object,
         ], check = True, input = b''.join([
-          b'int __atomic_compare_exchange_1;',
-          b'int __atomic_compare_exchange_2;',
           b'int __atomic_compare_exchange_4;',
+          b'int __sync_val_compare_and_swap_4;',
+          b'int __sync_bool_compare_and_swap_4;',
         ]))
 
-        add_objects_to_static_lib(f'{ver.target}-ar', xgcc_libgcc_a, [libatomic_fake_object])
+        # we cannot add fake symbols to libgcc.a,
+        # because it will be overwritten by 'configure-target-libatomic'.
+        # here we randomly choose libkernel32.a.
+        lib_dir = Path('/usr/local') / ver.target / 'lib'
+        kernel32_a = lib_dir / 'libkernel32.a'
 
-      make_custom(build_dir, ['all-target-libatomic'], config.jobs)
+        with temporary_rw_overlay(lib_dir):
+          add_objects_to_static_lib(f'{ver.target}-ar', kernel32_a, [libatomic_fake_object])
+          make_custom(build_dir, ['all-target-libatomic'], config.jobs)
+      else:
+        make_custom(build_dir, ['all-target-libatomic'], config.jobs)
 
-      atomic_objects = (build_dir / ver.target / 'libatomic').glob('*.o')
+      atomic_objects = [*(build_dir / ver.target / 'libatomic').glob('*.o')]
+      if ver.march == 'i386':
+        sync_wrappers = ['sync_fetch_and_op', 'sync_op_and_fetch', 'sync_compare_and_swap']
+        for wrapper in sync_wrappers:
+          wrapper_src = paths.sync_src_dir / f'{wrapper}.cc'
+          wrapper_obj = build_dir / f'{wrapper}.o'
+          subprocess.run([
+            f'{ver.target}-gcc', '-c', wrapper_src, '-o', wrapper_obj,
+          ], check = True)
+          atomic_objects.append(wrapper_obj)
       add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
-      shutil.copy(libgcc_a, xgcc_libgcc_a)
 
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAB.gcc)

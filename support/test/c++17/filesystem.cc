@@ -54,20 +54,20 @@ bool test_resize_file() {
   error_code ec;
   fs::resize_file(file, content[0].size(), ec);
   if (ec) {
-    cerr << "[test_copy_file] ";
+    cerr << "[test_resize_file] ";
     cerr << "fs::resize_file failed: " << ec.message() << '\n';
     return false;
   }
   fstream ifs(file, ios::in | ios::binary);
   if (!ifs.is_open()) {
-    cerr << "[test_copy_file] ";
+    cerr << "[test_resize_file] ";
     cerr << "fopen failed" << '\n';
     return false;
   }
   ifs.seekg(0, ios::end);
   size_t len = ifs.tellg();
   if (len != content[0].size()) {
-    cerr << "[test_copy_file] ";
+    cerr << "[test_resize_file] ";
     cerr << "length mismatch: " << len << " != " << content[0].size() << '\n';
     return false;
   }
@@ -75,12 +75,12 @@ bool test_resize_file() {
   char buf[1024];
   ifs.read(buf, len);
   if (!ifs) {
-    cerr << "[test_copy_file] ";
+    cerr << "[test_resize_file] ";
     cerr << "fstream::read failed" << '\n';
     return false;
   }
   if (content[0] != string_view(buf, len)) {
-    cerr << "[test_copy_file] ";
+    cerr << "[test_resize_file] ";
     cerr << "read content mismatch" << '\n';
     return false;
   }

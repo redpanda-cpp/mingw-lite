@@ -199,6 +199,8 @@ namespace NS_NOSTL
       return *this;
     }
 
+    // element access
+  public:
     constexpr CharT &operator[](size_type pos)
     {
       return data()[pos];
@@ -229,6 +231,8 @@ namespace NS_NOSTL
       return basic_string_view<CharT, Traits>(data(), size());
     }
 
+    // capacity
+  public:
     constexpr bool empty() const
     {
       return size() == 0;
@@ -242,6 +246,19 @@ namespace NS_NOSTL
     constexpr size_type length() const
     {
       return size();
+    }
+
+    // modifiers
+  public:
+    void clear()
+    {
+      if (is_heap()) {
+        storage.heap.data[0] = value_type(0);
+        storage.heap.size = 0;
+      } else {
+        storage.sso.data[0] = value_type(0);
+        storage.sso.size.size = 0;
+      }
     }
 
     constexpr void push_back(CharT ch)
@@ -292,8 +309,9 @@ namespace NS_NOSTL
           storage.heap.size = count;
         } else {
           size_t alloc_size = aligned_alloc_size(count);
-          value_type *new_data = static_cast<value_type *>(
-              realloc(storage.heap.data, alloc_size * sizeof(value_type)));
+          value_type *new_data =
+              static_cast<value_type *>(NS_NOSTL_CRT::realloc(
+                  storage.heap.data, alloc_size * sizeof(value_type)));
           if (!new_data)
             NOSTL_RAISE_BAD_ALLOC();
 

@@ -24,39 +24,64 @@ jobs:
           all_old_profile = [
             '64-ucrt_ws2003', '64-msvcrt_ws2003',
             '32-ucrt_winxp', '32-msvcrt_win2000',
-            '32_686-msvcrt_winnt40',
-            '32_486-msvcrt_winnt40',
+            '32_686-msvcrt_win98',
+            '32_486-msvcrt_win98',
+            '32_386-msvcrt_win95',
           ]
           release_old_profile = [
             '32-msvcrt_win2000',
-            '32_686-msvcrt_winnt40',
-            '32_486-msvcrt_winnt40',
+            '32_686-msvcrt_win98',
+            '32_486-msvcrt_win98',
           ]
 
           sat_group = [
             {
               'name': '64-nt6x',
               'profile': json.dumps(['64-mcf', '64-win32', '64-ucrt', '64-msvcrt']),
+              'pattern': '{mingw64-mcf-*,mingw64-win32-*,mingw64-ucrt-*,mingw64-msvcrt-*}',
+              'dict': '512m',
             },
             {
               'name': '64_v2-nt6x',
               'profile': json.dumps(['64_v2-mcf', '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt']),
+              'pattern': '{mingw64_v2-mcf-*,mingw64_v2-win32-*,mingw64_v2-ucrt-*,mingw64_v2-msvcrt-*}',
+              'dict': '512m',
             },
             {
               'name': '32-nt6x',
               'profile': json.dumps(['32-mcf', '32-win32', '32-ucrt', '32-msvcrt']),
+              'pattern': '{mingw32-mcf-*,mingw32-win32-*,mingw32-ucrt-*,mingw32-msvcrt-*}',
+              'dict': '512m',
             },
             {
               'name': '64-nt52',
               'profile': json.dumps(['64-ucrt_ws2003', '64-msvcrt_ws2003']),
+              'pattern': '{mingw64-ucrt_ws2003-*,mingw64-msvcrt_ws2003-*}',
+              'dict': '256m',
             },
             {
               'name': '32-nt5x',
               'profile': json.dumps(['32-ucrt_winxp', '32-msvcrt_win2000']),
+              'pattern': '{mingw32-ucrt_winxp-*,mingw32-msvcrt_win2000-*}',
+              'dict': '256m',
             },
             {
-              'name': '32-nt40',
-              'profile': json.dumps(['32_686-msvcrt_winnt40', '32_486-msvcrt_winnt40']),
+              'name': '32_686-9x',
+              'profile': json.dumps(['32_686-msvcrt_win98']),
+              'pattern': 'mingw32_686-*',
+              'dict': '128m',
+            },
+            {
+              'name': '32_486-9x',
+              'profile': json.dumps(['32_486-msvcrt_win98']),
+              'pattern': 'mingw32_486-*',
+              'dict': '128m',
+            },
+            {
+              'name': '32_386-9x',
+              'profile': json.dumps(['32_386-msvcrt_win95']),
+              'pattern': 'mingw32_386-*',
+              'dict': '128m',
             },
           ]
 
@@ -221,7 +246,7 @@ jobs:
     name: Semi-automated testing archive
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     runs-on: ubuntu-24.04
-    needs: [param, build]
+    needs: [param, build_container, build]
     strategy:
       fail-fast: false
       matrix:
@@ -235,9 +260,18 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          pattern: mingw*
+          name: buildenv
+          path: assets
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ matrix.pattern }}
           path: dist
           merge-multiple: true
+
+      - name: Load container
+        run: |
+          zstdcat assets/buildenv.tar.zst | podman load
 
       - name: Create test archive
         run: |
@@ -248,15 +282,32 @@ jobs:
             $(echo '${{ matrix.profile }}' | jq -r '.[]')
           )
 
+          mkdir layer
+          mkdir pkg
+
+          for p in ${profile[@]} ; do
+            # filename can differ from branch name when a a new branch is just created
+            for archive in $(ls dist/x-mingw$p-*.tar.zst) ; do
+              bsdtar -C layer -xf $archive
+            done
+          done
+          rm dist/x-mingw*.tar.zst
+
           for b in ${branch[@]} ; do
             for p in ${profile[@]} ; do
-              ./sat.py -b $b -p $p
+              podman run --rm --cap-add=sys_admin \
+                -v $PWD:/mnt -w /mnt \
+                -v $PWD/layer:/tmp/layer \
+                -v $PWD/pkg:/tmp/pkg \
+                mingw-lite/buildenv \
+                  ./sat.py --branch $b --profile $p
+              rm -rf layer/mingw$p-$b
             done
           done
 
           (
             cd pkg
-            7z a -t7z -mx9 -ms=on -m0=LZMA:d=256m:fb64 ../dist/sat${{ matrix.name }}.7z sat*
+            7z a -t7z -mx9 -ms=on -mqs -m0=LZMA:d=${{ matrix.dict }}:fb64 ../dist/sat${{ matrix.name }}.7z sat*
           )
 
       - uses: actions/upload-artifact@v4

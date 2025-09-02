@@ -1,0 +1,42 @@
+diff --git a/src/tbox/platform/poller.c b/src/tbox/platform/poller.c
+index 8f8da57c..dcf2092f 100644
+--- a/src/tbox/platform/poller.c
++++ b/src/tbox/platform/poller.c
+@@ -39,6 +39,7 @@
+ #if defined(TB_CONFIG_OS_WINDOWS)
+ #   ifndef TB_CONFIG_MICRO_ENABLE
+ #       include "windows/poller_iocp.c"
++#       include "posix/poller_select.c"
+ #       define TB_POLLER_ENABLE_IOCP
+ #   else
+ #       include "posix/poller_select.c"
+@@ -82,6 +83,17 @@
+ /* //////////////////////////////////////////////////////////////////////////////////////
+  * implementation
+  */
++
++#if defined(TB_POLLER_ENABLE_IOCP)
++static tb_bool_t tb_poller_is_nt()
++{
++    static OSVERSIONINFOA osvi = {sizeof(OSVERSIONINFOA)};
++    if (!osvi.dwMajorVersion)
++        GetVersionExA(&osvi);
++    return osvi.dwPlatformId >= VER_PLATFORM_WIN32_NT;
++}
++#endif
++
+ tb_poller_ref_t tb_poller_init(tb_cpointer_t priv)
+ {
+     tb_bool_t       ok = tb_false;
+@@ -94,7 +106,10 @@ tb_poller_ref_t tb_poller_init(tb_cpointer_t priv)
+ #elif defined(TB_POLLER_ENABLE_KQUEUE)
+         poller = tb_poller_kqueue_init();
+ #elif defined(TB_POLLER_ENABLE_IOCP)
+-        poller = tb_poller_iocp_init();
++        if (tb_poller_is_nt())
++            poller = tb_poller_iocp_init();
++        else
++            poller = tb_poller_select_init();
+ #elif defined(TB_POLLER_ENABLE_POLL)
+         poller = tb_poller_poll_init();
+ #elif defined(TB_POLLER_ENABLE_SELECT)

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <thunk/stl/algorithm.h>
-#include <thunk/stl/iterator.h>
+#include <nostl/__algorithm/lower_bound.h>
+#include <nostl/__iterator/begin.h>
+#include <nostl/__iterator/end.h>
 
 #include <errno.h>
 #include <stdlib.h>
@@ -92,13 +93,14 @@ namespace mingw_thunk::internal
 
   inline int dosmaperr(unsigned long oserror)
   {
+    auto b = stl::cbegin(doserrmap);
+    auto e = stl::cend(doserrmap);
+    doserrmap_t v = {oserror, 0};
+    auto c = [](doserrmap_t a, doserrmap_t b) { return a.dos < b.dos; };
+    auto it = stl::lower_bound(b, e, v, c);
+
     int err = EINVAL;
-    if (auto it = internal::lower_bound(
-            internal::cbegin(doserrmap),
-            internal::cend(doserrmap),
-            doserrmap_t{oserror, 0},
-            [](doserrmap_t a, doserrmap_t b) { return a.dos < b.dos; });
-        it != internal::end(doserrmap) && it->dos == oserror) {
+    if (it != e && it->dos == oserror) {
       err = it->c;
     }
     _set_errno(err);

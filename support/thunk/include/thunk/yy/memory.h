@@ -1,6 +1,6 @@
 #pragma once
 
-#include <thunk/libc/stdlib.h>
+#include <nocrt/stdlib.h>
 
 namespace std
 {
@@ -12,7 +12,7 @@ namespace mingw_thunk::internal
   template <typename T, typename... Args>
   T *New(Args &&...args) noexcept
   {
-    T *ptr = static_cast<T *>(malloc(sizeof(T)));
+    T *ptr = static_cast<T *>(libc::malloc(sizeof(T)));
     if (ptr)
       new (ptr) T(static_cast<Args &&>(args)...);
     return ptr;
@@ -29,26 +29,26 @@ namespace mingw_thunk::internal
 
   struct CppAlloc
   {
-    void *operator new(size_t count) noexcept { return malloc(count); }
-    void *operator new[](size_t count) noexcept { return malloc(count); }
-    void operator delete(void *ptr) noexcept { free(ptr); }
-    void operator delete[](void *ptr) noexcept { free(ptr); }
+    void *operator new(size_t count) noexcept { return libc::malloc(count); }
+    void *operator new[](size_t count) noexcept { return libc::malloc(count); }
+    void operator delete(void *ptr) noexcept { libc::free(ptr); }
+    void operator delete[](void *ptr) noexcept { libc::free(ptr); }
 
     void *operator new(size_t count, const std::nothrow_t &) noexcept
     {
-      return malloc(count);
+      return libc::malloc(count);
     }
     void *operator new[](size_t count, const std::nothrow_t &) noexcept
     {
-      return malloc(count);
+      return libc::malloc(count);
     }
     void operator delete(void *ptr, const std::nothrow_t &) noexcept
     {
-      free(ptr);
+      libc::free(ptr);
     }
     void operator delete[](void *ptr, const std::nothrow_t &) noexcept
     {
-      free(ptr);
+      libc::free(ptr);
     }
 
     void *operator new(size_t count, void *ptr) noexcept { return ptr; }

@@ -11,7 +11,7 @@ namespace mingw_thunk::internal
   inline FILETIME filetime_from_c_time64(__time64_t ct)
   {
     ULARGE_INTEGER ftv{
-        .QuadPart = (ct * 10000000LL) + 116444736000000000LL,
+        .QuadPart = ULONGLONG((ct * 10000000LL) + 116444736000000000LL),
     };
     return {
         .dwLowDateTime = ftv.LowPart,

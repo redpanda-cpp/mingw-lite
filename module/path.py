@@ -89,6 +89,7 @@ class ProjectPaths:
 
   # build phase
 
+  sync_src_dir: Path
   utf8_src_dir: Path
   build_dir: Path
   layer_dir: Path
@@ -129,7 +130,7 @@ class ProjectPaths:
     self.dist_dir = self.root_dir / 'dist'
     self.patch_dir = self.root_dir / 'patch'
 
-    self.meson_cross_file = self.root_dir / 'support/meson' / f'{ver.target}.txt'
+    self.meson_cross_file = self.root_dir / f'support/meson/{ver.target}.txt'
 
     self.mingw_pkg = self.dist_dir / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.mingw_qt_pkg = self.dist_dir / f'q-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
@@ -138,9 +139,10 @@ class ProjectPaths:
 
     # build phase
 
-    self.utf8_src_dir = self.root_dir / 'support' / 'utf8'
+    self.sync_src_dir = self.root_dir / 'support/sync'
+    self.utf8_src_dir = self.root_dir / 'support/utf8'
     self.build_dir = Path(f'/tmp/build/{abi_name}')
-    self.layer_dir = Path(f'{tempfile.gettempdir()}/layer/{abi_name}')
+    self.layer_dir = Path(f'/tmp/layer/{abi_name}')
     self.pkg_dir = Path(f'/tmp/pkg/{abi_name}')
 
     src_name = SourcePaths(

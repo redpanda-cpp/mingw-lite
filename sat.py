@@ -8,7 +8,7 @@ import subprocess
 from module.args import parse_args
 from module.path import ProjectPaths
 from module.profile import BranchProfile, resolve_profile
-from module.util import XMAKE_ARCH_MAP
+from module.util import XMAKE_ARCH_MAP, overlayfs_ro
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.sat_dir.exists():
@@ -38,49 +38,12 @@ def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
   extract(paths.sat_mingw_dir, paths.mingw_pkg)
   extract(paths.sat_mingw_dir, paths.xmake_pkg)
 
-def test_mingw_compiler_batch(ver: BranchProfile, paths: ProjectPaths):
-  xmake = (paths.sat_mingw_dir / 'bin/xmake.exe').relative_to(paths.sat_dir)
-  mingw = paths.sat_mingw_dir.relative_to(paths.sat_dir)
+def write_gdb_commands(ver: BranchProfile, paths: ProjectPaths):
+  mingw_arch = XMAKE_ARCH_MAP[ver.arch]
+  xmake_arch = f'build/mingw/{mingw_arch}/debug'
+  inferior = f'{xmake_arch}/breakpoint.exe'
 
-  with open(paths.sat_dir / 'test_mingw_compiler.bat', 'wb') as f:
-    content = (
-      '@echo off\n'
-      f'{xmake} f -v -p mingw -a {XMAKE_ARCH_MAP[ver.arch]} --mingw={mingw}\n'
-      f'{xmake} b -v\n'
-      f'{xmake} test -v\n'
-      'pause\n'
-    )
-    f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
-
-def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
-  mingw = paths.sat_mingw_dir.relative_to(paths.sat_dir)
-
-  build_dir = f'build/mingw/{XMAKE_ARCH_MAP[ver.arch]}/debug'
-  inferior = f'{build_dir}/breakpoint.exe'
-
-  with open(paths.sat_dir / 'test_mingw_make_gdb.bat', 'wb') as f:
-    content = (
-      '@echo off\n'
-      f'set PATH=%~dp0{mingw}/bin;%PATH%\n'
-      f'mkdir {build_dir}\n'
-      f'mingw32-make DIR={build_dir} SUFFIX=.exe\n'
-      'echo Please start gdbserver...\n'
-      'pause\n'
-      'gdb --batch --command=gdb_command.txt\n'
-      'pause\n'
-    )
-    f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
-
-  with open(paths.sat_dir / 'test_mingw_make_gdb_run_gdbserver.bat', 'wb') as f:
-    content = (
-      '@echo off\n'
-      f'set PATH=%~dp0{mingw}/bin;%PATH%\n'
-      f'gdbserver localhost:1234 {inferior}\n'
-      'pause\n'
-    )
-    f.write(content.replace('/', '\\').replace('\n', '\r\n').encode())
-
-  with open(paths.sat_dir / 'gdb_command.txt', 'wb') as f:
+  with open(paths.sat_dir / 'gdb-command.txt', 'wb') as f:
     content = (
       f'file {inferior}\n'
       'set sysroot C:\n'
@@ -101,6 +64,45 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
     )
     f.write(content.encode())
 
+def compile_test_programs(ver: BranchProfile, paths: ProjectPaths):
+  mingw_dir = paths.sat_mingw_dir.relative_to(paths.sat_dir)
+  xmake_arch = XMAKE_ARCH_MAP[ver.arch]
+  debug_build_dir = f'build/mingw/{xmake_arch}/debug'
+
+  flags = [
+    '-std=c11', '-O2', '-s',
+    f'-DMINGW_DIR="{mingw_dir}"',
+    f'-DXMAKE_ARCH="{xmake_arch}"',
+    f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
+  ]
+
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt / 'usr/local',
+  ]):
+    gcc_exe = f'{ver.target}-gcc'
+    common_c = paths.root_dir / 'support/sat/common.c'
+    test_compiler_c = paths.root_dir / 'support/sat/test-compiler.c'
+    test_make_gdb_c = paths.root_dir / 'support/sat/test-make-gdb.c'
+    test_compiler_exe = paths.sat_dir / 'test-compiler.exe'
+    test_make_gdb_exe = paths.sat_dir / 'test-make-gdb.exe'
+
+    subprocess.run([
+      gcc_exe,
+      *flags,
+      test_compiler_c, common_c,
+      '-o', test_compiler_exe,
+    ], check=True)
+
+    subprocess.run([
+      gcc_exe,
+      *flags,
+      test_make_gdb_c, common_c,
+      '-o', test_make_gdb_exe,
+    ], check=True)
+
 def main():
   config = parse_args()
 
@@ -113,9 +115,9 @@ def main():
 
   prepare_test_binary(ver, paths)
 
-  test_mingw_compiler_batch(ver, paths)
+  write_gdb_commands(ver, paths)
 
-  test_mingw_make_gdb_batch(ver, paths)
+  compile_test_programs(ver, paths)
 
 if __name__ == '__main__':
   main()

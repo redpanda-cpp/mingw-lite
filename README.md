@@ -89,7 +89,14 @@ Some profiles have variants for even earlier Windows versions (and possibly olde
 | 64-msvcrt_ws2003 | Windows Server 2003 (NT 5.2) |
 | 32-ucrt_winxp | Windows XP (NT 5.1) |
 | 32-msvcrt_win2000 | Windows 2000 (NT 5.0) |
-| 32_686-msvcrt_winnt40 | Windows NT 4.0 |
-| 32_486-msvcrt_winnt40 | Windows NT 4.0 |
+| 32_686-msvcrt_win98 | Windows NT 4.0<br>Windows 98 (4.10) |
+| 32_486-msvcrt_win98 | Windows NT 4.0<br>Windows 98 (4.10) |
+| 32_386-msvcrt_win95 | Windows NT 4.0<br>Windows 98 (4.10)<br>Limited Windows 95 (4.00) |
+
+Limitations on Windows 95:
+
+- Prerequisite: Windows socket 2 update (for `msvcrt.dll` and `ws2_32.dll`).
+- GCC needs `-fno-lto` to prevent dynamically loading the DLL that has static TLS. ([KB118816](./doc/kb-118816.md))
+- Atomic operations will introduce observable overhead by calling libatomic subroutines.
 
 **Technical notes**: inspired by [YY-Thunks](https://github.com/Chuyu-Team/YY-Thunks), our legacy OS support is achieved by thunks. A thunk is small piece of code that wrap the original Win32 or CRT function, providing alternative implementation when the function is not available on the target OS. Absolutely necessary thunks that support C++ standard library are built into import libraries. No extra operation is required.

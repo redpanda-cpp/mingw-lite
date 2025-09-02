@@ -2,7 +2,9 @@ from contextlib import contextmanager
 import logging
 from pathlib import Path
 import re
+import shutil
 import subprocess
+from tempfile import TemporaryDirectory
 from typing import Iterable, List
 
 from module.profile import ProfileInfo
@@ -181,7 +183,7 @@ def overlayfs_ro(merged: Path | str, lower: list[Path]):
         lower[0],
         merged,
         '-o', 'ro',
-      ])
+      ], check = True)
     else:
       lowerdir = ':'.join(map(str, lower))
       subprocess.run([
@@ -193,7 +195,17 @@ def overlayfs_ro(merged: Path | str, lower: list[Path]):
       ], check = True)
     yield
   finally:
-    subprocess.run(['umount', merged])
+    subprocess.run(['umount', merged], check = False)
+
+@contextmanager
+def temporary_rw_overlay(path: Path | str):
+  with TemporaryDirectory() as tmp:
+    try:
+      shutil.copytree(path, tmp, dirs_exist_ok = True)
+      subprocess.run(['mount', '--bind', tmp, path], check = True)
+      yield
+    finally:
+      subprocess.run(['umount', path], check = False)
 
 def xmake_build(cwd: Path, jobs: int):
   subprocess.run(

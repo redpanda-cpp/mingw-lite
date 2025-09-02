@@ -45,6 +45,10 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Don't optimize out libtool wrapper magic
     patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'dont-optimize-out-libtool-wrapper-magic.patch')
 
+    # Ignore 9x long path
+    if ver.min_os.major < 4:
+      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'ignore-9x-long-path.patch')
+
     patch_done(paths.src_dir.binutils)
 
 def _expat(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
@@ -117,6 +121,12 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.gdb, paths.src_arx.gdb):
     v = Version(ver.gdb)
 
+    # Fix path corruption
+    if v.major >= 15:
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-path-corruption_15.patch')
+    else:
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-path-corruption_14.patch')
+
     # Fix thread
     if v.major >= 16:
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-thread_16.patch')
@@ -132,6 +142,16 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Fix ui-style regex init
     if v.major >= 16:
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-ui-style-regex-init.patch')
+
+    if ver.min_os.major < 4:
+      # Ignore 9x long path
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'ignore-9x-long-path.patch')
+
+      # Fix 9x select
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-9x-select.patch')
+
+      # Fix 9x negative P/TID
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-9x-negative-ptid.patch')
 
     patch_done(paths.src_dir.gdb)
 
@@ -222,12 +242,17 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
   if check_and_sync(paths.src_dir.mingw_host, paths.src_dir.mingw):
     # CRT: Add mingw thunks
+    msvcrt_flag = []
+    if ver.default_crt == 'msvcrt':
+      msvcrt_flag.append('--msvcrt')
+
     subprocess.run([
       './patch.py',
       paths.src_dir.mingw_host,
       '-a', ver.arch,
       '--level', 'toolchain',
       '--nt-ver', str(ver.min_os),
+      *msvcrt_flag,
     ], cwd = paths.in_tree_src_tree.thunk, check = True)
 
     _autoreconf(paths.src_dir.mingw_host / 'mingw-w64-crt')
@@ -241,12 +266,17 @@ def _mingw_target(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
   if check_and_sync(paths.src_dir.mingw_target, paths.src_dir.mingw):
     # CRT: Add mingw thunks
+    msvcrt_flag = []
+    if ver.default_crt == 'msvcrt':
+      msvcrt_flag.append('--msvcrt')
+
     subprocess.run([
       './patch.py',
       paths.src_dir.mingw_target,
       '-a', ver.arch,
       '--level', 'core',
       '--nt-ver', str(ver.min_os),
+      *msvcrt_flag,
     ], cwd = paths.in_tree_src_tree.thunk, check = True)
 
     _autoreconf(paths.src_dir.mingw_target / 'mingw-w64-crt')
@@ -260,12 +290,17 @@ def _mingw_qt(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
   if check_and_sync(paths.src_dir.mingw_qt, paths.src_dir.mingw):
     # CRT: Add mingw thunks
+    msvcrt_flag = []
+    if ver.default_crt == 'msvcrt':
+      msvcrt_flag.append('--msvcrt')
+
     subprocess.run([
       './patch.py',
       paths.src_dir.mingw_qt,
       '-a', ver.arch,
       '--level', 'qt',
       '--nt-ver', str(ver.min_os),
+      *msvcrt_flag,
     ], cwd = paths.in_tree_src_tree.thunk, check = True)
 
     _autoreconf(paths.src_dir.mingw_qt / 'mingw-w64-crt')
@@ -354,7 +389,7 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     tbox = paths.src_dir.xmake / 'core/src/tbox/tbox'
 
     # disable werror
-    xmake_lua = paths.src_dir.xmake / 'core' / 'xmake.lua'
+    xmake_lua = paths.src_dir.xmake / 'core/xmake.lua'
     with open(xmake_lua, 'r') as f:
       xmake_lua_content = f.readlines()
     with open(xmake_lua, 'w') as f:
@@ -364,8 +399,20 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
         else:
           f.write(line)
 
+    # DOS capital path
+    patch(paths.src_dir.xmake, paths.patch_dir / 'xmake/DOS-CAPITAL-PATH.patch')
+
     # Tbox: ignore process group
-    patch(tbox, paths.patch_dir / 'xmake' / 'tbox-ignore-process-group.patch')
+    patch(tbox, paths.patch_dir / 'xmake/tbox-ignore-process-group.patch')
+
+    # Tbox: reduce kernel32 runtime linking
+    patch(tbox, paths.patch_dir / 'xmake/tbox-reduce-kernel32-runtime-linking.patch')
+
+    # Tbox: fix 9x file time range
+    patch(tbox, paths.patch_dir / 'xmake/tbox-fix-9x-file-time-range.patch')
+
+    # Tbox: 9x IOCP fallback
+    patch(tbox, paths.patch_dir / 'xmake/tbox-9x-iocp-fallback.patch')
 
     patch_done(paths.src_dir.xmake)
 

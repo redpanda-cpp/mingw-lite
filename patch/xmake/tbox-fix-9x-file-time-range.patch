@@ -1,0 +1,12 @@
+diff --git a/src/tbox/platform/windows/file.c b/src/tbox/platform/windows/file.c
+index d61641e7..6951e897 100644
+--- a/src/tbox/platform/windows/file.c
++++ b/src/tbox/platform/windows/file.c
+@@ -609,6 +609,7 @@ tb_bool_t tb_file_touch(tb_char_t const* path, tb_time_t atime, tb_time_t mtime)
+         {
+             FILETIME atime_ft, mtime_ft;
+             if (atime > 0) tb_time_to_filetime(atime, &atime_ft);
++            else if (mtime > 0) tb_time_to_filetime(mtime, &atime_ft);
+             else
+             {
+                 atime_ft.dwLowDateTime = 0xffffffff;

@@ -1,0 +1,35 @@
+diff --git a/bfd/bfdio.c b/bfd/bfdio.c
+index 22c39a7b0cc..d47e4ca827b 100644
+--- a/bfd/bfdio.c
++++ b/bfd/bfdio.c
+@@ -120,13 +120,8 @@ _bfd_real_fopen (const char *filename, const char *modes)
+   /* PR 25713: Handle extra long path names possibly containing '..' and '.'.  */
+    wchar_t **     lpFilePart = {NULL};
+    const wchar_t  prefix[] = L"\\\\?\\";
+-   const size_t   partPathLen = strlen (filename) + 1;
+ #ifdef __MINGW32__
+-#if !HAVE_DECL____LC_CODEPAGE_FUNC
+-/* This prototype was added to locale.h in version 9.0 of MinGW-w64.  */
+-   _CRTIMP unsigned int __cdecl ___lc_codepage_func (void);
+-#endif
+-   const unsigned int cp = ___lc_codepage_func ();
++   const unsigned int cp = CP_ACP;
+ #else
+    const unsigned int cp = CP_UTF8;
+ #endif
+@@ -136,13 +131,14 @@ _bfd_real_fopen (const char *filename, const char *modes)
+       2) Convert the string: Calling with cbMultiByte set to -1 includes the terminating null.  */
+    size_t         partPathWSize = MultiByteToWideChar (cp, 0, filename, -1, NULL, 0);
+    wchar_t *      partPath = calloc (partPathWSize, sizeof(wchar_t));
++   const size_t   partPathLen = partPathWSize - 1;
+    size_t         ix;
+ 
+    MultiByteToWideChar (cp, 0, filename, -1, partPath, partPathWSize);
+ 
+    /* Convert any UNIX style path separators into the DOS i.e. backslash separator.  */
+    for (ix = 0; ix < partPathLen; ix++)
+-     if (IS_UNIX_DIR_SEPARATOR(filename[ix]))
++     if (IS_UNIX_DIR_SEPARATOR(partPath[ix]))
+        partPath[ix] = '\\';
+ 
+    /* Getting the full path from the provided partial path.

@@ -37,6 +37,7 @@ namespace mingw_thunk::internal
   inline module_handle module_kernel32{"kernel32.dll"};
   inline module_handle module_msvcrt{"msvcrt.dll"};
   inline module_handle module_ntdll{"ntdll.dll"};
+  inline module_handle module_shell32{"shell32.dll"};
   inline module_handle module_ws2_32{"ws2_32.dll"};
 
   inline module_handle module_api_ms_win_core_path_l1_1_0{
@@ -88,7 +89,9 @@ namespace mingw_thunk::internal
 #define __DEFINE_THUNK(                                                        \
     module, size, return_type, calling_convention, function, ...)              \
                                                                                \
-  using fn_##function##_t = return_type calling_convention(__VA_ARGS__);       \
+  extern "C" return_type calling_convention function(__VA_ARGS__);             \
+                                                                               \
+  using fn_##function##_t = decltype(function);                                \
                                                                                \
   namespace                                                                    \
   {                                                                            \
@@ -103,7 +106,7 @@ namespace mingw_thunk::internal
     __DECLARE_TRY_GET_FUNCTION(function)                                       \
   }                                                                            \
                                                                                \
-  extern "C" fn_##function##_t *dllimport_##function __asm__(                  \
+  fn_##function##_t *dllimport_##function __asm__(                             \
       __DLLIMPORT_SYMBOL_NAME_##calling_convention(function, size)) =          \
       function;                                                                \
                                                                                \

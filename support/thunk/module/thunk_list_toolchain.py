@@ -1,18 +1,41 @@
-from packaging.version import Version
-
 THUNK_LIST_TOOLCHAIN = {
+  '3.9999+4.10': {
+    'kernel32': [
+      'CancelIo',
+      'CreateWaitableTimerA',
+      'GetFileAttributesExA',
+      'SetWaitableTimer',
+      'SwitchToThread',
+    ]
+  },
+  '4.0': {
+    'kernel32': [
+      'CopyFileExA',
+      'CopyFileExW',
+      'CopyFileW',
+      'CreateDirectoryW',
+      'CreateProcessW',
+      'CreateThread',
+      'CreateWaitableTimerW',
+      'GetEnvironmentVariableW',
+      'GetModuleFileNameW',
+      'GetTempPathW',
+      'LockFileEx',
+      'SetCurrentDirectoryW',
+      'SetEnvironmentVariableW',
+      'UnlockFileEx',
+    ],
+    'shell32': [
+      'CommandLineToArgvW',
+    ],
+  },
   '5.0': {
     'advapi32': [
       'ConvertStringSecurityDescriptorToSecurityDescriptorW',
     ],
     'kernel32': [
-      'CreateHardLinkW',
       'CreateToolhelp32Snapshot',
-      'FindFirstVolumeW',
-      'FindNextVolumeW',
-      'FindVolumeClose',
       'GetCPInfoExA',
-      'GetFileSizeEx',
       'GetLongPathNameW',
       'GetVolumePathNameW',
       'GlobalMemoryStatusEx',
@@ -20,26 +43,10 @@ THUNK_LIST_TOOLCHAIN = {
       'Module32Next',
       'SetFilePointerEx',
     ],
-    'msvcrt': [
-      '_ctime64',
-      '_findfirst64',
-      '_findnext64',
-      ('_fstat64', lambda v_major: v_major < 13),
-      '_futime64',
-      '_gmtime64',
-      '_localtime64',
-      ('_stat64', lambda v_major: v_major < 13),
-      ('_time64', lambda v_major: v_major < 13),
-      '_utime64',
-      '_wfindfirst64',
-      '_wfindnext64',
-      ('_wstat64', lambda v_major: v_major < 13),
-      '_wutime64',
-    ],
   },
   '5.1': {
     'kernel32': [
-      'AddVectoredExceptionHandler',
+      ('AddVectoredExceptionHandler', lambda v_major: v_major >= 13),
       'GetConsoleProcessList',
       'GetModuleHandleExW',
       'GetNumaHighestNodeNumber',
@@ -47,7 +54,7 @@ THUNK_LIST_TOOLCHAIN = {
       'GetSystemTimes',
       'GetSystemWow64DirectoryA',
       'GetVolumePathNamesForVolumeNameW',
-      'RemoveVectoredExceptionHandler',
+      ('RemoveVectoredExceptionHandler', lambda v_major: v_major >= 13),
     ],
     'ws2_32': [
       'freeaddrinfo',
@@ -91,15 +98,6 @@ THUNK_LIST_TOOLCHAIN = {
       'LocaleNameToLCID',
       'SetFileInformationByHandle',
       'UpdateProcThreadAttribute',
-    ],
-    'msvcrt': [
-      '_wputenv_s',
-      'wcscat_s',
-      'wcscpy_s',
-      'wcsncat_s',
-      'wcsncpy_s',
-      # added in 13 to implement C95 wcstok
-      ('wcstok_s', lambda v_major: v_major < 13),
     ],
   },
   '6.1': {

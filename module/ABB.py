@@ -24,6 +24,7 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     build_dir = paths.src_dir.xmake / 'core'
     xmake_config(build_dir, [
+      '-m', 'releasedbg',
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
     ])
@@ -355,7 +356,16 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     # add libatomic to libgcc for convenience
     if ver.march in ['i386', 'i486']:
       libgcc_a = paths.layer_ABB.gcc / 'lib/gcc' / ver.target / str(v.major) / 'libgcc.a'
-      atomic_objects = (build_dir / ver.target / 'libatomic').glob('*.o')
+      atomic_objects = [*(build_dir / ver.target / 'libatomic').glob('*.o')]
+      if ver.march == 'i386':
+        sync_wrappers = ['sync_fetch_and_op', 'sync_op_and_fetch', 'sync_compare_and_swap']
+        for wrapper in sync_wrappers:
+          wrapper_src = paths.sync_src_dir / f'{wrapper}.cc'
+          wrapper_obj = build_dir / f'{wrapper}.o'
+          subprocess.run([
+            f'{ver.target}-gcc', '-c', wrapper_src, '-o', wrapper_obj,
+          ], check = True)
+          atomic_objects.append(wrapper_obj)
       add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
 
   license_dir = paths.layer_ABB.gcc / 'share/licenses/gcc'

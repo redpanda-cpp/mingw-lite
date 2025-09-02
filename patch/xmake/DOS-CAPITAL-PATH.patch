@@ -1,0 +1,13 @@
+diff --git a/xmake/modules/detect/sdks/find_mingw.lua b/xmake/modules/detect/sdks/find_mingw.lua
+index ac1f9802a..17379ce0b 100644
+--- a/xmake/modules/detect/sdks/find_mingw.lua
++++ b/xmake/modules/detect/sdks/find_mingw.lua
+@@ -56,7 +56,7 @@ function _find_mingwdir(sdkdir)
+                 local match_pattern = "[\\/]packages[\\/]%w[\\/].*mingw.*[\\/][^\\/]+[\\/]" .. buildhash_pattern .. "[\\/]bin"
+                 for _, p in ipairs(path.splitenv(pathenv)) do
+                     if (p:find(match_pattern) or p:find(string.ipattern("mingw[%w%-%_%+]*[\\/]bin"))) and
+-                        path.filename(p) == "bin" and os.isdir(p) then
++                        path.filename(p):lower() == "bin" and os.isdir(p) then
+                         sdkdir = path.directory(p)
+                         break
+                     end

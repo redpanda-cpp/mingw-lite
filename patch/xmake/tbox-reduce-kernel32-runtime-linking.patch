@@ -1,0 +1,133 @@
+diff --git a/src/tbox/platform/windows/environment.c b/src/tbox/platform/windows/environment.c
+index bc08c0ee..47ac3668 100644
+--- a/src/tbox/platform/windows/environment.c
++++ b/src/tbox/platform/windows/environment.c
+@@ -55,7 +55,7 @@ static tb_char_t* tb_environment_get_impl(tb_char_t const* name, tb_size_t* psiz
+         tb_assert_and_check_break(name_n != -1);
+ 
+         // get it
+-        size = (tb_size_t)tb_kernel32()->GetEnvironmentVariableW(name_w, value_w, (DWORD)maxn);
++        size = (tb_size_t)GetEnvironmentVariableW(name_w, value_w, (DWORD)maxn);
+         if (!size)
+         {
+             // error?
+@@ -74,7 +74,7 @@ static tb_char_t* tb_environment_get_impl(tb_char_t const* name, tb_size_t* psiz
+             tb_assert_and_check_break(value_w);
+ 
+             // get it
+-            size = (tb_size_t)tb_kernel32()->GetEnvironmentVariableW(name_w, value_w, (DWORD)size + 1);
++            size = (tb_size_t)GetEnvironmentVariableW(name_w, value_w, (DWORD)size + 1);
+             tb_assert_and_check_break(size);
+         }
+ 
+@@ -152,7 +152,7 @@ static tb_bool_t tb_environment_set_impl(tb_char_t const* name, tb_char_t const*
+ #endif
+ 
+             // set it
+-            if (!tb_kernel32()->SetEnvironmentVariableW(name_w, value_w)) break;
++            if (!SetEnvironmentVariableW(name_w, value_w)) break;
+ 
+         }
+         // remove this variable
+@@ -169,7 +169,7 @@ static tb_bool_t tb_environment_set_impl(tb_char_t const* name, tb_char_t const*
+             }
+ #endif
+             // remove it
+-            if (!tb_kernel32()->SetEnvironmentVariableW(name_w, tb_null)) break;
++            if (!SetEnvironmentVariableW(name_w, tb_null)) break;
+         }
+ 
+         // ok
+diff --git a/src/tbox/platform/windows/interface/kernel32.c b/src/tbox/platform/windows/interface/kernel32.c
+index 603737dc..af0c6cd4 100644
+--- a/src/tbox/platform/windows/interface/kernel32.c
++++ b/src/tbox/platform/windows/interface/kernel32.c
+@@ -44,9 +44,6 @@ static tb_bool_t tb_kernel32_instance_init(tb_kernel32_ref_t kernel32)
+     TB_INTERFACE_LOAD(kernel32, GetFileSizeEx);
+     TB_INTERFACE_LOAD(kernel32, CancelIoEx);
+     TB_INTERFACE_LOAD(kernel32, GetQueuedCompletionStatusEx);
+-    TB_INTERFACE_LOAD(kernel32, GetEnvironmentVariableW);
+-    TB_INTERFACE_LOAD(kernel32, SetEnvironmentVariableW);
+-    TB_INTERFACE_LOAD(kernel32, CreateProcessW);
+     TB_INTERFACE_LOAD(kernel32, WaitForMultipleObjects);
+     TB_INTERFACE_LOAD(kernel32, GetExitCodeProcess);
+     TB_INTERFACE_LOAD(kernel32, TerminateProcess);
+diff --git a/src/tbox/platform/windows/interface/kernel32.h b/src/tbox/platform/windows/interface/kernel32.h
+index ec7f6402..508c6abc 100644
+--- a/src/tbox/platform/windows/interface/kernel32.h
++++ b/src/tbox/platform/windows/interface/kernel32.h
+@@ -74,25 +74,6 @@ typedef USHORT (WINAPI* tb_kernel32_RtlCaptureStackBackTrace_t)(
+ // the GetFileSizeEx func type
+ typedef BOOL (WINAPI* tb_kernel32_GetFileSizeEx_t)(HANDLE hFile, PLARGE_INTEGER lpFileSize);
+ 
+-// the GetEnvironmentVariableW func type
+-typedef DWORD (WINAPI* tb_kernel32_GetEnvironmentVariableW_t)(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize);
+-
+-// the SetEnvironmentVariableW func type
+-typedef BOOL (WINAPI* tb_kernel32_SetEnvironmentVariableW_t)(LPCWSTR lpName, LPCWSTR lpValue);
+-
+-// the CreateProcessW func type
+-typedef BOOL (WINAPI* tb_kernel32_CreateProcessW_t)(
+-    LPCWSTR lpApplicationName,
+-    LPCWSTR lpCommandLine,
+-    LPSECURITY_ATTRIBUTES lpProcessAttributes,
+-    LPSECURITY_ATTRIBUTES lpThreadAttributes,
+-    BOOL bInheritHandles,
+-    DWORD dwCreationFlags,
+-    LPVOID lpEnvironment,
+-    LPCWSTR lpCurrentDirectory,
+-    LPSTARTUPINFO lpStartupInfo,
+-    LPPROCESS_INFORMATION lpProcessInformation);
+-
+ // the WaitForMultipleObjects func type
+ typedef DWORD (WINAPI* tb_kernel32_WaitForMultipleObjects_t)(
+     DWORD  nCount,
+@@ -228,15 +209,6 @@ typedef struct __tb_kernel32_t
+     // GetQueuedCompletionStatusEx
+     tb_kernel32_GetQueuedCompletionStatusEx_t           GetQueuedCompletionStatusEx;
+ 
+-    // GetEnvironmentVariableW
+-    tb_kernel32_GetEnvironmentVariableW_t               GetEnvironmentVariableW;
+-
+-    // SetEnvironmentVariableW
+-    tb_kernel32_SetEnvironmentVariableW_t               SetEnvironmentVariableW;
+-
+-    // CreateProcessW
+-    tb_kernel32_CreateProcessW_t                        CreateProcessW;
+-
+     // WaitForMultipleObjects
+     tb_kernel32_WaitForMultipleObjects_t                WaitForMultipleObjects;
+ 
+diff --git a/src/tbox/platform/windows/process.c b/src/tbox/platform/windows/process.c
+index 50188544..f2057183 100644
+--- a/src/tbox/platform/windows/process.c
++++ b/src/tbox/platform/windows/process.c
+@@ -48,8 +48,8 @@
+ typedef struct __tb_process_t
+ {
+     // the startup info
+-    STARTUPINFOEX           si;
+-    STARTUPINFO*            psi;
++    STARTUPINFOEXW          si;
++    STARTUPINFOW*           psi;
+ 
+     // the process info
+     PROCESS_INFORMATION     pi;
+@@ -501,7 +501,7 @@ tb_process_ref_t tb_process_init_cmd(tb_char_t const* cmd, tb_process_attr_ref_t
+         sat.bInheritHandle          = bInheritHandle;
+ 
+         // create process
+-        if (!tb_kernel32()->CreateProcessW(tb_null,
++        if (!CreateProcessW(tb_null,
+                 command,
+                 &sap,
+                 &sat,
+@@ -521,7 +521,7 @@ tb_process_ref_t tb_process_init_cmd(tb_char_t const* cmd, tb_process_attr_ref_t
+             if ((flags & CREATE_BREAKAWAY_FROM_JOB) && GetLastError() == ERROR_ACCESS_DENIED)
+             {
+                 flags &= ~CREATE_BREAKAWAY_FROM_JOB;
+-                if (!tb_kernel32()->CreateProcessW(tb_null,
++                if (!CreateProcessW(tb_null,
+                         command,
+                         &sap,
+                         &sat,

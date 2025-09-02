@@ -33,7 +33,7 @@ namespace mingw_thunk::internal
 
   inline bool os_lt(int major, int minor) noexcept
   {
-    auto osvi = os_version();
+    auto &osvi = os_version();
     if (!is_nt())
       return true;
     return osvi.dwMajorVersion < major ||

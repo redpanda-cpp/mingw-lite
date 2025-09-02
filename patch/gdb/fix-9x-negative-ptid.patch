@@ -1,0 +1,40 @@
+diff --git a/gdb/remote.c b/gdb/remote.c
+index ae08c980efc..0a142ad0d98 100644
+--- a/gdb/remote.c
++++ b/gdb/remote.c
+@@ -3269,13 +3269,13 @@ remote_target::write_ptid (char *buf, const char *endbuf, ptid_t ptid)
+   if (m_features.remote_multi_process_p ())
+     {
+       pid = ptid.pid ();
+-      if (pid < 0)
++      if (pid == -1)
+ 	buf += xsnprintf (buf, endbuf - buf, "p-%x.", -pid);
+       else
+ 	buf += xsnprintf (buf, endbuf - buf, "p%x.", pid);
+     }
+   tid = ptid.lwp ();
+-  if (tid < 0)
++  if (tid == -1)
+     buf += xsnprintf (buf, endbuf - buf, "-%x", -tid);
+   else
+     buf += xsnprintf (buf, endbuf - buf, "%x", tid);
+diff --git a/gdbserver/remote-utils.cc b/gdbserver/remote-utils.cc
+index fb5c38d4522..59cd21924a9 100644
+--- a/gdbserver/remote-utils.cc
++++ b/gdbserver/remote-utils.cc
+@@ -524,13 +524,13 @@ write_ptid (char *buf, ptid_t ptid)
+   if (cs.multi_process)
+     {
+       pid = ptid.pid ();
+-      if (pid < 0)
++      if (pid == -1)
+ 	buf += sprintf (buf, "p-%x.", -pid);
+       else
+ 	buf += sprintf (buf, "p%x.", pid);
+     }
+   tid = ptid.lwp ();
+-  if (tid < 0)
++  if (tid == -1)
+     buf += sprintf (buf, "-%x", -tid);
+   else
+     buf += sprintf (buf, "%x", tid);

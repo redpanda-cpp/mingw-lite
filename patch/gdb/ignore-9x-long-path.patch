@@ -1,0 +1,16 @@
+diff --git a/bfd/bfdio.c b/bfd/bfdio.c
+index 2a7f77fa8d4..d71c3df4df3 100644
+--- a/bfd/bfdio.c
++++ b/bfd/bfdio.c
+@@ -117,6 +117,11 @@ _bfd_real_fopen (const char *filename, const char *modes)
+     }
+ 
+ #elif defined (_WIN32)
++  OSVERSIONINFOA osvi = {sizeof (OSVERSIONINFOA)};
++  GetVersionExA (&osvi);
++  if (osvi.dwPlatformId < VER_PLATFORM_WIN32_NT)
++    return close_on_exec (fopen (filename, modes));
++
+   /* PR 25713: Handle extra long path names possibly containing '..' and '.'.  */
+   wchar_t **      lpFilePart = {NULL};
+   const wchar_t   prefixDOS[] = L"\\\\?\\";
