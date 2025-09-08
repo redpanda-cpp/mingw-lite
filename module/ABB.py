@@ -328,6 +328,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
 
+    paths.layer_AAB.expat / 'usr/local',
     paths.layer_AAB.gmp / 'usr/local',
     paths.layer_AAB.mpfr / 'usr/local',
     paths.layer_AAB.mpc / 'usr/local',
@@ -340,10 +341,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     build_dir = paths.src_dir.gdb / 'build-ABB'
     ensure(build_dir)
 
-    python_flags = []
     c_extra = []
-
-    python_flags.append(f'--with-python=/usr/local/{ver.target}/python-config.sh')
 
     # GCC 15 defaults to C23, in which `foo()` means `foo(void)` instead of `foo(...)`.
     if v_gcc.major >= 15 and v < Version('17'):
@@ -369,8 +367,8 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-install-libbfd',
       '--enable-tui',
       # packages
+      f'--with-python=/usr/local/{ver.target}/python-config.sh',
       f'--with-system-gdbinit=/share/gdb/gdbinit',
-      *python_flags,
       *cflags,
     ])
 
