@@ -3,15 +3,127 @@ name: Build
 on: [push, pull_request]
 
 jobs:
+  param:
+    name: Determine parameter
+    runs-on: ubuntu-24.04
+    steps:
+      - id: param
+        run: |
+          python3 <<EOF >"$GITHUB_OUTPUT"
+          import json
+
+          all_branch = ['16', '15', '14', '13']
+
+          common_profile = [
+            '64-mcf', '64-win32', '64-ucrt', '64-msvcrt',
+            '32-mcf', '32-win32', '32-ucrt', '32-msvcrt',
+
+            # profile variants for micro architectures
+            '64_v2-mcf', '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt',
+          ]
+          all_old_profile = [
+            '64-ucrt_ws2003', '64-msvcrt_ws2003',
+            '32-ucrt_winxp', '32-msvcrt_win2000',
+            '32_686-msvcrt_winnt40',
+            '32_486-msvcrt_winnt40',
+          ]
+          release_old_profile = [
+            '32-msvcrt_win2000',
+            '32_686-msvcrt_winnt40',
+            '32_486-msvcrt_winnt40',
+          ]
+
+          sat_group = [
+            {
+              'name': '64-nt61',
+              'profile': json.dumps(['64-mcf', '64_v2-mcf']),
+            },
+            {
+              'name': '64-nt60',
+              'profile': json.dumps([
+                '64-win32', '64-ucrt', '64-msvcrt',
+                '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt',
+              ]),
+            },
+            {
+              'name': '32-nt61',
+              'profile': json.dumps(['32-mcf']),
+            },
+            {
+              'name': '32-nt60',
+              'profile': json.dumps(['32-win32', '32-ucrt', '32-msvcrt']),
+            },
+            {
+              'name': '64-nt52',
+              'profile': json.dumps(['64-ucrt_ws2003', '64-msvcrt_ws2003']),
+            },
+            {
+              'name': '32-nt51',
+              'profile': json.dumps(['32-ucrt_winxp']),
+            },
+            {
+              'name': '32-nt50',
+              'profile': json.dumps(['32-msvcrt_win2000']),
+            },
+            {
+              'name': '32-nt40',
+              'profile': json.dumps([
+                '32_686-msvcrt_winnt40',
+                '32_486-msvcrt_winnt40',
+              ]),
+            },
+          ]
+
+          if '${{ github.ref_type }}' == 'tag':
+            current_branch = '${{ github.ref_name }}'.split('-')[0].split('.')[0]
+            branch = [current_branch]
+            profile = common_profile + release_old_profile
+            release = True
+            prerelease = int(current_branch) >= 16
+            release_xmake = release_old_profile
+          else:
+            branch = all_branch
+            profile = common_profile + all_old_profile
+            release = False
+            prerelease = True
+            release_xmake = all_old_profile
+
+          print(f'branch={json.dumps(branch)}')
+          print(f'profile={json.dumps(profile)}')
+          print(f'release={json.dumps(release)}')
+          print(f'prerelease={json.dumps(prerelease)}')
+          print(f'release_xmake={json.dumps(release_xmake)}')
+          print(f'sat_group={json.dumps(sat_group)}')
+          EOF
+
+    outputs:
+      branch: ${{ steps.param.outputs.branch }}
+      profile: ${{ steps.param.outputs.profile }}
+      release: ${{ steps.param.outputs.release }}
+      prerelease: ${{ steps.param.outputs.prerelease }}
+      release_xmake: ${{ steps.param.outputs.release_xmake }}
+      sat_group: ${{ steps.param.outputs.sat_group }}
+
   download_source:
     name: Download source
+    runs-on: ubuntu-24.04
+    needs: param
     strategy:
       fail-fast: true
       matrix:
-        branch: [16, 15, 14, 13]
-    uses: ./.github/workflows/download_source_per_branch.yml
-    with:
-      branch: ${{ matrix.branch }}
+        branch: ${{ fromJson(needs.param.outputs.branch) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download source
+        run: |
+          ./main.py --branch ${{ matrix.branch }} --profile 64-mcf --download-only
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: src-${{ matrix.branch }}
+          path: |
+            assets
 
   build_container:
     name: Build container
@@ -33,66 +145,31 @@ jobs:
           path: assets/buildenv.tar.zst
 
   build:
-    name: Build (${{ matrix.profile }})
-    needs: [download_source, build_container]
+    name: Build
+    needs: [param, download_source, build_container]
     strategy:
       fail-fast: false
       matrix:
-        profile: [
-          64-mcf, 64-win32, 64-ucrt, 64-msvcrt,
-          32-mcf, 32-win32, 32-ucrt, 32-msvcrt,
-
-          # profile variants for micro architectures
-          64_v2-mcf, 64_v2-win32, 64_v2-ucrt, 64_v2-msvcrt,
-
-          # profile variants for earlier Windows versions
-          64-ucrt_ws2003, 64-msvcrt_ws2003,
-          32-ucrt_winxp, 32-msvcrt_win2000,
-          32_686-msvcrt_winnt40,
-          32_486-msvcrt_winnt40,
-        ]
-    uses: ./.github/workflows/build_per_profile.yml
+        branch: ${{ fromJson(needs.param.outputs.branch) }}
+        profile: ${{ fromJson(needs.param.outputs.profile) }}
+    uses: ./.github/workflows/build_single.yml
     with:
+      branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
-      release_skip_profile: ${{ contains(fromJson('["64-ucrt_ws2003", "64-msvcrt_ws2003", "32-ucrt_winxp"]'), matrix.profile) }}
 
   release:
     name: Release
-    needs: build
-    if: github.ref_type == 'tag'
+    needs: [param, build]
+    if: ${{ fromJson(needs.param.outputs.release) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJson(needs.param.outputs.branch) }}
     runs-on: ubuntu-24.04
     steps:
       - uses: ConorMacBride/install-package@v1
         with:
-          apt: 7zip libarchive-tools
-
-      - name: Determine parameter
-        id: param
-        run: |
-          ref_name="${{ github.ref_name }}"
-          branch="${ref_name%%-*}"
-          branch="${branch%%.*}"
-
-          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
-
-          if [[ $branch == 16 ]] ; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          mingw_list=(
-            {64,64_v2,32}-{mcf,win32,ucrt,msvcrt}
-            32-msvcrt_win2000
-            32_{686,486}-msvcrt_winnt40
-          )
-          echo "mingw_list=${mingw_list[*]}" >> "$GITHUB_OUTPUT"
-
-          xmake_list=(
-            32-msvcrt_win2000
-            32_{686,486}-msvcrt_winnt40
-          )
-          echo "xmake_list=${xmake_list[*]}" >> "$GITHUB_OUTPUT"
+          apt: 7zip jq libarchive-tools
 
       - uses: actions/download-artifact@v4
         with:
@@ -105,9 +182,17 @@ jobs:
           cd dist
           jobs=$(nproc)
 
-          for pn in ${{ steps.param.outputs.mingw_list }} ; do
+          mingw_list=(
+            $(echo '${{ needs.param.outputs.profile }}' | jq -r '.[]')
+          )
+
+          xmake_list=(
+            $(echo '${{ needs.param.outputs.release_xmake }}' | jq -r '.[]')
+          )
+
+          for pn in ${mingw_list[@]} ; do
             {
-              dn=mingw$pn-${{ steps.param.outputs.branch }}
+              dn=mingw$pn-${{ matrix.branch }}
               fn=$(ls mingw$pn-*.tar.zst)
               bn=$(basename $fn .tar.zst)
               bsdtar -xf $fn
@@ -120,9 +205,9 @@ jobs:
           done
           wait
 
-          for pn in ${{ steps.param.outputs.xmake_list }} ; do
+          for pn in ${xmake_list[@]} ; do
             {
-              dn=mingw$pn-${{ steps.param.outputs.branch }}
+              dn=mingw$pn-${{ matrix.branch }}
               fn=$(ls xmake-mingw$pn-*.tar.zst)
               bn=$(basename $fn .tar.zst)
               bsdtar -xf $fn
@@ -138,10 +223,57 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          prerelease: ${{ steps.param.outputs.prerelease }}
+          prerelease: ${{ needs.param.outputs.prerelease }}
           make_latest: 'false'
           files: |
             dist/mingw*.tar.zst
             dist/mingw*.7z
             dist/x-mingw*.tar.zst
             dist/xmake-mingw*.7z
+
+  sat_archive:
+    name: Semi-automated testing archive
+    if: ${{ ! fromJson(needs.param.outputs.release) }}
+    runs-on: ubuntu-24.04
+    needs: [param, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.param.outputs.sat_group) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: jq libarchive-tools
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mingw*
+          path: dist
+          merge-multiple: true
+
+      - name: Create test archive
+        run: |
+          branch=(
+            $(echo '${{ needs.param.outputs.branch }}' | jq -r '.[]')
+          )
+          profile=(
+            $(echo '${{ matrix.profile }}' | jq -r '.[]')
+          )
+
+          for b in ${branch[@]} ; do
+            for p in ${profile[@]} ; do
+              ./sat.py -b $b -p $p
+            done
+          done
+
+          (
+            cd pkg
+            7z a -t7z -mx9 -ms=on -m0=LZMA:d=256m:fb64 ../dist/sat${{ matrix.name }}.7z sat*
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sat${{ matrix.name }}
+          path: dist/sat${{ matrix.name }}.7z

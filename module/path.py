@@ -287,5 +287,5 @@ class ProjectPaths:
 
     # target semi-automated testing archive phase
 
-    self.sat_dir = self.root_dir / 'pkg' / f'sat{config.profile}' / str(config.branch)
+    self.sat_dir = self.root_dir / 'pkg' / f'sat{config.profile}-{config.branch}'
     self.sat_mingw_dir = self.sat_dir / abi_name

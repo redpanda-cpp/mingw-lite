@@ -1,4 +1,4 @@
-name: Build per profile per branch
+name: Build single
 
 on:
   workflow_call:
@@ -9,20 +9,10 @@ on:
       branch:
         required: true
         type: string
-      prerelease:
-        required: true
-        type: boolean
-      make_latest:
-        required: true
-        type: boolean
-      release_skip_profile_branch:
-        required: true
-        type: boolean
 
 jobs:
   build:
-    name: Build (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: ${{ !inputs.release_skip_profile_branch }}
+    name: Build
     runs-on: ubuntu-24.04
 
     steps:
@@ -51,8 +41,7 @@ jobs:
           path: dist
 
   test_on_linux:
-    name: Test on Linux (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: ${{ !inputs.release_skip_profile_branch }}
+    name: Test on Linux
     runs-on: ubuntu-24.04
     needs: build
 
@@ -82,8 +71,7 @@ jobs:
           ./test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} -v
 
   test_on_windows:
-    name: Test on Windows (${{ inputs.branch }}, ${{ inputs.profile }})
-    if: ${{ !inputs.release_skip_profile_branch }}
+    name: Test on Windows
     runs-on: windows-2022
     needs: build
 
