@@ -99,6 +99,7 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   with open(gdb_command_file, 'wb') as f:
     content = (
       f'file {in_gdb_inferior}\n'  # old releases disconnect when retriving symbol from gdbserver
+      'set sysroot C:\n'
       f'target remote {comm}\n'
       'b 14\n'
       'b 19\n'
