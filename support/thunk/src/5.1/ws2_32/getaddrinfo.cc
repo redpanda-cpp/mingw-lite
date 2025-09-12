@@ -7,7 +7,7 @@
 
 namespace mingw_thunk
 {
-  __DEFINE_THUNK(kernel32,
+  __DEFINE_THUNK(ws2_32,
                  16,
                  INT,
                  WSAAPI,

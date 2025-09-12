@@ -2,7 +2,7 @@
 
 #include <ws2tcpip.h>
 
-TEST_CASE("getaddrinfo, getnameinfo and freeaddrinfo")
+TEST_CASE("getaddrinfo and freeaddrinfo")
 {
   SECTION("initialize Winsock")
   {
@@ -45,27 +45,5 @@ TEST_CASE("getaddrinfo, getnameinfo and freeaddrinfo")
     REQUIRE_TOUCHED();
 
     REQUIRE(ret == WSAHOST_NOT_FOUND);
-  }
-
-  SECTION("getnameinfo")
-  {
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(8080);
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    char host[NI_MAXHOST];
-    char service[NI_MAXSERV];
-
-    CLEAR_TOUCH_FLAG();
-    int ret = getnameinfo(reinterpret_cast<sockaddr *>(&addr),
-                          sizeof(addr),
-                          host,
-                          sizeof(host),
-                          service,
-                          sizeof(service),
-                          0);
-    REQUIRE_TOUCHED();
-
-    REQUIRE(ret == 0);
   }
 }

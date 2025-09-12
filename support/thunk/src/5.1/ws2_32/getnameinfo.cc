@@ -7,7 +7,7 @@
 
 namespace mingw_thunk
 {
-  __DEFINE_THUNK(kernel32,
+  __DEFINE_THUNK(ws2_32,
                  28,
                  INT,
                  WSAAPI,
@@ -53,10 +53,12 @@ namespace mingw_thunk
       const sockaddr_in *addr = (const sockaddr_in *)pSockaddr;
       hostent *host = gethostbyaddr(
           (const char *)&addr->sin_addr, sizeof(in_addr), AF_INET);
-      if (!host)
-        return WSANO_DATA;
+      if (!host && (Flags & NI_NAMEREQD)) {
+        WSASetLastError(EAI_NONAME);
+        return EAI_NONAME;
+      }
 
-      if (pNodeBuffer && NodeBufferLength > 0) {
+      if (host && pNodeBuffer && NodeBufferLength > 0) {
         internal::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
         pNodeBuffer[NodeBufferLength - 1] = '\0';
       }
@@ -65,10 +67,12 @@ namespace mingw_thunk
       const sockaddr_in6 *addr = (const sockaddr_in6 *)pSockaddr;
       hostent *host = gethostbyaddr(
           (const char *)&addr->sin6_addr, sizeof(in6_addr), AF_INET6);
-      if (!host)
-        return WSANO_DATA;
+      if (!host && (Flags & NI_NAMEREQD)) {
+        WSASetLastError(EAI_NONAME);
+        return EAI_NONAME;
+      }
 
-      if (pNodeBuffer && NodeBufferLength > 0) {
+      if (host && pNodeBuffer && NodeBufferLength > 0) {
         internal::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
         pNodeBuffer[NodeBufferLength - 1] = '\0';
       }
