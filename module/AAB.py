@@ -239,12 +239,18 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
+    v = Version(ver.mcfgthread.replace('-ga', ''))
     build_dir = 'build-AAB'
+
+    if v >= Version('2.2'):
+      cross_file = f'cross/gcc.{ver.target}'
+    else:
+      cross_file = f'meson.cross.{ver.target}'
 
     meson_config(
       paths.src_dir.mcfgthread,
       extra_args = [
-        '--cross-file', f'meson.cross.{ver.target}',
+        '--cross-file', cross_file,
         *meson_flags_B(
           cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
           optimize_for_size = ver.optimize_for_size,

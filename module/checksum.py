@@ -4,7 +4,7 @@ CHECKSUMS: Dict[str, str] = {
   'PDCurses-3.9.tar.gz': '590dbe0f5835f66992df096d3602d0271103f90cf8557a5d124f693c2b40d7ec',
 
   'Python-3.12.11.tar.xz': 'c30bb24b7f1e9a19b11b55a546434f74e739bb4c271a3e3a80ff4380d49f7adb',
-  'Python-3.13.6.tar.xz': '17ba5508819d8736a14fbfc47d36e184946a877851b2e9c4b6c43acb44a3b104',
+  'Python-3.13.7.tar.xz': '5462f9099dfd30e238def83c71d91897d8caa5ff6ebc7a50f14d4802cdaaa79a',
 
   'binutils-2.41.tar.xz': 'ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450',
   'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',
@@ -12,7 +12,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'expat-2.5.0.tar.xz': 'ef2420f0232c087801abf705e89ae65f6257df6b7931d37846a193ef2e8cdcbe',
   'expat-2.6.4.tar.xz': 'a695629dae047055b37d50a0ff4776d1d45d0a4c842cf4ccee158441f55ff7ee',
-  'expat-2.7.1.tar.xz': '354552544b8f99012e5062f7d570ec77f14b412a3ff5c7d8d0dae62c0d217c30',
+  'expat-2.7.2.tar.xz': '21b778b34ec837c2ac285aef340f9fb5fa063a811b21ea4d2412a9702c88995c',
 
   'gcc-13.4.0.tar.xz': '9c4ce6dbb040568fdc545588ac03c5cbc95a8dbf0c7aa490170843afb59ca8f5',
   'gcc-14.3.0.tar.xz': 'e0dc77297625631ac8e50fa92fffefe899a4eb702592da5c32ef04e2293aca3a',
@@ -32,6 +32,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'mcfgthread-1.8-ga.4.tar.gz': 'd2318ef761927860b7a8963308145065047d8ad2102313b26e6eb2d88d9ef1e3',
   'mcfgthread-2.1-ga.1.tar.gz': '73d4ea39e8eee30738ed3f4a35f6cc4e5c6cba62570908ee37d1fc0bf5a7d722',
+  'mcfgthread-2.2-ga.1.tar.gz': '0e23e53a8950c93c7d28bb525b8716b337c61d9ee21ba264b03622090e3a0390',
 
   'mingw-w64-v11.0.1.tar.bz2': '3f66bce069ee8bed7439a1a13da7cb91a5e67ea6170f21317ac7f5794625ee10',
   'mingw-w64-v12.0.0.tar.bz2': 'cc41898aac4b6e8dd5cffd7331b9d9515b912df4420a3a612b5ea2955bbeed2f',
