@@ -54,8 +54,8 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       f'--host={ver.target}',
       f'--target={ver.target}',
       f'--build={config.build}',
-      # prefer static
-      '--disable-shared',
+      # workaround: bfd plugin 'dep' should be built as shared object
+      '--enable-shared',
       '--enable-static',
       # features
       '--disable-install-libbfd',
