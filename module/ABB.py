@@ -30,9 +30,9 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     xmake_build('xmake', build_dir, config.jobs)
     xmake_install('xmake', build_dir, paths.layer_ABB.xmake, ['cli'])
 
-    license_dir = paths.layer_ABB.license / 'share/licenses/xmake'
-    ensure(license_dir)
-    shutil.copy(paths.src_dir.xmake / 'LICENSE.md', license_dir / 'LICENSE.md')
+  license_dir = paths.layer_ABB.xmake / 'share/licenses/xmake'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.xmake / 'LICENSE.md', license_dir / 'LICENSE.md')
 
 def build_ABB_xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _xmake(ver, paths, config)
@@ -77,6 +77,11 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       'install',
     ], jobs = 1)
 
+  license_dir = paths.layer_ABB.binutils / 'share/licenses/binutils'
+  ensure(license_dir)
+  for file in ['COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
+    shutil.copy(paths.src_dir.binutils / file, license_dir / file)
+
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.mingw_target / 'mingw-w64-headers' / 'build-ABB'
   ensure(build_dir)
@@ -93,6 +98,10 @@ def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
   include_dir = paths.layer_ABB.headers / 'include'
   for dummy_header in ['pthread_signal.h', 'pthread_time.h', 'pthread_unistd.h']:
     (include_dir / dummy_header).unlink()
+
+  license_dir = paths.layer_ABB.headers / 'share/licenses/headers'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'COPYING')
 
 def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -123,6 +132,10 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default('crt', build_dir, config.jobs)
     make_destdir_install('crt', build_dir, paths.layer_ABB.crt)
 
+  license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'COPYING')
+
 def _crt_qt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
@@ -152,6 +165,14 @@ def _crt_qt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     make_default('crt', build_dir, config.jobs)
     make_destdir_install('crt', build_dir, paths.layer_ABB.crt_qt)
 
+  license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'COPYING')
+
+  license_dir = paths.layer_ABB.crt / 'share/licenses/thunk'
+  ensure(license_dir)
+  shutil.copy(paths.in_tree_src_dir.thunk / 'LICENSE', license_dir / 'LICENSE')
+
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
@@ -176,6 +197,10 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
     # as the basis of gthread interface, it should be considered as part of gcc
     make_destdir_install('winpthreads', build_dir, paths.layer_ABB.gcc)
+
+  license_dir = paths.layer_ABB.gcc / 'share/licenses/winpthreads'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.mingw_target / 'mingw-w64-libraries/winpthreads/COPYING', license_dir / 'COPYING')
 
 def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -225,6 +250,12 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
   ]
   for header_file in header_files:
     shutil.copy(header_file, include_dir / header_file.name)
+
+  license_dir = paths.layer_AAB.gcc / 'share/licenses/mcfgthread'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.mcfgthread / 'LICENSE.TXT', license_dir / 'LICENSE.TXT')
+  for file in ['gcc-exception-3.1.txt', 'gpl-3.0.txt', 'lgpl-3.0.txt']:
+    shutil.copy(paths.src_dir.mcfgthread / 'licenses' / file, license_dir / file)
 
 def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -327,6 +358,11 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       atomic_objects = (build_dir / ver.target / 'libatomic').glob('*.o')
       add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
 
+  license_dir = paths.layer_ABB.gcc / 'share/licenses/gcc'
+  ensure(license_dir)
+  for file in ['COPYING', 'COPYING3', 'COPYING.RUNTIME', 'COPYING.LIB', 'COPYING3.LIB']:
+    shutil.copy(paths.src_dir.gcc / file, license_dir / file)
+
 def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
@@ -402,6 +438,11 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f.write('register_libstdcxx_printers(None)\n')
       f.write('end\n')
 
+  license_dir = paths.layer_ABB.gdb / 'share/licenses/gdb'
+  ensure(license_dir)
+  for file in ['COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
+    shutil.copy(paths.src_dir.gdb / file, license_dir / file)
+
 def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
@@ -437,6 +478,10 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     ])
     make_default('make', build_dir, config.jobs)
     make_destdir_install('make', build_dir, paths.layer_ABB.make)
+
+  license_dir = paths.layer_ABB.make / 'share/licenses/make'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.make / 'COPYING', license_dir / 'COPYING')
 
 def _pkgconf(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -477,62 +522,6 @@ def _pkgconf(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
   ensure(license_dir)
   shutil.copy(paths.src_dir.pkgconf / 'COPYING', license_dir / 'COPYING')
 
-def _licenses(ver: BranchProfile, paths: ProjectPaths):
-  license_dir = paths.layer_ABB.license / 'share' / 'licenses'
-  ensure(license_dir)
-
-  ensure(license_dir / 'binutils')
-  for file in ['README', 'COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
-    shutil.copy(paths.src_dir.binutils / 'COPYING3', license_dir / 'binutils' / 'COPYING3')
-
-  ensure(license_dir / 'gcc')
-  for file in ['README', 'COPYING', 'COPYING3', 'COPYING.RUNTIME', 'COPYING.LIB', 'COPYING3.LIB']:
-    shutil.copy(paths.src_dir.gcc / file, license_dir / 'gcc' / file)
-
-  ensure(license_dir / 'gdb')
-  for file in ['README', 'COPYING', 'COPYING3', 'COPYING.LIB', 'COPYING3.LIB']:
-    shutil.copy(paths.src_dir.gdb / file, license_dir / 'gdb' / file)
-
-  ensure(license_dir / 'intl')
-  shutil.copy(paths.in_tree_src_dir.intl / 'LICENSE', license_dir / 'intl' / 'LICENSE')
-
-  ensure(license_dir / 'gmp')
-  for file in ['README', 'COPYINGv2', 'COPYINGv3', 'COPYING.LESSERv3']:
-    shutil.copy(paths.src_dir.gmp / file, license_dir / 'gmp' / file)
-
-  ensure(license_dir / 'iconv')
-  shutil.copy(paths.src_dir.iconv / 'COPYING.LIB', license_dir / 'iconv' / 'COPYING.LIB')
-
-  ensure(license_dir / 'make')
-  shutil.copy(paths.src_dir.make / 'COPYING', license_dir / 'make' / 'COPYING')
-
-  if ver.thread == 'mcf':
-    ensure(license_dir / 'mcfgthread')
-    shutil.copy(paths.src_dir.mcfgthread / 'LICENSE.TXT', license_dir / 'mcfgthread' / 'LICENSE.TXT')
-    for file in ['gcc-exception-3.1.txt', 'gpl-3.0.txt', 'lgpl-3.0.txt']:
-      shutil.copy(paths.src_dir.mcfgthread / 'licenses' / file, license_dir / 'mcfgthread' / file)
-
-  ensure(license_dir / 'mingw-w64')
-  shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'mingw-w64' / 'COPYING')
-
-  ensure(license_dir / 'thunk')
-  shutil.copy(paths.in_tree_src_tree.thunk / 'LICENSE', license_dir / 'thunk' / 'LICENSE')
-
-  ensure(license_dir / 'mingw-w64-libraries-winpthreads')
-  shutil.copy(paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'COPYING', license_dir / 'mingw-w64-libraries-winpthreads' / 'COPYING')
-
-  ensure(license_dir / 'mpc')
-  shutil.copy(paths.src_dir.mpc / 'COPYING.LESSER', license_dir / 'mpc' / 'COPYING.LESSER')
-
-  ensure(license_dir / 'mpfr')
-  shutil.copy(paths.src_dir.mpfr / 'COPYING.LESSER', license_dir / 'mpfr' / 'COPYING.LESSER')
-
-  ensure(license_dir / 'python')
-  shutil.copy(paths.src_dir.python / 'LICENSE', license_dir / 'python' / 'LICENSE')
-
-  ensure(license_dir / 'zlib')
-  shutil.copy(paths.src_dir.z / 'LICENSE', license_dir / 'zlib' / 'LICENSE')
-
 def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _binutils(ver, paths, config)
 
@@ -555,5 +544,3 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
   _gmake(ver, paths, config)
 
   _pkgconf(ver, paths, config)
-
-  _licenses(ver, paths)

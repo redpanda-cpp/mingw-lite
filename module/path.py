@@ -72,8 +72,6 @@ class LayerPathsABB(NamedTuple):
 
   crt_qt: Path
 
-  license: Path
-
 class ProjectPaths:
   root_dir: Path
   abi_name: str
@@ -274,8 +272,6 @@ class ProjectPaths:
       xmake = layer_ABB_prefix / 'xmake',
 
       crt_qt = layer_ABB_prefix / 'crt_qt',
-
-      license = layer_ABB_prefix / 'license',
     )
 
     # test phase

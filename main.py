@@ -116,8 +116,6 @@ def package_mingw(paths: ProjectPaths):
     paths.layer_ABB.headers,
     paths.layer_ABB.make,
     paths.layer_ABB.pkgconf,
-
-    paths.layer_ABB.license,
   ]
 
   package_layers(paths.pkg_dir, layers, paths.mingw_pkg)
@@ -131,8 +129,6 @@ def package_mingw_qt(paths: ProjectPaths):
     paths.layer_ABB.headers,
     paths.layer_ABB.make,
     paths.layer_ABB.pkgconf,
-
-    paths.layer_ABB.license,
   ]
 
   package_layers(paths.pkg_dir, layers, paths.mingw_qt_pkg)
