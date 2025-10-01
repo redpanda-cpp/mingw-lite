@@ -1,0 +1,15 @@
+diff --git a/ltmain.sh b/ltmain.sh
+index 9503ec85d70..47e40f93e63 100644
+--- a/ltmain.sh
++++ b/ltmain.sh
+@@ -3497,6 +3497,10 @@ void lt_dump_script (FILE *f);
+ EOF
+ 
+ 	    cat <<EOF
++#ifdef _WIN32
++// don't optimize out
++__attribute__ ((dllexport))
++#endif
+ const char * MAGIC_EXE = "$magic_exe";
+ const char * LIB_PATH_VARNAME = "$shlibpath_var";
+ EOF

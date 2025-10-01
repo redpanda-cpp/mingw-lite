@@ -47,6 +47,9 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     else:
       patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.41.patch')
 
+    # Don't optimize out libtool wrapper magic
+    patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'dont-optimize-out-libtool-wrapper-magic.patch')
+
     patch_done(paths.src_dir.binutils)
 
 def _expat(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
