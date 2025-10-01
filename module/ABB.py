@@ -23,12 +23,12 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.crt / 'usr/local',
   ]):
     build_dir = paths.src_dir.xmake / 'core'
-    xmake_config('xmake', build_dir, [
+    xmake_config(build_dir, [
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
     ])
-    xmake_build('xmake', build_dir, config.jobs)
-    xmake_install('xmake', build_dir, paths.layer_ABB.xmake, ['cli'])
+    xmake_build(build_dir, config.jobs)
+    xmake_install(build_dir, paths.layer_ABB.xmake, ['cli'])
 
   license_dir = paths.layer_ABB.xmake / 'share/licenses/xmake'
   ensure(license_dir)
@@ -49,7 +49,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     build_dir = paths.src_dir.binutils / 'build-ABB'
     ensure(build_dir)
 
-    configure('binutils', build_dir, [
+    configure(build_dir, [
       '--prefix=',
       f'--host={ver.target}',
       f'--target={ver.target}',
@@ -69,8 +69,8 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       f'AR={ver.target}-gcc-ar',
       f'RANLIB={ver.target}-gcc-ranlib',
     ])
-    make_default('binutils', build_dir, config.jobs)
-    make_custom('binutils (install)', build_dir, [
+    make_default(build_dir, config.jobs)
+    make_custom(build_dir, [
       f'DESTDIR={paths.layer_ABB.binutils}',
       # use native layout
       'tooldir=',
@@ -85,15 +85,15 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.mingw_target / 'mingw-w64-headers' / 'build-ABB'
   ensure(build_dir)
-  configure('mingw-w64-headers', build_dir, [
+  configure(build_dir, [
     '--prefix=',
     f'--host={ver.target}',
     f'--build={config.build}',
     f'--with-default-msvcrt={ver.default_crt}',
     f'--with-default-win32-winnt=0x{ver.win32_winnt:04X}',
   ])
-  make_default('headers', build_dir, config.jobs)
-  make_destdir_install('headers', build_dir, paths.layer_ABB.headers)
+  make_default(build_dir, config.jobs)
+  make_destdir_install(build_dir, paths.layer_ABB.headers)
 
   include_dir = paths.layer_ABB.headers / 'include'
   for dummy_header in ['pthread_signal.h', 'pthread_time.h', 'pthread_unistd.h']:
@@ -120,7 +120,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-libarm32',
     ]
 
-    configure('mingw-w64-crt', build_dir, [
+    configure(build_dir, [
       '--prefix=',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -129,8 +129,8 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       *multilib_flags,
       *cflags_B(optimize_for_size = ver.optimize_for_size),
     ])
-    make_default('crt', build_dir, config.jobs)
-    make_destdir_install('crt', build_dir, paths.layer_ABB.crt)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_ABB.crt)
 
   license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
   ensure(license_dir)
@@ -153,7 +153,7 @@ def _crt_qt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
       '--disable-libarm32',
     ]
 
-    configure('mingw-w64-crt', build_dir, [
+    configure(build_dir, [
       '--prefix=',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -162,8 +162,8 @@ def _crt_qt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
       *multilib_flags,
       *cflags_B(optimize_for_size = ver.optimize_for_size),
     ])
-    make_default('crt', build_dir, config.jobs)
-    make_destdir_install('crt', build_dir, paths.layer_ABB.crt_qt)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_ABB.crt_qt)
 
   license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
   ensure(license_dir)
@@ -182,7 +182,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
   ]):
     build_dir = paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB'
     ensure(build_dir)
-    configure('winpthreads', build_dir, [
+    configure(build_dir, [
       '--prefix=',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -193,10 +193,10 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
         optimize_for_size = ver.optimize_for_size,
       ),
     ])
-    make_default('winpthreads', build_dir, config.jobs)
+    make_default(build_dir, config.jobs)
 
     # as the basis of gthread interface, it should be considered as part of gcc
-    make_destdir_install('winpthreads', build_dir, paths.layer_ABB.gcc)
+    make_destdir_install(build_dir, paths.layer_ABB.gcc)
 
   license_dir = paths.layer_ABB.gcc / 'share/licenses/winpthreads'
   ensure(license_dir)
@@ -289,7 +289,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
 
-    configure('gcc', build_dir, [
+    configure(build_dir, [
       '--prefix=',
       '--libexecdir=/lib',
       f'--with-gcc-major-version-only',
@@ -341,8 +341,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'AR={ver.target}-gcc-ar',
       f'RANLIB={ver.target}-gcc-ranlib',
     ])
-    make_default('gcc', build_dir, config.jobs)
-    make_destdir_install('gcc', build_dir, paths.layer_ABB.gcc)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_ABB.gcc)
 
     # add `print.o` to `libstdc++.a`, allowing `<print>` without `-lstdc++exp`
     # it's okay since we only keep ABI stable in a major version
@@ -400,7 +400,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       optimize_for_size = ver.optimize_for_size,
     )
 
-    configure('gdb', build_dir, [
+    configure(build_dir, [
       '--prefix=',
       f'--target={ver.target}',
       f'--host={ver.target}',
@@ -419,11 +419,11 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     for item in cflags:
       if item.startswith('CPPFLAGS='):
         os.environ['CPPFLAGS'] = item[len('CPPFLAGS='):]
-    make_custom('gdb (configure-host)', build_dir, ['configure-host'], config.jobs)
+    make_custom(build_dir, ['configure-host'], config.jobs)
     del os.environ['CPPFLAGS']
 
-    make_default('gdb', build_dir, config.jobs)
-    make_destdir_install('gdb', build_dir, paths.layer_ABB.gdb)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_ABB.gdb)
 
     gdbinit = paths.layer_ABB.gdb / 'share/gdb/gdbinit'
     with open(gdbinit, 'w') as f:
@@ -464,7 +464,7 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if v_gcc.major >= 15 and v < Version('4.5'):
       c_extra.append('-std=gnu11')
 
-    configure('make', build_dir, [
+    configure(build_dir, [
       '--prefix=',
       '--program-prefix=mingw32-',
       f'--host={ver.target}',
@@ -476,8 +476,8 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         optimize_for_size = ver.optimize_for_size,
       ),
     ])
-    make_default('make', build_dir, config.jobs)
-    make_destdir_install('make', build_dir, paths.layer_ABB.make)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_ABB.make)
 
   license_dir = paths.layer_ABB.make / 'share/licenses/make'
   ensure(license_dir)

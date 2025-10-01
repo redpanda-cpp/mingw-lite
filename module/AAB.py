@@ -15,7 +15,7 @@ from module.util import xmake_build, xmake_config, xmake_install
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.binutils / 'build-AAB'
   ensure(build_dir)
-  configure('binutils', build_dir, [
+  configure(build_dir, [
     f'--prefix=/usr/local',
     f'--target={ver.target}',
     f'--build={config.build}',
@@ -28,21 +28,21 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     '--disable-nls',
     *cflags_A(),
   ])
-  make_default('binutils', build_dir, config.jobs)
-  make_destdir_install('binutils', build_dir, paths.layer_AAB.binutils)
+  make_default(build_dir, config.jobs)
+  make_destdir_install(build_dir, paths.layer_AAB.binutils)
 
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.mingw_host / 'mingw-w64-headers' / 'build-AAB'
   ensure(build_dir)
-  configure('headers', build_dir, [
+  configure(build_dir, [
     f'--prefix=/usr/local/{ver.target}',
     f'--host={ver.target}',
     f'--build={config.build}',
     f'--with-default-msvcrt={ver.default_crt}',
     f'--with-default-win32-winnt=0x{ver.win32_winnt:04X}',
   ])
-  make_default('headers', build_dir, config.jobs)
-  make_destdir_install('headers', build_dir, paths.layer_AAB.headers)
+  make_default(build_dir, config.jobs)
+  make_destdir_install(build_dir, paths.layer_AAB.headers)
   yield
 
   include_dir = paths.layer_AAB.headers / 'usr/local' / ver.target / 'include'
@@ -70,7 +70,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
 
-    configure('gcc', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local',
       f'--libexecdir=/usr/local/lib',
       f'--with-gcc-major-version-only',
@@ -101,8 +101,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       ),
     ])
 
-    make_custom('gcc (all-gcc)', build_dir, ['all-gcc'], config.jobs)
-    make_custom('gcc (install-gcc)', build_dir, [
+    make_custom(build_dir, ['all-gcc'], config.jobs)
+    make_custom(build_dir, [
       f'DESTDIR={paths.layer_AAB.gcc}',
       'install-gcc',
     ], jobs = 1)
@@ -122,7 +122,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     # target missing atomic instructions, and gcc will yield function calls.
     # here we add libatomic to libgcc, so we don't need to handle build flags later.
     if ver.march in ['i386', 'i486']:
-      make_custom('gcc (all-target-libgcc)', build_dir, ['all-target-libgcc'], config.jobs)
+      make_custom(build_dir, ['all-target-libgcc'], config.jobs)
 
       libgcc_a = build_dir / ver.target / 'libgcc' / 'libgcc.a'
       xgcc_libgcc_a = build_dir / 'gcc' / 'libgcc.a'
@@ -143,14 +143,14 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
         add_objects_to_static_lib(f'{ver.target}-ar', xgcc_libgcc_a, [libatomic_fake_object])
 
-      make_custom('gcc (all-target-libatomic)', build_dir, ['all-target-libatomic'], config.jobs)
+      make_custom(build_dir, ['all-target-libatomic'], config.jobs)
 
       atomic_objects = (build_dir / ver.target / 'libatomic').glob('*.o')
       add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
       shutil.copy(libgcc_a, xgcc_libgcc_a)
 
-    make_default('gcc', build_dir, config.jobs)
-    make_destdir_install('gcc', build_dir, paths.layer_AAB.gcc)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.gcc)
   yield
 
 def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
@@ -169,7 +169,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-libarm32',
     ]
 
-    configure('crt', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -178,8 +178,8 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       *multilib_flags,
       *cflags_B(optimize_for_size = ver.optimize_for_size),
     ])
-    make_default('crt', build_dir, config.jobs)
-    make_destdir_install('crt', build_dir, paths.layer_AAB.crt)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.crt)
 
     # The future belongs to UTF-8.
     # Piping is used so widely in GNU toolchain that we have to apply UTF-8 manifest to all programs.
@@ -216,7 +216,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
   ]):
     build_dir = paths.src_dir.mingw_host / 'mingw-w64-libraries' / 'winpthreads' / 'build-AAB'
     ensure(build_dir)
-    configure('winpthreads', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -227,10 +227,10 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
         optimize_for_size = ver.optimize_for_size,
       ),
     ])
-    make_default('winpthreads', build_dir, config.jobs)
+    make_default(build_dir, config.jobs)
 
     # as the basis of gthread interface, it should be considered as part of gcc
-    make_destdir_install('winpthreads', build_dir, paths.layer_AAB.gcc)
+    make_destdir_install(build_dir, paths.layer_AAB.gcc)
 
 def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -318,7 +318,7 @@ def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if v_gcc.major >= 15 and v < Version('6.4.0'):
       c_extra.append('-std=gnu11')
 
-    configure('gmp', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -337,8 +337,8 @@ def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       # Here we force the build system compiler to be gcc.
       'CC_FOR_BUILD=gcc',
     ])
-    make_default('gmp', build_dir, config.jobs)
-    make_destdir_install('gmp', build_dir, paths.layer_AAB.gmp)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.gmp)
 
 def _mpfr(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -351,7 +351,7 @@ def _mpfr(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     build_dir = paths.src_dir.mpfr / 'build-AAB'
     ensure(build_dir)
-    configure('mpfr', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -362,8 +362,8 @@ def _mpfr(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         optimize_for_size = ver.optimize_for_size,
       ),
     ])
-    make_default('mpfr', build_dir, config.jobs)
-    make_destdir_install('mpfr', build_dir, paths.layer_AAB.mpfr)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.mpfr)
 
 def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -377,7 +377,7 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     build_dir = paths.src_dir.mpc / 'build-AAB'
     ensure(build_dir)
-    configure('mpc', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -388,8 +388,8 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         optimize_for_size = ver.optimize_for_size,
       ),
     ])
-    make_default('mpc', build_dir, config.jobs)
-    make_destdir_install('mpc', build_dir, paths.layer_AAB.mpc)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.mpc)
 
 def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -400,7 +400,7 @@ def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     build_dir = paths.src_dir.expat / 'build-AAB'
     ensure(build_dir)
-    configure('expat', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -411,8 +411,8 @@ def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         optimize_for_size = ver.optimize_for_size,
       )
     ])
-    make_default('expat', build_dir, config.jobs)
-    make_destdir_install('expat', build_dir, paths.layer_AAB.expat)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.expat)
 
 def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -424,7 +424,7 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     build_dir = paths.src_dir.iconv / 'build-AAB'
     ensure(build_dir)
 
-    configure('iconv', build_dir, [
+    configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
@@ -436,8 +436,8 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         optimize_for_size = ver.optimize_for_size,
       ),
     ])
-    make_default('iconv', build_dir, config.jobs)
-    make_destdir_install('iconv', build_dir, paths.layer_AAB.iconv)
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.iconv)
 
 def _intl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -448,14 +448,14 @@ def _intl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     src_dir = paths.build_dir / 'intl'
 
-    xmake_config('intl', src_dir, [
+    xmake_config(src_dir, [
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
     ])
-    xmake_build('intl', src_dir, config.jobs)
+    xmake_build(src_dir, config.jobs)
 
     install_dir = paths.layer_AAB.intl / 'usr/local' / ver.target
-    xmake_install('intl', src_dir, install_dir)
+    xmake_install(src_dir, install_dir)
 
 def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -465,7 +465,7 @@ def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     paths.layer_AAB.crt / 'usr/local',
   ]):
     build_dir = paths.src_dir.pdcurses / 'wincon'
-    make_custom('pdcurses', build_dir, [
+    make_custom(build_dir, [
       'pdcurses.a',
       f'CC={ver.target}-gcc',
       f'AR={ver.target}-ar',
@@ -498,19 +498,19 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     if ver.min_os.major < 6:
       config_args.append('--emulated-win-cv=1')
 
-    xmake_config('python', src_dir, [
+    xmake_config(src_dir, [
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
       *config_args,
     ])
-    xmake_build('python', src_dir, config.jobs)
+    xmake_build(src_dir, config.jobs)
 
     install_dir = paths.layer_AAB.python / 'usr/local' / ver.target
-    xmake_install('python', src_dir, install_dir, ['pythoncore'])
+    xmake_install(src_dir, install_dir, ['pythoncore'])
 
     stdlib_package_dir = src_dir / 'build/stdlib-package'
     ensure(stdlib_package_dir)
-    xmake_install('python (stdlib)', src_dir, stdlib_package_dir, ['stdlib'])
+    xmake_install(src_dir, stdlib_package_dir, ['stdlib'])
 
     python_lib = stdlib_package_dir / 'Lib'
     shutil.copytree(f'/usr/local/share/gcc-{config.branch}/python', python_lib, dirs_exist_ok = True)

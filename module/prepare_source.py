@@ -14,23 +14,18 @@ from module.path import ProjectPaths
 from module.profile import BranchProfile
 
 def _autoreconf(path: Path):
-  res = subprocess.run([
-    'autoreconf',
-    '-fi',
-  ], cwd = path)
-  if res.returncode != 0:
-    message = 'Autoreconf fail: %s' % path.name
-    logging.critical(message)
-    raise Exception(message)
+  subprocess.run(
+    ['autoreconf', '-fi'],
+    cwd = path,
+    check = True,
+  )
 
 def _automake(path: Path):
-  res = subprocess.run([
-    'automake',
-  ], cwd = path)
-  if res.returncode != 0:
-    message = 'Automake fail: %s' % path.name
-    logging.critical(message)
-    raise Exception(message)
+  subprocess.run(
+    ['automake'],
+    cwd = path,
+    check = True,
+  )
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/binutils/{paths.src_arx.binutils.name}'
@@ -104,16 +99,12 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Parser-friendly diagnostics
     po_dir = paths.src_dir.gcc / 'gcc' / 'po'
     po_files = list(po_dir.glob('*.po'))
-    res = subprocess.run([
+    subprocess.run([
       'sed',
       '-i', '-E',
       '/^msgid "(error|warning): "/,+1 d',
       *po_files
-    ])
-    if res.returncode != 0:
-      message = 'Patch fail: applying gcc parser-friendly diagnostics'
-      logging.critical(message)
-      raise Exception(message)
+    ], check = True)
 
     patch_done(paths.src_dir.gcc)
 

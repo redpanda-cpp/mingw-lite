@@ -14,15 +14,10 @@ XMAKE_ARCH_MAP = {
 }
 
 def add_objects_to_static_lib(ar: str, lib: Path, objects: Iterable[Path]):
-  res = subprocess.run([
-    ar, 'r',
-    lib,
-    *objects,
-  ])
-  if res.returncode != 0:
-    message = f'Build fail: {lib.name} ar returned {res.returncode}'
-    logging.critical(message)
-    raise Exception(message)
+  subprocess.run(
+    [ar, 'r', lib, *objects],
+    check = True,
+  )
 
 def cflags_A(
   suffix: str = '',
@@ -71,15 +66,12 @@ def cflags_B(
     f'LDFLAGS{suffix}=' + ' '.join(ld + ld_extra),
   ]
 
-def configure(component: str, cwd: Path, args: List[str]):
-  res = subprocess.run(
+def configure(cwd: Path, args: List[str]):
+  subprocess.run(
     ['../configure', *args],
     cwd = cwd,
+    check = True,
   )
-  if res.returncode != 0:
-    message = f'Build fail: {component} configure returned {res.returncode}'
-    logging.critical(message)
-    raise Exception(message)
 
 def ensure(path: Path):
   path.mkdir(parents = True, exist_ok = True)
@@ -106,24 +98,21 @@ def fix_libtool_absolute_reference(la_path: Path):
       else:
         f.write(line)
 
-def make_custom(component: str, cwd: Path, extra_args: List[str], jobs: int):
-  res = subprocess.run(
+def make_custom(cwd: Path, extra_args: List[str], jobs: int):
+  subprocess.run(
     ['make', *extra_args, f'-j{jobs}'],
     cwd = cwd,
+    check = True,
   )
-  if res.returncode != 0:
-    message = f'Build fail: {component} make returned {res.returncode}'
-    logging.critical(message)
-    raise Exception(message)
 
-def make_default(component: str, cwd: Path, jobs: int):
-  make_custom(component + ' (default)', cwd, [], jobs)
+def make_default(cwd: Path, jobs: int):
+  make_custom(cwd, [], jobs)
 
-def make_destdir_install(component: str, cwd: Path, destdir: Path):
-  make_custom(component + ' (install)', cwd, [f'DESTDIR={destdir}', 'install'], jobs = 1)
+def make_destdir_install(cwd: Path, destdir: Path):
+  make_custom(cwd, [f'DESTDIR={destdir}', 'install'], jobs = 1)
 
-def make_install(component: str, cwd: Path):
-  make_custom(component + ' (install)', cwd, ['install'], jobs = 1)
+def make_install(cwd: Path):
+  make_custom(cwd, ['install'], jobs = 1)
 
 def meson_build(
   cwd: Path,
@@ -206,32 +195,23 @@ def overlayfs_ro(merged: Path | str, lower: list[Path]):
   finally:
     subprocess.run(['umount', merged])
 
-def xmake_build(component: str, cwd: Path, jobs: int):
-  res = subprocess.run(
+def xmake_build(cwd: Path, jobs: int):
+  subprocess.run(
     ['xmake', 'build', '-j', str(jobs)],
     cwd = cwd,
+    check = True,
   )
-  if res.returncode != 0:
-    message = f'Build fail: {component} xmake build returned {res.returncode}'
-    logging.critical(message)
-    raise Exception(message)
 
-def xmake_config(component: str, cwd: Path, extra_args: List[str]):
-  res = subprocess.run(
+def xmake_config(cwd: Path, extra_args: List[str]):
+  subprocess.run(
     ['xmake', 'config', *extra_args],
     cwd = cwd,
+    check = True,
   )
-  if res.returncode != 0:
-    message = f'Build fail: {component} xmake config returned {res.returncode}'
-    logging.critical(message)
-    raise Exception(message)
 
-def xmake_install(component: str, cwd: Path, destdir: Path, targets: List[str] = []):
-  res = subprocess.run(
+def xmake_install(cwd: Path, destdir: Path, targets: List[str] = []):
+  subprocess.run(
     ['xmake', 'install', '-o', destdir, *targets],
     cwd = cwd,
+    check = True,
   )
-  if res.returncode != 0:
-    message = f'Build fail: {component} xmake install returned {res.returncode}'
-    logging.critical(message)
-    raise Exception(message)
