@@ -90,11 +90,21 @@ def package_cross(paths: ProjectPaths):
 
 def package_layers(pkg_dir: Path, layers: list[Path], dst: Path):
   files = []
+  file_to_package_map: map[str, str] = {}
   for layer in layers:
+    sorted_part = _sort_tarball(layer, layer)
     files.extend(map(
       lambda fn: f'{pkg_dir.name}/{fn}',
-      _sort_tarball(layer, layer)
+      sorted_part
     ))
+
+    # check file collisions
+    for fn in sorted_part:
+      if fn.endswith('/'):
+        continue
+      if fn in file_to_package_map:
+        raise Exception(f'file collision: {fn} in {layer.name} and {file_to_package_map[fn]}')
+      file_to_package_map[fn] = layer.name
 
   ensure(pkg_dir)
   with overlayfs_ro(pkg_dir, layers):

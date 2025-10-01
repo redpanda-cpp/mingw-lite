@@ -407,6 +407,10 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--build={config.build}',
       # features
       '--disable-install-libbfd',
+      # explicitly disable nls to prevent libbfd from installing locale files,
+      # which collide with binutils.
+      # there is no nls support in gdb.
+      '--disable-nls',
       '--enable-tui',
       # packages
       f'--with-python=/usr/local/{ver.target}/python-config.sh',
@@ -437,6 +441,10 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f.write('from libstdcxx.v6.printers import register_libstdcxx_printers\n')
       f.write('register_libstdcxx_printers(None)\n')
       f.write('end\n')
+
+  # collision with binutils
+  for info_file in ['bfd.info', 'ctf-spec.info', 'sframe-spec.info']:
+    os.unlink(paths.layer_ABB.gdb / 'share/info' / info_file)
 
   license_dir = paths.layer_ABB.gdb / 'share/licenses/gdb'
   ensure(license_dir)
