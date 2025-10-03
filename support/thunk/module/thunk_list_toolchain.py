@@ -49,10 +49,6 @@ THUNK_LIST_TOOLCHAIN = {
       'GetVolumePathNamesForVolumeNameW',
       'RemoveVectoredExceptionHandler',
     ],
-    'msvcrt': [
-      ('_aligned_free', lambda v_major: v_major < 13),
-      ('_aligned_malloc', lambda v_major: v_major < 13),
-    ],
     'ws2_32': [
       'freeaddrinfo',
       'getaddrinfo',
