@@ -83,6 +83,7 @@ def test_mingw_make_gdb_batch(ver: BranchProfile, paths: ProjectPaths):
   with open(paths.sat_dir / 'gdb_command.txt', 'wb') as f:
     content = (
       f'file {inferior}\n'
+      'set sysroot C:\n'
       f'target remote localhost:1234\n'
       'b 14\n'
       'b 19\n'
