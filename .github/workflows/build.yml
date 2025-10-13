@@ -35,42 +35,28 @@ jobs:
 
           sat_group = [
             {
-              'name': '64-nt61',
-              'profile': json.dumps(['64-mcf', '64_v2-mcf']),
+              'name': '64-nt6x',
+              'profile': json.dumps(['64-mcf', '64-win32', '64-ucrt', '64-msvcrt']),
             },
             {
-              'name': '64-nt60',
-              'profile': json.dumps([
-                '64-win32', '64-ucrt', '64-msvcrt',
-                '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt',
-              ]),
+              'name': '64_v2-nt6x',
+              'profile': json.dumps(['64_v2-mcf', '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt']),
             },
             {
-              'name': '32-nt61',
-              'profile': json.dumps(['32-mcf']),
-            },
-            {
-              'name': '32-nt60',
-              'profile': json.dumps(['32-win32', '32-ucrt', '32-msvcrt']),
+              'name': '32-nt6x',
+              'profile': json.dumps(['32-mcf', '32-win32', '32-ucrt', '32-msvcrt']),
             },
             {
               'name': '64-nt52',
               'profile': json.dumps(['64-ucrt_ws2003', '64-msvcrt_ws2003']),
             },
             {
-              'name': '32-nt51',
-              'profile': json.dumps(['32-ucrt_winxp']),
-            },
-            {
-              'name': '32-nt50',
-              'profile': json.dumps(['32-msvcrt_win2000']),
+              'name': '32-nt5x',
+              'profile': json.dumps(['32-ucrt_winxp', '32-msvcrt_win2000']),
             },
             {
               'name': '32-nt40',
-              'profile': json.dumps([
-                '32_686-msvcrt_winnt40',
-                '32_486-msvcrt_winnt40',
-              ]),
+              'profile': json.dumps(['32_686-msvcrt_winnt40', '32_486-msvcrt_winnt40']),
             },
           ]
 
