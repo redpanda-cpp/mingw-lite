@@ -14,7 +14,7 @@ namespace mingw_thunk
   __DEFINE_CRT_THUNK(int,
                      _wfindnext,
                      intptr_t handle,
-                     struct _wfinddata_t *fileinfo)
+                     struct _wfinddata32_t *fileinfo)
   {
     if (internal::is_nt())
       return get__wfindnext()(handle, fileinfo);

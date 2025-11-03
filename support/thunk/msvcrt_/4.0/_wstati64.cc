@@ -5,20 +5,17 @@
 #include <sys/stat.h>
 #include <wchar.h>
 
-#undef _wstat32i64
+#undef _wstati64
 
 namespace mingw_thunk
 {
   __DEFINE_CRT_THUNK(int,
-                     _wstat32i64,
+                     _wstati64,
                      const wchar_t *path,
                      struct _stat32i64 *buffer)
   {
-    if (internal::is_nt()) {
-      static auto *pfn =
-          internal::module_msvcrt.get_function<fn__wstat32i64_t>("_wstati64");
-      return pfn(path, buffer);
-    }
+    if (internal::is_nt())
+      return get__wstati64()(path, buffer);
 
     stl::string a_path = internal::narrow(path);
     return _stat32i64(a_path.c_str(), buffer);

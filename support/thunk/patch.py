@@ -173,11 +173,11 @@ def patch_mod_def_file(args, def_path, func_list, winapi = False, crt_alias = Fa
     def_content = f.readlines()
   for func_name in func_list:
     if crt_alias:
-      pattern = re.compile(rf'^{func_name}(\s*==\s*\w+)?$')
+      pattern = re.compile(rf'^{func_name}(\s*==\s*\w+)?(\s*;.*)?$')
     elif winapi and args.arch == '32':
-      pattern = re.compile(rf'^{func_name}(@\d*)?$')
+      pattern = re.compile(rf'^{func_name}(@\d*)?(\s*;.*)?$')
     else:
-      pattern = re.compile(rf'^{func_name}$')
+      pattern = re.compile(rf'^{func_name}(\s*;.*)?$')
     export_line_found = False
     for i, line in enumerate(def_content):
       if pattern.match(line):
