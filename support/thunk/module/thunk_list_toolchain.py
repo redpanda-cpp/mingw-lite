@@ -46,7 +46,7 @@ THUNK_LIST_TOOLCHAIN = {
   },
   '5.1': {
     'kernel32': [
-      ('AddVectoredExceptionHandler', lambda v_major: v_major >= 13),
+      ('AddVectoredExceptionHandler', lambda v_major: v_major >= 12),
       'GetConsoleProcessList',
       'GetModuleHandleExW',
       'GetNumaHighestNodeNumber',
@@ -54,7 +54,7 @@ THUNK_LIST_TOOLCHAIN = {
       'GetSystemTimes',
       'GetSystemWow64DirectoryA',
       'GetVolumePathNamesForVolumeNameW',
-      ('RemoveVectoredExceptionHandler', lambda v_major: v_major >= 13),
+      ('RemoveVectoredExceptionHandler', lambda v_major: v_major >= 12),
     ],
     'ws2_32': [
       'freeaddrinfo',

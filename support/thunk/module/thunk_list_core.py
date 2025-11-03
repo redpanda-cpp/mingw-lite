@@ -37,6 +37,7 @@ THUNK_LIST_CORE = {
   '5.1': {
     'kernel32': [
       # winpthreads: no longer required since 12
+      # but still required by python (see thunk_list_toolchain)
       ('AddVectoredExceptionHandler', lambda v_major: v_major < 12),
       ('RemoveVectoredExceptionHandler', lambda v_major: v_major < 12),
     ],
