@@ -14,7 +14,9 @@ THUNK_LIST_TOOLCHAIN = {
       'CopyFileExW',
       'CopyFileW',
       'CreateDirectoryW',
+      'CreateEventW',
       'CreateProcessW',
+      'CreateSemaphoreW',
       'CreateThread',
       'CreateWaitableTimerW',
       'GetEnvironmentVariableW',
@@ -23,6 +25,7 @@ THUNK_LIST_TOOLCHAIN = {
       'LockFileEx',
       'SetCurrentDirectoryW',
       'SetEnvironmentVariableW',
+      'SetHandleInformation',
       'UnlockFileEx',
     ],
     'shell32': [

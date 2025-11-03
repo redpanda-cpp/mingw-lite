@@ -26,7 +26,11 @@ namespace mingw_thunk
       return get_CreateWaitableTimerW()(
           lpTimerAttributes, bManualReset, lpTimerName);
 
-    stl::string aname = internal::narrow(lpTimerName);
-    return CreateWaitableTimerA(lpTimerAttributes, bManualReset, aname.c_str());
+    stl::string a_name;
+    if (lpTimerName)
+      a_name = internal::narrow(lpTimerName);
+    return CreateWaitableTimerA(lpTimerAttributes,
+                                bManualReset,
+                                lpTimerName ? a_name.c_str() : nullptr);
   }
 } // namespace mingw_thunk

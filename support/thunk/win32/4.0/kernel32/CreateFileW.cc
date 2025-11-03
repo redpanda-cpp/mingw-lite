@@ -28,12 +28,13 @@ namespace mingw_thunk
                                dwFlagsAndAttributes,
                                hTemplateFile);
 
-    // Windows 9x: `FILE_SHARE_DELETE` not supported
+    // Windows 9x: flags not supported
+    DWORD access = dwDesiredAccess & ~FILE_READ_ATTRIBUTES;
     DWORD mode = dwShareMode & ~FILE_SHARE_DELETE;
 
     auto aname = internal::narrow(lpFileName);
     return CreateFileA(aname.c_str(),
-                       dwDesiredAccess,
+                       access,
                        mode,
                        lpSecurityAttributes,
                        dwCreationDisposition,
