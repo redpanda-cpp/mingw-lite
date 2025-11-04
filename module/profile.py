@@ -165,7 +165,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.13.7',
+    python = '3.14.0',
     z = '1.3.1',
   ),
   '15': BranchVersions(
@@ -186,7 +186,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.13.7',
+    python = '3.14.0',
     z = '1.3.1',
   ),
   '14': BranchVersions(
@@ -208,7 +208,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.3.0',
-    python = '3.13.7',
+    python = '3.13.9',
     z = '1.3.1',
   ),
   '13': BranchVersions(
@@ -231,7 +231,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.1.1',
-    python = '3.12.11',
+    python = '3.12.12',
     z = '1.3.1',
   ),
 }

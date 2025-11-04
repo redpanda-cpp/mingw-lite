@@ -1,0 +1,26 @@
+diff --git a/configure b/configure
+index d31c24dffa2..e13ee55e9a6 100755
+--- a/configure
++++ b/configure
+@@ -32744,7 +32744,7 @@ fi
+ 
+ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for HACL* library linking type" >&5
+ printf %s "checking for HACL* library linking type... " >&6; }
+-if test "$ac_sys_system" = "WASI"; then
++if test "$ac_sys_system" = "WASI" -o "$MODULE_BUILDTYPE" = "static"; then
+   LIBHACL_LDEPS_LIBTYPE=STATIC
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: static" >&5
+ printf "%s\n" "static" >&6; }
+diff --git a/configure.ac b/configure.ac
+index af7a9623d7b..d2e6fb15ca8 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -8084,7 +8084,7 @@ AC_SUBST([LIBHACL_BLAKE2_SIMD256_OBJS])
+ # HACL*-based cryptographic primitives
+ 
+ AC_MSG_CHECKING([for HACL* library linking type])
+-if test "$ac_sys_system" = "WASI"; then
++if test "$ac_sys_system" = "WASI" -o "$MODULE_BUILDTYPE" = "static"; then
+   LIBHACL_LDEPS_LIBTYPE=STATIC
+   AC_MSG_RESULT([static])
+ else

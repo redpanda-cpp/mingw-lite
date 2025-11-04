@@ -3,8 +3,9 @@ from typing import Dict
 CHECKSUMS: Dict[str, str] = {
   'PDCurses-3.9.tar.gz': '590dbe0f5835f66992df096d3602d0271103f90cf8557a5d124f693c2b40d7ec',
 
-  'Python-3.12.11.tar.xz': 'c30bb24b7f1e9a19b11b55a546434f74e739bb4c271a3e3a80ff4380d49f7adb',
-  'Python-3.13.7.tar.xz': '5462f9099dfd30e238def83c71d91897d8caa5ff6ebc7a50f14d4802cdaaa79a',
+  'Python-3.12.12.tar.xz': 'fb85a13414b028c49ba18bbd523c2d055a30b56b18b92ce454ea2c51edc656c4',
+  'Python-3.13.9.tar.xz': 'ed5ef34cda36cfa2f3a340f07cac7e7814f91c7f3c411f6d3562323a866c5c66',
+  'Python-3.14.0.tar.xz': '2299dae542d395ce3883aca00d3c910307cd68e0b2f7336098c8e7b7eee9f3e9',
 
   'binutils-2.41.tar.xz': 'ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450',
   'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',

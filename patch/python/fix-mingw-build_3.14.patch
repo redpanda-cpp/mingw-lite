@@ -1,0 +1,142 @@
+diff --git a/Include/internal/pycore_time.h b/Include/internal/pycore_time.h
+index 23312471c65..50ef661fa32 100644
+--- a/Include/internal/pycore_time.h
++++ b/Include/internal/pycore_time.h
+@@ -59,9 +59,7 @@ extern "C" {
+ 
+ #include "pycore_runtime_structs.h" // _PyTimeFraction
+ 
+-#ifdef __clang__
+ struct timeval;
+-#endif
+ 
+ #define _SIZEOF_PYTIME_T 8
+ 
+diff --git a/Modules/_threadmodule.c b/Modules/_threadmodule.c
+index 775cd704cda..709ea0e745d 100644
+--- a/Modules/_threadmodule.c
++++ b/Modules/_threadmodule.c
+@@ -2479,7 +2479,7 @@ _thread__get_name_impl(PyObject *module)
+     // Windows implementation
+     assert(pGetThreadDescription != NULL);
+ 
+-    wchar_t *name;
++    const wchar_t *name;
+     HRESULT hr = pGetThreadDescription(GetCurrentThread(), &name);
+     if (FAILED(hr)) {
+         PyErr_SetFromWindowsErr(0);
+diff --git a/Modules/blake2module.c b/Modules/blake2module.c
+index ae37e2d3383..4a3c319684b 100644
+--- a/Modules/blake2module.c
++++ b/Modules/blake2module.c
+@@ -33,10 +33,10 @@
+ // pulled into the build automatically, and then only the CPU autodetection will
+ // need to be updated here.
+ 
+-#if defined(__x86_64__) && defined(__GNUC__)
+-#include <cpuid.h>
+-#elif defined(_M_X64)
++#if defined(_M_X64) || (defined(__x86_64__) && defined(__MINGW32__))
+ #include <intrin.h>
++#elif defined(__x86_64__) && defined(__GNUC__)
++#include <cpuid.h>
+ #endif
+ 
+ #include <stdbool.h>
+@@ -75,10 +75,7 @@ void detect_cpu_features(cpu_flags *flags) {
+   if (!flags->done) {
+     int eax1 = 0, ebx1 = 0, ecx1 = 0, edx1 = 0;
+     int eax7 = 0, ebx7 = 0, ecx7 = 0, edx7 = 0;
+-#if defined(__x86_64__) && defined(__GNUC__)
+-    __cpuid_count(1, 0, eax1, ebx1, ecx1, edx1);
+-    __cpuid_count(7, 0, eax7, ebx7, ecx7, edx7);
+-#elif defined(_M_X64)
++#if defined(_M_X64) || (defined(__x86_64__) && defined(__MINGW32__))
+     int info1[4] = { 0 };
+     int info7[4] = { 0 };
+     __cpuidex(info1, 1, 0);
+@@ -91,6 +88,9 @@ void detect_cpu_features(cpu_flags *flags) {
+     ebx7 = info7[1];
+     ecx7 = info7[2];
+     edx7 = info7[3];
++#elif defined(__x86_64__) && defined(__GNUC__)
++    __cpuid_count(1, 0, eax1, ebx1, ecx1, edx1);
++    __cpuid_count(7, 0, eax7, ebx7, ecx7, edx7);
+ #endif
+     (void) eax1; (void) ebx1; (void) ecx1; (void) edx1;
+     (void) eax7; (void) ebx7; (void) ecx7; (void) edx7;
+diff --git a/Modules/hmacmodule.c b/Modules/hmacmodule.c
+index 8cd470f4f80..619862a5c35 100644
+--- a/Modules/hmacmodule.c
++++ b/Modules/hmacmodule.c
+@@ -24,10 +24,10 @@
+  * Taken from blake2module.c. In the future, detection of SIMD support
+  * should be delegated to https://github.com/python/cpython/pull/125011.
+  */
+-#if defined(__x86_64__) && defined(__GNUC__)
+-#  include <cpuid.h>
+-#elif defined(_M_X64)
+-#  include <intrin.h>
++#if defined(_M_X64) && (defined(__x86_64__) && defined(__MINGW32__))
++#include <intrin.h>
++#elif defined(__x86_64__) && defined(__GNUC__)
++#include <cpuid.h>
+ #endif
+ 
+ #if defined(__APPLE__) && defined(__arm64__)
+@@ -1714,10 +1714,7 @@ hmacmodule_init_cpu_features(hmacmodule_state *state)
+ {
+     int eax1 = 0, ebx1 = 0, ecx1 = 0, edx1 = 0;
+     int eax7 = 0, ebx7 = 0, ecx7 = 0, edx7 = 0;
+-#if defined(__x86_64__) && defined(__GNUC__)
+-    __cpuid_count(1, 0, eax1, ebx1, ecx1, edx1);
+-    __cpuid_count(7, 0, eax7, ebx7, ecx7, edx7);
+-#elif defined(_M_X64)
++#if defined(_M_X64) || (defined(__x86_64__) && defined(__MINGW32__))
+     int info1[4] = { 0 };
+     __cpuidex(info1, 1, 0);
+     eax1 = info1[0], ebx1 = info1[1], ecx1 = info1[2], edx1 = info1[3];
+@@ -1725,6 +1722,9 @@ hmacmodule_init_cpu_features(hmacmodule_state *state)
+     int info7[4] = { 0 };
+     __cpuidex(info7, 7, 0);
+     eax7 = info7[0], ebx7 = info7[1], ecx7 = info7[2], edx7 = info7[3];
++#elif defined(__x86_64__) && defined(__GNUC__)
++    __cpuid_count(1, 0, eax1, ebx1, ecx1, edx1);
++    __cpuid_count(7, 0, eax7, ebx7, ecx7, edx7);
+ #endif
+     // fmt: off
+     (void)eax1; (void)ebx1; (void)ecx1; (void)edx1;
+diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
+index e1576f809fa..7a8c167b489 100644
+--- a/Modules/posixmodule.c
++++ b/Modules/posixmodule.c
+@@ -219,6 +219,7 @@
+ #  if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM)
+ #    define HAVE_SYMLINK
+ #  endif /* MS_WINDOWS_DESKTOP | MS_WINDOWS_SYSTEM */
++#  include <process.h>
+ #endif
+ 
+ 
+@@ -5226,7 +5227,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
+ /*[clinic end generated code: output=ab7f1a88b654581c input=dc93b1d3984cffb6]*/
+ {
+     wchar_t *buffer;
+-    wchar_t *end;
++    const wchar_t *end;
+     PyObject *result = NULL;
+     HRESULT ret;
+ 
+diff --git a/Python/sysmodule.c b/Python/sysmodule.c
+index 5eeb3e9910b..943cae2e7ee 100644
+--- a/Python/sysmodule.c
++++ b/Python/sysmodule.c
+@@ -3853,6 +3853,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
+ #ifdef MS_COREDLL
+     SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
+     SET_SYS_FROM_STRING("winver", PyWin_DLLVersionString);
++#else
++    SET_SYS_FROM_STRING("winver", "");
+ #endif
+ #ifdef ABIFLAGS
+     SET_SYS_FROM_STRING("abiflags", ABIFLAGS);

@@ -361,6 +361,10 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.python, paths.src_arx.python):
     ver = Version(ver.python)
 
+    # Fix static build
+    if ver >= Version('3.14'):
+      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-static-build.patch')
+
     # Fix thread touch last error
     # https://github.com/python/cpython/pull/104531
     if ver >= Version('3.12') and ver < Version('3.13'):
@@ -368,7 +372,10 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     # Alternative build system
     os.symlink(paths.src_dir.z, paths.src_dir.python / 'zlib', target_is_directory = True)
-    if ver >= Version('3.13'):
+    if ver >= Version('3.14'):
+      shutil.copy(paths.patch_dir / 'python' / 'xmake_3.14.lua', paths.src_dir.python / 'xmake.lua')
+      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.14.patch')
+    elif ver >= Version('3.13'):
       shutil.copy(paths.patch_dir / 'python' / 'xmake_3.13.lua', paths.src_dir.python / 'xmake.lua')
       patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.13.patch')
     else:
