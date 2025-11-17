@@ -34,6 +34,9 @@ jobs:
             '32_486-msvcrt_win98',
           ]
 
+          wsl_branch = ['16', '15']
+          wsl_profile = ['64_v2-mcf', '64_v2-ucrt']
+
           sat_group = [
             {
               'name': '64-nt6x',
@@ -101,6 +104,8 @@ jobs:
 
           print(f'branch={json.dumps(branch)}')
           print(f'profile={json.dumps(profile)}')
+          print(f'wsl_branch={json.dumps(wsl_branch)}')
+          print(f'wsl_profile={json.dumps(wsl_profile)}')
           print(f'release={json.dumps(release)}')
           print(f'prerelease={json.dumps(prerelease)}')
           print(f'release_xmake={json.dumps(release_xmake)}')
@@ -110,6 +115,8 @@ jobs:
     outputs:
       branch: ${{ steps.param.outputs.branch }}
       profile: ${{ steps.param.outputs.profile }}
+      wsl_branch: ${{ steps.param.outputs.wsl_branch }}
+      wsl_profile: ${{ steps.param.outputs.wsl_profile }}
       release: ${{ steps.param.outputs.release }}
       prerelease: ${{ steps.param.outputs.prerelease }}
       release_xmake: ${{ steps.param.outputs.release_xmake }}
@@ -164,6 +171,58 @@ jobs:
         branch: ${{ fromJson(needs.param.outputs.branch) }}
         profile: ${{ fromJson(needs.param.outputs.profile) }}
     uses: ./.github/workflows/build_single.yml
+    with:
+      branch: ${{ matrix.branch }}
+      profile: ${{ matrix.profile }}
+
+  wsl_build_container:
+    name: Build container (WSL)
+    needs: [param]
+    if: ${{ ! fromJson(needs.param.outputs.release) }}
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build container (WSL)
+        run: |
+          Copy-Item -Path support/wsl/.wslconfig -Destination "$env:USERPROFILE/.wslconfig"
+
+          Invoke-WebRequest `
+            -Uri https://cdimages.ubuntu.com/ubuntu-wsl/noble/daily-live/current/noble-wsl-amd64.wsl `
+            -OutFile noble-wsl-amd64.wsl
+
+          wsl --import mingw-lite-buildenv . noble-wsl-amd64.wsl
+
+          wsl --distribution mingw-lite-buildenv --exec `
+            apt update
+          wsl --distribution mingw-lite-buildenv --exec `
+            env DEBIAN_FRONTEND=noninteractive `
+              apt-get install --no-install-recommends -y `
+                autoconf automake build-essential cmake flex gettext libtool meson texinfo xmake `
+                7zip ca-certificates curl file gawk libarchive-tools python3 python3-packaging zstd
+
+          wsl --distribution mingw-lite-buildenv --exec `
+            sync
+          wsl --shutdown
+
+          mkdir assets
+          wsl --export mingw-lite-buildenv assets/buildenv.vhdx --format vhd
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wsl-buildenv
+          path: assets/buildenv.vhdx
+
+  wsl_build:
+    name: Build (WSL)
+    needs: [param, download_source, wsl_build_container]
+    if: ${{ ! fromJson(needs.param.outputs.release) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJson(needs.param.outputs.wsl_branch) }}
+        profile: ${{ fromJson(needs.param.outputs.wsl_profile) }}
+    uses: ./.github/workflows/wsl_build_single.yml
     with:
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}

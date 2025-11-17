@@ -25,6 +25,10 @@ See [Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/install).
      autoconf automake build-essential cmake flex gettext libtool meson texinfo xmake \
      7zip ca-certificates curl file gawk libarchive-tools python3 python3-packaging zstd
    ```
+3. Set environment variables:
+   ```bash
+   echo "export XMAKE_ROOT=y" >>~/.bashrc
+   ```
 
 ## Clone the Repository
 

@@ -39,6 +39,9 @@ def extract(path: Path, arx: Path):
     '-C', path.parent,
     '-xf', arx,
     '--no-same-owner',
+    # workaround zstd pipe error with Windows `tar.exe`
+    # https://github.com/libarchive/libarchive/issues/2512
+    '--ignore-zeros',
   ], check = True)
 
 def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):

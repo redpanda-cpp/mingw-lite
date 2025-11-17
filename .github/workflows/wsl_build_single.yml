@@ -1,0 +1,68 @@
+name: Build single (WSL)
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        required: true
+        type: string
+      branch:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2025
+
+    steps:
+      - name: Configure Git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.symlinks true
+
+      - uses: actions/checkout@v4
+
+      - name: Download source
+        uses: actions/download-artifact@v4
+        with:
+          name: src-${{ inputs.branch }}
+          path: assets
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wsl-buildenv
+          path: assets
+
+      - name: Setup bsdtar
+        run: |
+          New-Item -ItemType Directory -Path assets -Force
+          Invoke-WebRequest `
+            -Uri https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-v1.5.7-win64.zip `
+            -OutFile assets/zstd-v1.5.7-win64.zip
+          Expand-Archive -Path assets/zstd-v1.5.7-win64.zip -DestinationPath assets
+          $system32 = [Environment]::SystemDirectory
+          Copy-Item -Path assets/zstd-v1.5.7-win64/zstd.exe -Destination "$system32/zstd.exe"
+          New-Item -ItemType SymbolicLink -Path "$system32/bsdtar.exe" -Target tar.exe
+
+      - name: Install Python Package
+        run: |
+          pip install packaging
+
+      - name: Build
+        run: |
+          Copy-Item -Path support/wsl/.wslconfig -Destination "$env:USERPROFILE/.wslconfig"
+
+          wsl --import-in-place mingw-lite-buildenv assets/buildenv.vhdx
+          wsl --distribution mingw-lite-buildenv --exec `
+            env XMAKE_ROOT=y `
+              ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wsl${{ inputs.profile }}-${{ inputs.branch }}
+          path: dist
+
+      - name: Test
+        run: |
+          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 -v

@@ -10,7 +10,7 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro, remove_info_main_menu
 from module.util import cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
@@ -77,6 +77,8 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       'tooldir=',
       'install',
     ], jobs = 1)
+
+  remove_info_main_menu(paths.layer_ABB.binutils)
 
   license_dir = paths.layer_ABB.binutils / 'share/licenses/binutils'
   ensure(license_dir)
@@ -368,6 +370,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
           atomic_objects.append(wrapper_obj)
       add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
 
+  remove_info_main_menu(paths.layer_ABB.gcc)
+
   license_dir = paths.layer_ABB.gcc / 'share/licenses/gcc'
   ensure(license_dir)
   for file in ['COPYING', 'COPYING3', 'COPYING.RUNTIME', 'COPYING.LIB', 'COPYING3.LIB']:
@@ -452,6 +456,8 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f.write('register_libstdcxx_printers(None)\n')
       f.write('end\n')
 
+  remove_info_main_menu(paths.layer_ABB.gdb)
+
   # collision with binutils
   for info_file in ['bfd.info', 'ctf-spec.info', 'sframe-spec.info']:
     os.unlink(paths.layer_ABB.gdb / 'share/info' / info_file)
@@ -496,6 +502,8 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     ])
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_ABB.make)
+
+  remove_info_main_menu(paths.layer_ABB.make)
 
   license_dir = paths.layer_ABB.make / 'share/licenses/make'
   ensure(license_dir)

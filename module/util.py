@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 from tempfile import TemporaryDirectory
-from typing import Iterable, List
+from typing import Iterable, List, Union
 
 from module.profile import ProfileInfo
 
@@ -174,7 +174,7 @@ def meson_install(
   )
 
 @contextmanager
-def overlayfs_ro(merged: Path | str, lower: list[Path]):
+def overlayfs_ro(merged: Union[Path, str], lower: list[Path]):
   try:
     if len(lower) == 1:
       subprocess.run([
@@ -197,8 +197,13 @@ def overlayfs_ro(merged: Path | str, lower: list[Path]):
   finally:
     subprocess.run(['umount', merged], check = False)
 
+def remove_info_main_menu(prefix: Path):
+  info_main_menu = prefix / 'share/info/dir'
+  if info_main_menu.exists():
+    info_main_menu.unlink()
+
 @contextmanager
-def temporary_rw_overlay(path: Path | str):
+def temporary_rw_overlay(path: Union[Path, str]):
   with TemporaryDirectory() as tmp:
     try:
       shutil.copytree(path, tmp, dirs_exist_ok = True)
