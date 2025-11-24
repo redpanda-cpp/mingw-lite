@@ -21,7 +21,7 @@ class BranchVersions:
   python: str
   z: str
 
-  xmake = '3.0.1'
+  xmake = '3.0.4'
 
   def __init__(
     self,
@@ -152,11 +152,11 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '16-20251123',
     rev = '0',
 
-    mcfgthread = '2.2-ga.1',
+    mcfgthread = '2.2-ga.2',
     mingw = '13.0.0',
 
-    binutils = '2.45',
-    expat = '2.7.2',
+    binutils = '2.45.1',
+    expat = '2.7.3',
     gdb = '16.3',
     gmp = '6.3.0',
     iconv = '1.18',
@@ -176,8 +176,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mcfgthread = '2.1-ga.1',
     mingw = '13.0.0',
 
-    binutils = '2.45',
-    expat = '2.7.2',
+    binutils = '2.45.1',
+    expat = '2.7.3',
     gdb = '16.3',
     gmp = '6.3.0',
     iconv = '1.18',

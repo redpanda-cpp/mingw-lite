@@ -99,5 +99,15 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAA.python)
 
+def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  subprocess.run([
+    './configure',
+    f'--prefix=/usr/local',
+  ], cwd = paths.src_dir.xmake, check = True)
+  make_default(paths.src_dir.xmake, config.jobs)
+  make_destdir_install(paths.src_dir.xmake, paths.layer_AAA.xmake)
+
 def build_AAA_tool(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _python(ver, paths, config)
+
+  _xmake(ver, paths, config)
