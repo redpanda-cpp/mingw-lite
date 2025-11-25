@@ -79,6 +79,7 @@ THUNK_LIST_TOOLCHAIN = {
       'GetLargePageMinimum',
       'NeedCurrentDirectoryForExePathA',
       'NeedCurrentDirectoryForExePathW',
+      'SetThreadStackGuarantee',
     ],
   },
   '6.0': {
@@ -140,6 +141,7 @@ THUNK_LIST_TOOLCHAIN = {
     'kernel32': [
       'AddDllDirectory',
       'CopyFile2',
+      'GetCurrentThreadStackLimits',
       'GetSystemTimePreciseAsFileTime',
       'RemoveDllDirectory',
     ],
