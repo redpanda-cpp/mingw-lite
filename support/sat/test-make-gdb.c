@@ -13,9 +13,8 @@ int main(int argc, char *argv[]) {
   mkdir_p(DEBUG_BUILD_DIR);
 
   const char *make_argv[] = {
-      "mingw32-make",
-      "DIR=" DEBUG_BUILD_DIR,
-      "SUFFIX=.exe",
+      "mingw32-make", ("DIR=" DEBUG_BUILD_DIR),
+      "SUFFIX=.exe",  lt_win98() ? "LDFLAGS=-fno-lto" : NULL,
       NULL,
   };
   HANDLE make_process = spawn(make_argv);

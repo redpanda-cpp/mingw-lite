@@ -30,41 +30,58 @@ namespace mingw_thunk
     if (attr == INVALID_FILE_ATTRIBUTES)
       return FALSE;
 
-    HANDLE hFile = CreateFileA(lpFileName,
-                               GENERIC_READ,
-                               // Windows 9x: `FILE_SHARE_DELETE` not supported
-                               FILE_SHARE_READ | FILE_SHARE_WRITE,
-                               nullptr,
-                               OPEN_EXISTING,
-                               FILE_FLAG_BACKUP_SEMANTICS,
-                               nullptr);
-    if (hFile == INVALID_HANDLE_VALUE)
-      return FALSE;
+    if (attr & FILE_ATTRIBUTE_DIRECTORY) {
+      // Windows 9x: `CreateFileA` cannot open directories,
+      // even if `FILE_FLAG_BACKUP_SEMANTICS` is specified.
 
-    FILETIME atime, mtime, ctime;
-    if (!GetFileTime(hFile, &ctime, &atime, &mtime)) {
+      auto *info =
+          reinterpret_cast<WIN32_FILE_ATTRIBUTE_DATA *>(lpFileInformation);
+      info->dwFileAttributes = attr;
+      info->ftCreationTime = {};
+      info->ftLastAccessTime = {};
+      info->ftLastWriteTime = {};
+      info->nFileSizeHigh = 0;
+      info->nFileSizeLow = 0;
+
+      return TRUE;
+    } else {
+      HANDLE hFile =
+          CreateFileA(lpFileName,
+                      GENERIC_READ,
+                      // Windows 9x: `FILE_SHARE_DELETE` not supported
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                      nullptr,
+                      OPEN_EXISTING,
+                      FILE_FLAG_BACKUP_SEMANTICS,
+                      nullptr);
+      if (hFile == INVALID_HANDLE_VALUE)
+        return FALSE;
+
+      FILETIME atime, mtime, ctime;
+      if (!GetFileTime(hFile, &ctime, &atime, &mtime)) {
+        CloseHandle(hFile);
+        return FALSE;
+      }
+
+      DWORD low, high;
+      low = GetFileSize(hFile, &high);
+      if (low == INVALID_FILE_SIZE && GetLastError()) {
+        CloseHandle(hFile);
+        return FALSE;
+      }
+
       CloseHandle(hFile);
-      return FALSE;
+
+      auto *info =
+          reinterpret_cast<WIN32_FILE_ATTRIBUTE_DATA *>(lpFileInformation);
+      info->dwFileAttributes = attr;
+      info->ftCreationTime = ctime;
+      info->ftLastAccessTime = atime;
+      info->ftLastWriteTime = mtime;
+      info->nFileSizeHigh = high;
+      info->nFileSizeLow = low;
+
+      return TRUE;
     }
-
-    DWORD low, high;
-    low = GetFileSize(hFile, &high);
-    if (low == INVALID_FILE_SIZE && GetLastError()) {
-      CloseHandle(hFile);
-      return FALSE;
-    }
-
-    CloseHandle(hFile);
-
-    auto *info =
-        reinterpret_cast<WIN32_FILE_ATTRIBUTE_DATA *>(lpFileInformation);
-    info->dwFileAttributes = attr;
-    info->ftCreationTime = ctime;
-    info->ftLastAccessTime = atime;
-    info->ftLastWriteTime = mtime;
-    info->nFileSizeHigh = high;
-    info->nFileSizeLow = low;
-
-    return TRUE;
   }
 } // namespace mingw_thunk

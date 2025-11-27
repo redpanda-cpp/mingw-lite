@@ -19,12 +19,10 @@ namespace mingw_thunk
       return get_TryEnterCriticalSection()(lpCriticalSection);
 
     const auto *cs =
-        reinterpret_cast<internal::win9x_critical_section *>(lpCriticalSection);
+        reinterpret_cast<internal::critical_section_t *>(lpCriticalSection);
     if (!cs->check_type())
       return FALSE;
 
-    uintptr_t current_tdbx = internal::win9x_current_tdbx();
-
-    return cs->impl->try_enter(current_tdbx);
+    return cs->impl()->try_enter();
   }
 } // namespace mingw_thunk

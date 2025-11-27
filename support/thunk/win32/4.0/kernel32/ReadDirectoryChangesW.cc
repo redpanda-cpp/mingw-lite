@@ -20,15 +20,15 @@ namespace mingw_thunk
                  _Inout_opt_ LPOVERLAPPED lpOverlapped,
                  _In_opt_ LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
   {
-    if (const auto pfn = try_get_ReadDirectoryChangesW())
-      return pfn(hDirectory,
-                 lpBuffer,
-                 nBufferLength,
-                 bWatchSubtree,
-                 dwNotifyFilter,
-                 lpBytesReturned,
-                 lpOverlapped,
-                 lpCompletionRoutine);
+    if (internal::is_nt())
+      return get_ReadDirectoryChangesW()(hDirectory,
+                                         lpBuffer,
+                                         nBufferLength,
+                                         bWatchSubtree,
+                                         dwNotifyFilter,
+                                         lpBytesReturned,
+                                         lpOverlapped,
+                                         lpCompletionRoutine);
 
     SetLastError(ERROR_NOT_SUPPORTED);
     return FALSE;

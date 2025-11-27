@@ -14,7 +14,12 @@ int main(int argc, char *argv[]) {
   change_to_self_dir();
 
   const char *xmake_config_argv[] = {
-      "xmake", "config", "--verbose", "--plat=mingw", "--arch=" XMAKE_ARCH,
+      "xmake",
+      "config",
+      "--verbose",
+      "--plat=mingw",
+      ("--arch=" XMAKE_ARCH),
+      lt_win98() ? "--ldflags=-fno-lto" : NULL,
       NULL,
   };
   HANDLE xmake_config_process = spawn(xmake_config_argv);

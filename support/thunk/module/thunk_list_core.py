@@ -1,6 +1,7 @@
 THUNK_LIST_CORE = {
   '3.9999+4.10': {
     'kernel32': [
+      'GetFileAttributesExA',
       'IsDebuggerPresent',
       'SetProcessAffinityMask',
     ],
@@ -9,7 +10,6 @@ THUNK_LIST_CORE = {
     'kernel32': [
       'CreateFileW',
       'DeleteFileW',
-      'EnterCriticalSection',
       'FindFirstFileW',
       'FindNextFileW',
       'GetCurrentDirectoryW',
@@ -17,7 +17,6 @@ THUNK_LIST_CORE = {
       'GetFileAttributesW',
       'GetFullPathNameW',
       'GetHandleInformation',
-      'LeaveCriticalSection',
       'MoveFileExA',
       'MoveFileExW',
       'RemoveDirectoryW',

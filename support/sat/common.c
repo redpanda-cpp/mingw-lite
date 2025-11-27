@@ -31,6 +31,21 @@ bool is_nt() {
   return osvi.dwPlatformId >= VER_PLATFORM_WIN32_NT;
 }
 
+bool lt_win98() {
+  static OSVERSIONINFOA osvi = {sizeof(osvi)};
+  if (!osvi.dwMajorVersion)
+    GetVersionExA(&osvi);
+  if (osvi.dwPlatformId < VER_PLATFORM_WIN32_WINDOWS)
+    return true;
+  if (osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) {
+    if (osvi.dwMajorVersion < 4)
+      return true;
+    if (osvi.dwMajorVersion == 4)
+      return osvi.dwMinorVersion < 10;
+  }
+  return false;
+}
+
 void mkdir_exist_ok(const char *dir) {
   if (CreateDirectoryA(dir, NULL))
     return;
