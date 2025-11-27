@@ -1,4 +1,5 @@
 #include <thunk/_common.h>
+#include <thunk/os.h>
 #include <thunk/wntcrt/errno.h>
 #include <thunk/wntcrt/time.h>
 
@@ -10,7 +11,7 @@ namespace mingw_thunk
 {
   __DEFINE_CRT_THUNK(int, _wstat64, const wchar_t *path, struct _stat64 *buffer)
   {
-    if (const auto pfn = try_get__wstat64())
+    if (const auto pfn = try_get__wstat64(); pfn && internal::is_nt())
       return pfn(path, buffer);
 
     struct _stat32i64 buffer32;

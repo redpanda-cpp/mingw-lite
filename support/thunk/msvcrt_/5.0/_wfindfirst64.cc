@@ -1,4 +1,5 @@
 #include <thunk/_common.h>
+#include <thunk/os.h>
 #include <thunk/wntcrt/errno.h>
 #include <thunk/wntcrt/time.h>
 
@@ -13,7 +14,7 @@ namespace mingw_thunk
                      const wchar_t *filespec,
                      struct _wfinddata64_t *fileinfo)
   {
-    if (const auto pfn = try_get__wfindfirst64())
+    if (const auto pfn = try_get__wfindfirst64(); pfn && internal::is_nt())
       return pfn(filespec, fileinfo);
 
     WIN32_FIND_DATAW fd;

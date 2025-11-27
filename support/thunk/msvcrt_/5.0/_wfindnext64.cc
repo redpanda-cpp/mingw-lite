@@ -1,4 +1,5 @@
 #include <thunk/_common.h>
+#include <thunk/os.h>
 #include <thunk/wntcrt/errno.h>
 #include <thunk/wntcrt/time.h>
 
@@ -13,7 +14,7 @@ namespace mingw_thunk
                      intptr_t handle,
                      struct _wfinddata64_t *fileinfo)
   {
-    if (const auto pfn = try_get__wfindnext64())
+    if (const auto pfn = try_get__wfindnext64(); pfn && internal::is_nt())
       return pfn(handle, fileinfo);
 
     HANDLE h = reinterpret_cast<HANDLE>(handle);

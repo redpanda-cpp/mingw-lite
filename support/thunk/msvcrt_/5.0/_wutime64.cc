@@ -1,4 +1,5 @@
 #include <thunk/_common.h>
+#include <thunk/os.h>
 
 #include <fcntl.h>
 #include <sys/utime.h>
@@ -12,7 +13,7 @@ namespace mingw_thunk
                      const wchar_t *filename,
                      struct __utimbuf64 *times)
   {
-    if (const auto pfn = try_get__wutime64())
+    if (const auto pfn = try_get__wutime64(); pfn && internal::is_nt())
       return pfn(filename, times);
 
     int fd = _wopen(filename, _O_BINARY | _O_WRONLY);
