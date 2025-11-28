@@ -1,10 +1,14 @@
 # MinGW Lite
 
-Extremely fast MinGW GCC build scripts for easy experiments.
+- Fast MinGW-w64 GCC build scripts for easy experiments.
+- MinGW-w64 GCC distribution with minimal dependencies.
+- Modern C++ for the good old OSes (back to Windows NT 4.0 and Windows 98).
 
 ## Use
 
-- Native toolchain: same as [other distributions](https://www.mingw-w64.org/downloads/).
+- Native toolchain: the toolchain is static by default.
+  - Profiles that target Windows Vista (NT 6.0, see below) or later provide optional shared runtime libraries.
+  - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` to `$prefix/`.
 - Cross toolchain: tools are organized by package. Mount required packages to `/usr/local`:
   ```bash
   layers=(/path/to/mingw/AAB/{binutils,crt,gcc,headers}/usr/local)
@@ -41,6 +45,7 @@ Extremely fast MinGW GCC build scripts for easy experiments.
    ```bash
    ./main.py -b <branch> -p <profile>
    ```
+   Run `./main.py -h` for help.
 
 Available branches:
 

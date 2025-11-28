@@ -104,6 +104,7 @@ jobs:
 
           print(f'branch={json.dumps(branch)}')
           print(f'profile={json.dumps(profile)}')
+          print(f'shared_profile={json.dumps(common_profile)}')
           print(f'wsl_branch={json.dumps(wsl_branch)}')
           print(f'wsl_profile={json.dumps(wsl_profile)}')
           print(f'release={json.dumps(release)}')
@@ -115,6 +116,7 @@ jobs:
     outputs:
       branch: ${{ steps.param.outputs.branch }}
       profile: ${{ steps.param.outputs.profile }}
+      shared_profile: ${{ steps.param.outputs.shared_profile }}
       wsl_branch: ${{ steps.param.outputs.wsl_branch }}
       wsl_profile: ${{ steps.param.outputs.wsl_profile }}
       release: ${{ steps.param.outputs.release }}
@@ -174,6 +176,7 @@ jobs:
     with:
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
+      enable_shared: ${{ contains(fromJson(needs.param.outputs.shared_profile), matrix.profile) }}
 
   wsl_build_container:
     name: Build container (WSL)
@@ -226,6 +229,7 @@ jobs:
     with:
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
+      enable_shared: ${{ contains(fromJson(needs.param.outputs.shared_profile), matrix.profile) }}
 
   release:
     name: Release

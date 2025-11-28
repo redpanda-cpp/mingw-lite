@@ -30,6 +30,11 @@ def parse_args() -> argparse.Namespace:
     required = True,
     help = 'MinGW profile to build',
   )
+  parser.add_argument(
+    '-es', '--enable-shared',
+    action = 'store_true',
+    help = 'Build shared runtime libraries (will break ABI stability when targeting NT < 6.0)',
+  )
 
   gcc_triplet = get_gcc_triplet()
   parser.add_argument(

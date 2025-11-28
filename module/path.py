@@ -125,6 +125,8 @@ class ProjectPaths:
   ):
     self.root_dir = Path.cwd()
     abi_name = f'mingw{config.profile}-{config.branch}'
+    if ver.min_os.major < 6 and config.enable_shared:
+      abi_name += '-unstable'
     self.abi_name = abi_name
 
     self.assets_dir = self.root_dir / 'assets'

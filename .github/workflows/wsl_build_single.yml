@@ -9,6 +9,9 @@ on:
       branch:
         required: true
         type: string
+      enable_shared:
+        required: true
+        type: boolean
 
 jobs:
   build:
@@ -56,7 +59,7 @@ jobs:
           wsl --import-in-place mingw-lite-buildenv assets/buildenv.vhdx
           wsl --distribution mingw-lite-buildenv --exec `
             env XMAKE_ROOT=y `
-              ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
+              ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} ${{ inputs.enable_shared && '--enable-shared' || '' }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -65,4 +68,4 @@ jobs:
 
       - name: Test
         run: |
-          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 -v
+          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 --verbose ${{ inputs.enable_shared && '--enable-shared' || '' }}

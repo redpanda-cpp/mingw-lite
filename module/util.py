@@ -202,6 +202,24 @@ def remove_info_main_menu(prefix: Path):
   if info_main_menu.exists():
     info_main_menu.unlink()
 
+def remove_redundant_file(prefix: Path, ref: Path):
+  for path in prefix.iterdir():
+    rel = path.relative_to(prefix)
+    other = ref / rel
+    if path.is_file():
+      if other.exists():
+        if not other.is_file():
+          raise RuntimeError(f'{other} is not a file')
+        path.unlink()
+    elif path.is_dir():
+      if other.exists():
+        if not other.is_dir():
+          raise RuntimeError(f'{other} is not a directory')
+        remove_redundant_file(path, other)
+
+  if prefix.is_dir() and not list(prefix.iterdir()):
+    prefix.rmdir()
+
 @contextmanager
 def temporary_rw_overlay(path: Union[Path, str]):
   with TemporaryDirectory() as tmp:

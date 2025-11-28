@@ -9,6 +9,9 @@ on:
       branch:
         required: true
         type: string
+      enable_shared:
+        required: true
+        type: boolean
 
 jobs:
   build:
@@ -33,7 +36,7 @@ jobs:
         run: |
           zstdcat assets/buildenv.tar.zst | podman load
           podman run --rm --cap-add=sys_admin -v $PWD:/mnt -w /mnt mingw-lite/buildenv \
-            ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
+            ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} ${{ inputs.enable_shared && '--enable-shared' || '' }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -68,7 +71,7 @@ jobs:
 
       - name: Test
         run: |
-          ./test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} -v
+          ./test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --verbose ${{ inputs.enable_shared && '--enable-shared' || '' }}
 
   test_on_windows:
     name: Test on Windows
@@ -104,4 +107,4 @@ jobs:
 
       - name: Test
         run: |
-          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 -v
+          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 --verbose ${{ inputs.enable_shared && '--enable-shared' || '' }}
