@@ -83,6 +83,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     else:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-make-variable_12.patch')
 
+    # Fix __FILE__ macro encoding
+    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-file-macro-encoding.patch')
+
     # Fix VT sequence
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-vt-seq.patch')
 

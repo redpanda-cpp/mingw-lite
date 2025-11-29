@@ -1,0 +1,39 @@
+diff --git a/gcc/file-prefix-map.cc b/gcc/file-prefix-map.cc
+index 0e6db7c142a..0c0bdd25cef 100644
+--- a/gcc/file-prefix-map.cc
++++ b/gcc/file-prefix-map.cc
+@@ -21,6 +21,11 @@
+ #include "diagnostic.h"
+ #include "file-prefix-map.h"
+ 
++#ifdef _WIN32
++#define WIN32_LEAN_AND_MEAN
++#include <windows.h>
++#endif
++
+ /* Structure recording the mapping from source file and directory names at
+    compile time to those to be embedded in the compilation result (debug
+    information, the __FILE__ macro expansion, etc).  */
+@@ -163,7 +168,21 @@ add_profile_prefix_map (const char *arg)
+ const char *
+ remap_macro_filename (const char *filename)
+ {
+-  return remap_filename (macro_prefix_maps, filename);
++  const char *fname = remap_filename (macro_prefix_maps, filename);
++#ifdef _WIN32
++  if (GetACP() != CP_UTF8)
++    {
++      int wlen = MultiByteToWideChar (CP_ACP, 0, fname, -1, NULL, 0);
++      wchar_t *wfname = (wchar_t *) ggc_alloc_atomic (wlen * sizeof (wchar_t));
++      MultiByteToWideChar (CP_ACP, 0, fname, -1, wfname, wlen);
++      int u8len = WideCharToMultiByte (CP_UTF8, 0, wfname, -1, NULL, 0, NULL, NULL);
++      char *u8fname = (char *) ggc_alloc_atomic (u8len);
++      WideCharToMultiByte (CP_UTF8, 0, wfname, -1, u8fname, u8len, NULL, NULL);
++      ggc_free (wfname);
++      return u8fname;
++    }
++#endif
++  return fname;
+ }
+ 
+ /* Remap using -fdebug-prefix-map.  Return the GC-allocated new name
