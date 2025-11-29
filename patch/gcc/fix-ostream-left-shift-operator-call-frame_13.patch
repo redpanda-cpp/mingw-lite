@@ -1,0 +1,28 @@
+diff --git a/libstdc++-v3/include/std/ostream b/libstdc++-v3/include/std/ostream
+index 4711b8a3d96..ab04053ea85 100644
+--- a/libstdc++-v3/include/std/ostream
++++ b/libstdc++-v3/include/std/ostream
+@@ -106,6 +106,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+        *  functions in constructs like "std::cout << std::endl".  For more
+        *  information, see the iomanip header.
+       */
++      __attribute__((__optimize__("no-optimize-sibling-calls")))
+       __ostream_type&
+       operator<<(__ostream_type& (*__pf)(__ostream_type&))
+       {
+@@ -115,6 +116,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 	return __pf(*this);
+       }
+ 
++      __attribute__((__optimize__("no-optimize-sibling-calls")))
+       __ostream_type&
+       operator<<(__ios_type& (*__pf)(__ios_type&))
+       {
+@@ -125,6 +127,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 	return *this;
+       }
+ 
++      __attribute__((__optimize__("no-optimize-sibling-calls")))
+       __ostream_type&
+       operator<<(ios_base& (*__pf) (ios_base&))
+       {

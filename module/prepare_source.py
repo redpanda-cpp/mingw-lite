@@ -93,6 +93,20 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # libcpp defines `setlocale` if `HAVE_SETLOCALE` not defined, but its configure.ac does not check `setlocale` at all
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-libcpp-setlocale.patch')
 
+    # Fix ostream::operator<< call frame
+    # The function
+    #   ostream &ostream::operator<<(ostream &(*func)(ostream &))
+    #   {
+    #     return func(*this);
+    #   }
+    # is a tail call, and can be optimized to
+    #   jmp *rdx
+    # But the missing call frame can fool the debugger, breaking its "step over" function.
+    if v.major >= 15:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ostream-left-shift-operator-call-frame_15.patch')
+    else:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ostream-left-shift-operator-call-frame_13.patch')
+
     # Disable vectorized lexer
     if ver.min_os.major < 5:
       if v.major >= 15:
