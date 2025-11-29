@@ -37,16 +37,7 @@ jobs:
           name: wsl-buildenv
           path: assets
 
-      - name: Setup bsdtar
-        run: |
-          New-Item -ItemType Directory -Path assets -Force
-          Invoke-WebRequest `
-            -Uri https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-v1.5.7-win64.zip `
-            -OutFile assets/zstd-v1.5.7-win64.zip
-          Expand-Archive -Path assets/zstd-v1.5.7-win64.zip -DestinationPath assets
-          $system32 = [Environment]::SystemDirectory
-          Copy-Item -Path assets/zstd-v1.5.7-win64/zstd.exe -Destination "$system32/zstd.exe"
-          New-Item -ItemType SymbolicLink -Path "$system32/bsdtar.exe" -Target tar.exe
+      - uses: ./.github/setup-bsdtar
 
       - name: Install Python Package
         run: |
@@ -56,10 +47,15 @@ jobs:
         run: |
           Copy-Item -Path support/wsl/.wslconfig -Destination "$env:USERPROFILE/.wslconfig"
 
-          wsl --import-in-place mingw-lite-buildenv assets/buildenv.vhdx
+          wsl --import mingw-lite-buildenv . assets/buildenv.tar.zst
+          Remove-Item -Path assets/buildenv.tar.zst
+
           wsl --distribution mingw-lite-buildenv --exec `
             env XMAKE_ROOT=y `
               ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} ${{ inputs.enable_shared && '--enable-shared' || '' }}
+
+          wsl --shutdown
+          wsl --unregister mingw-lite-buildenv
 
       - uses: actions/upload-artifact@v4
         with:

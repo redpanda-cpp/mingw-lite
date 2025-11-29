@@ -34,8 +34,8 @@ jobs:
             '32_486-msvcrt_win98',
           ]
 
-          wsl_branch = ['16', '15']
-          wsl_profile = ['64_v2-mcf', '64_v2-ucrt']
+          wsl_branch = ['15']
+          wsl_profile = ['64-mcf', '64-ucrt']
 
           sat_group = [
             {
@@ -209,12 +209,12 @@ jobs:
           wsl --shutdown
 
           mkdir assets
-          wsl --export mingw-lite-buildenv assets/buildenv.vhdx --format vhd
+          wsl --export mingw-lite-buildenv - | zstd -9 -o assets/buildenv.tar.zst
 
       - uses: actions/upload-artifact@v4
         with:
           name: wsl-buildenv
-          path: assets/buildenv.vhdx
+          path: assets/buildenv.tar.zst
 
   wsl_build:
     name: Build (WSL)

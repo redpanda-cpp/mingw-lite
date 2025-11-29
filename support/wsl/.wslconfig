@@ -4,18 +4,11 @@
 
 [wsl2]
 
-# https://docs.github.com/en/actions/reference/runners/github-hosted-runners
-# memory: 12 GiB of 16 GiB
-memory=12GB
-
 swap=0
 
 guiApplications=false
 
 nestedVirtualization=false
-
-# storage: 12 GiB of 14 GiB
-defaultVhdSize=12GB
 
 [experimental]
 

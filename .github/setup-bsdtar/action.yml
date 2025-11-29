@@ -1,0 +1,10 @@
+name: Setup bsdtar (Windows)
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup bsdtar
+      shell: pwsh
+      run: |
+        $system32 = [Environment]::SystemDirectory
+        New-Item -ItemType SymbolicLink -Path "$system32/bsdtar.exe" -Target tar.exe

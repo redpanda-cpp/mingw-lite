@@ -90,16 +90,7 @@ jobs:
           name: mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
-      - name: Setup bsdtar
-        run: |
-          New-Item -ItemType Directory -Path assets -Force
-          Invoke-WebRequest `
-            -Uri https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-v1.5.7-win64.zip `
-            -OutFile assets/zstd-v1.5.7-win64.zip
-          Expand-Archive -Path assets/zstd-v1.5.7-win64.zip -DestinationPath assets
-          $system32 = [Environment]::SystemDirectory
-          Copy-Item -Path assets/zstd-v1.5.7-win64/zstd.exe -Destination "$system32/zstd.exe"
-          New-Item -ItemType SymbolicLink -Path "$system32/bsdtar.exe" -Target tar.exe
+      - uses: ./.github/setup-bsdtar
 
       - name: Install Python Package
         run: |
