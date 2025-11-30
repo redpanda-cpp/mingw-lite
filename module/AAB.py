@@ -201,13 +201,6 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     # Piping is used so widely in GNU toolchain that we have to apply UTF-8 manifest to all programs.
     if ver.min_os.major >= 6:
       subprocess.run([
-        f'{ver.target}-gcc',
-        '-std=c11',
-        '-Os', '-c',
-        paths.utf8_src_dir / 'utf8-init.c',
-        '-o', build_dir / 'utf8-init.o',
-      ], check = True)
-      subprocess.run([
         f'{ver.target}-windres',
         '-O', 'coff',
         paths.utf8_src_dir / 'utf8-manifest.rc',
@@ -218,7 +211,6 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
           f'{ver.target}-gcc',
           '-r',
           build_dir / f'lib{ver.arch}' / crt_object,
-          build_dir / 'utf8-init.o',
           build_dir / 'utf8-manifest.o',
           '-o', paths.layer_AAB.crt / 'usr/local' / ver.target / 'lib' / crt_object,
         ], check = True)

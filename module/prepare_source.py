@@ -89,9 +89,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Fix VT sequence
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-vt-seq.patch')
 
-    # Fix UCRT pipe
-    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ucrt-pipe.patch')
-
     # Fix libcpp setlocale
     # libcpp defines `setlocale` if `HAVE_SETLOCALE` not defined, but its configure.ac does not check `setlocale` at all
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-libcpp-setlocale.patch')
@@ -258,6 +255,23 @@ def _mingw_host(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     return
 
   if check_and_sync(paths.src_dir.mingw_host, paths.src_dir.mingw):
+    # Host CRT: hack console
+    # 1. Automatically set console code page to match ACP (especially UTF-8).
+    # 2. Set stdio to binary mode to workaround CRT's bugged "double translation".
+    #    a. UCRT randomly eats linefeeds when piping on Windows Vista.
+    #       Compiling any non-trivial program compiled with '-g3 -pipe'
+    #       is likely to fail.
+    #    b. MSVCRT, and UCRT prior to 10.0.14393, cannot write multi-byte
+    #       characters one-char-by-one-char after set_locale(LC_ALL, "").
+    #         int main()
+    #         {
+    #           setlocale(LC_ALL, "");
+    #           for (auto ch : "你好")
+    #             fputc(ch, stdout);
+    #         }
+    #       This is exactly how MinGW-w64's printf and toolchain's NLS work.
+    patch(paths.src_dir.mingw_host, paths.patch_dir / 'crt-host' / 'hack-console.patch')
+
     # CRT: Add mingw thunks
     msvcrt_flag = []
     if ver.default_crt == 'msvcrt':
