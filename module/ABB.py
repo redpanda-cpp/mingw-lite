@@ -367,13 +367,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   if ver.exception == 'dwarf':
     common_flags.append('--disable-sjlj-exceptions')
     common_flags.append('--with-dwarf2')
-  if ver.min_os.major >= 6:
-    # should also disable because we have it embedded in CRT init objects.
-    # but don't do that in case someone use this to detect encoding.
-    # multiple manifests seem okay.
-    pass
-  else:
-    common_flags.append('--disable-win32-utf8-manifest')
   if ver.fpmath:
     common_flags.append(f'--with-fpmath={ver.fpmath}')
 

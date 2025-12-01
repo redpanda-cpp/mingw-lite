@@ -76,6 +76,11 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     return
 
   if check_and_extract(paths.src_dir.gcc, paths.src_arx.gcc):
+    # Disable default utf8 manifest
+    # We patch the CRT init objects, so GCC's manifest should be disabled.
+    # But we want no `--disable-win32-utf8-manifest` in configure flags to avoid confusion.
+    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-default-utf8-manifest.patch')
+
     # Fix make variable
     # - gcc 12 use `override CFLAGS +=` to handle PGO build, which breaks workaround for ucrt `access`
     if v.major >= 14:
