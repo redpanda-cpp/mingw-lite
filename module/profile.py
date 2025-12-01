@@ -1,6 +1,7 @@
 import argparse
 from packaging.version import Version
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
+
 class BranchVersions:
   gcc: str
   rev: str
@@ -77,6 +78,7 @@ class ProfileInfo:
 
   win32_winnt: int
   min_os: Version
+  thunk_free: bool
 
   def __init__(
     self,
@@ -93,6 +95,7 @@ class ProfileInfo:
 
     win32_winnt: int,
     min_os: Version,
+    thunk_free: bool,
   ):
     self.arch = arch
     self.fpmath = fpmath
@@ -106,6 +109,7 @@ class ProfileInfo:
 
     self.win32_winnt = win32_winnt
     self.min_os = min_os
+    self.thunk_free = thunk_free
 
 class BranchProfile(BranchVersions):
   arch: str
@@ -120,6 +124,7 @@ class BranchProfile(BranchVersions):
 
   win32_winnt: int
   min_os: Version
+  thunk_free: bool
   min_winnt: int
 
   def __init__(
@@ -141,6 +146,7 @@ class BranchProfile(BranchVersions):
 
     self.win32_winnt = info.win32_winnt
     self.min_os = info.min_os
+    self.thunk_free = info.thunk_free
 
     if info.min_os.major < 4:
       self.min_winnt = 0x0400
@@ -273,7 +279,7 @@ _ARCH_VARIANT_2_OPTIMIZE_FOR_SIZE_MAP: dict[str, bool] = {
   '32_386': True,
 }
 
-def _create_profile(arch: str, crt: str, thread: str, min_os: str) -> ProfileInfo:
+def _create_profile(arch: str, crt: str, thread: str, min_os: str, stable: bool = True) -> ProfileInfo:
   mingw_arch = arch.split('_')[0]
   exception = 'dwarf' if mingw_arch == '32' else 'seh'
   triplet = _MINGW_ARCH_2_TRIPLET_MAP[mingw_arch]
@@ -294,13 +300,14 @@ def _create_profile(arch: str, crt: str, thread: str, min_os: str) -> ProfileInf
 
     win32_winnt = 0x0A00,
     min_os = Version(min_os),
+    thunk_free = stable,
   )
 
 PROFILES: Dict[str, ProfileInfo] = {
   '64-mcf':    _create_profile('64', 'ucrt',   'mcf',   '6.1'),
   '64-win32':  _create_profile('64', 'ucrt',   'win32', '6.0'),
-  '64-ucrt':   _create_profile('64', 'ucrt',   'posix', '6.0'),
-  '64-msvcrt': _create_profile('64', 'msvcrt', 'posix', '6.0'),
+  '64-ucrt':   _create_profile('64', 'ucrt',   'posix', '5.2'),
+  '64-msvcrt': _create_profile('64', 'msvcrt', 'posix', '5.2'),
 
   'arm64-mcf':   _create_profile('arm64', 'ucrt', 'mcf',   '10.0.16299'),
   'arm64-win32': _create_profile('arm64', 'ucrt', 'win32', '10.0.16299'),
@@ -308,8 +315,8 @@ PROFILES: Dict[str, ProfileInfo] = {
 
   '32-mcf':    _create_profile('32', 'ucrt',   'mcf',   '6.1'),
   '32-win32':  _create_profile('32', 'ucrt',   'win32', '6.0'),
-  '32-ucrt':   _create_profile('32', 'ucrt',   'posix', '6.0'),
-  '32-msvcrt': _create_profile('32', 'msvcrt', 'posix', '6.0'),
+  '32-ucrt':   _create_profile('32', 'ucrt',   'posix', '5.1'),
+  '32-msvcrt': _create_profile('32', 'msvcrt', 'posix', '5.1'),
 
   ############################################
   # profile variants for micro architectures #
@@ -317,28 +324,39 @@ PROFILES: Dict[str, ProfileInfo] = {
 
   '64_v2-mcf':    _create_profile('64_v2', 'ucrt',   'mcf',   '6.1'),
   '64_v2-win32':  _create_profile('64_v2', 'ucrt',   'win32', '6.0'),
-  '64_v2-ucrt':   _create_profile('64_v2', 'ucrt',   'posix', '6.0'),
-  '64_v2-msvcrt': _create_profile('64_v2', 'msvcrt', 'posix', '6.0'),
+  '64_v2-ucrt':   _create_profile('64_v2', 'ucrt',   'posix', '5.2'),
+  '64_v2-msvcrt': _create_profile('64_v2', 'msvcrt', 'posix', '5.2'),
 
   #################################################
   # profile variants for earlier Windows versions #
   #################################################
 
-  '64-ucrt_ws2003':   _create_profile('64', 'ucrt',   'posix', '5.2'),
-  '64-msvcrt_ws2003': _create_profile('64', 'msvcrt', 'posix', '5.2'),
+  '32-msvcrt_win2000': None, # branch-dependent
 
-  '32-ucrt_winxp':     _create_profile('32', 'ucrt',   'posix', '5.1'),
-  '32-msvcrt_win2000': _create_profile('32', 'msvcrt', 'posix', '5.0'),
+  '32_686-msvcrt_win98': _create_profile('32_686', 'msvcrt', 'posix', '3.9999+4.10', False),
 
-  '32_686-msvcrt_win98': _create_profile('32_686', 'msvcrt', 'posix', '3.9999+4.10'),
+  '32_486-msvcrt_win98': _create_profile('32_486', 'msvcrt', 'posix', '3.9999+4.10', False),
 
-  '32_486-msvcrt_win98': _create_profile('32_486', 'msvcrt', 'posix', '3.9999+4.10'),
+  '32_386-msvcrt_win95': _create_profile('32_386', 'msvcrt', 'posix', '3.9999+4.00', False),
+}
 
-  '32_386-msvcrt_win95': _create_profile('32_386', 'msvcrt', 'posix', '3.9999+4.00'),
+def _profile_32_msvcrt_win2000(branch: str):
+  v = Version(branch)
+  if v.major >= 16:
+    raise NotImplementedError()
+  return _create_profile('32', 'msvcrt', 'posix', '5.0', False)
+
+BRANCH_DEPENDENT_PROFILES: Dict[str, Callable[[str], ProfileInfo]] = {
+  '32-msvcrt_win2000': _profile_32_msvcrt_win2000,
 }
 
 def resolve_profile(config: argparse.Namespace) -> BranchProfile:
+  ver = BRANCHES[config.branch]
+  if config.profile in BRANCH_DEPENDENT_PROFILES:
+    info = BRANCH_DEPENDENT_PROFILES[config.profile](config.branch)
+  else:
+    info = PROFILES[config.profile]
   return BranchProfile(
-    ver = BRANCHES[config.branch],
-    info = PROFILES[config.profile],
+    ver = ver,
+    info = info,
   )

@@ -8,10 +8,9 @@ import re
 import shutil
 import subprocess
 
-from module.thunk_list_core import THUNK_LIST_CORE
-from module.thunk_list_toolchain import THUNK_LIST_TOOLCHAIN
-from module.thunk_list_qt import THUNK_LIST_QT
-from module.thunk_list_msvcrt import THUNK_LIST_MSVCRT
+from module.thunk_list_core import THUNK_LIST_CORE_WIN32, THUNK_LIST_CORE_MSVCRT
+from module.thunk_list_toolchain import THUNK_LIST_TOOLCHAIN_WIN32, THUNK_LIST_TOOLCHAIN_MSVCRT
+from module.thunk_list_qt import THUNK_LIST_QT_WIN32
 
 ARCH_DEFAULT_VERSION_MAP = {
   '32': '4.0',
@@ -90,6 +89,11 @@ def parse_args():
     '--msvcrt',
     action = 'store_true',
     help = 'Add MSVCRT thunks'
+  )
+  parser.add_argument(
+    '--assert-thunk-free',
+    action = 'store_true',
+    help = 'Assert no thunk is applied (to guarantee ABI stability)'
   )
   args = parser.parse_args()
   if not args.nt_ver:
@@ -304,13 +308,21 @@ def main():
 
   win32_modules = {}
   msvcrt = []
-  resolve_win32_modules(args, win32_modules, THUNK_LIST_CORE)
+  resolve_win32_modules(args, win32_modules, THUNK_LIST_CORE_WIN32)
   if args.level in ('toolchain', 'qt'):
-    resolve_win32_modules(args, win32_modules, THUNK_LIST_TOOLCHAIN)
+    resolve_win32_modules(args, win32_modules, THUNK_LIST_TOOLCHAIN_WIN32)
   if args.level == 'qt':
-    resolve_win32_modules(args, win32_modules, THUNK_LIST_QT)
+    resolve_win32_modules(args, win32_modules, THUNK_LIST_QT_WIN32)
   if args.msvcrt:
-    resolve_msvcrt_module(args, msvcrt, THUNK_LIST_MSVCRT)
+    resolve_msvcrt_module(args, msvcrt, THUNK_LIST_CORE_MSVCRT)
+    if args.level == 'toolchain':
+      resolve_msvcrt_module(args, msvcrt, THUNK_LIST_TOOLCHAIN_MSVCRT)
+  if args.assert_thunk_free:
+    if any(v for _, v in win32_modules.items()) or msvcrt:
+      print('Oops there are thunks:')
+      print(win32_modules)
+      print(msvcrt)
+      raise RuntimeError('ABI stability broken')
   patch_automake_template(args, win32_modules, msvcrt)
 
 if __name__ == '__main__':

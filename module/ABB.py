@@ -357,7 +357,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       lto = not ver.optimize_for_size,
     ),
     *cflags_B('_FOR_TARGET',
-      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+      # CPPFLAGS_FOR_TARGET is not passed
+      common_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
       optimize_for_size = ver.optimize_for_size,
     ),
     f'AR={ver.target}-gcc-ar',

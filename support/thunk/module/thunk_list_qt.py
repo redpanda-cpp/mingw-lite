@@ -1,4 +1,2 @@
-from packaging.version import Version
-
-THUNK_LIST_QT = {
+THUNK_LIST_QT_WIN32 = {
 }

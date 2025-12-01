@@ -1,4 +1,4 @@
-THUNK_LIST_TOOLCHAIN = {
+THUNK_LIST_TOOLCHAIN_WIN32 = {
   '3.9999+4.10': {
     'kernel32': [
       'CancelIo',
@@ -149,4 +149,30 @@ THUNK_LIST_TOOLCHAIN = {
       'RemoveDllDirectory',
     ],
   },
+}
+
+THUNK_LIST_TOOLCHAIN_MSVCRT = {
+  '5.0': [
+    '_ctime64',
+    '_findfirst64',
+    '_findnext64',
+    '_futime64',
+    ('_gmtime64', lambda v_major: v_major < 14),
+    '_localtime64',
+    ('_stat64', lambda v_major: v_major < 13),
+    ('_time64', lambda v_major: v_major < 13),
+    '_utime64',
+    '_wfindfirst64',
+    '_wfindnext64',
+    '_wutime64',
+  ],
+  '6.0': [
+    '_wputenv_s',
+    'wcscat_s',
+    'wcscpy_s',
+    'wcsncat_s',
+    'wcsncpy_s',
+    # added in 13 to implement C95 wcstok
+    ('wcstok_s', lambda v_major: v_major < 13),
+  ],
 }

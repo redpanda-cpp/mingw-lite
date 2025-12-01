@@ -7,7 +7,7 @@
 ## Use
 
 - Native toolchain: the toolchain is static by default.
-  - Profiles that target Windows Vista (NT 6.0, see below) or later provide optional shared runtime libraries.
+  - Profiles that target Windows XP (NT 5.1, see below) or later provide optional shared runtime libraries.
   - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` to `$prefix/`.
 - Cross toolchain: tools are organized by package. Mount required packages to `/usr/local`:
   ```bash
@@ -71,32 +71,29 @@ By default, MinGW Lite is very conservative in micro architecture -- the “64�
 
 For better performance, there are “64”-bit “x86-64-v2” (sse4.2, 2008) variants: 64_v2-mcf, 64_v2-win32, 64_v2-ucrt, 64_v2-msvcrt. In addition, they are built with `-O2` instead of `-Os`, and have LTO enabled for GCC and Binutils.
 
-To work with even older CPUs, there are “32”-bit “i686” (cmov, 1995) and “i486” [atomic (bswap, cmpxchg, xadd), 1989] variants for earlier Windows versions (see below).
+To work with even older CPUs, there are “32”-bit “i686” (cmov, 1995), “i486” [atomic (bswap, cmpxchg, xadd), 1989] and the baseline “i386” (1985) variants for earlier Windows versions (see below).
 
 ## Supported OS Versions
 
 The default `_WIN32_WINNT` value for each branch is based on the earliest Windows version that is supported at the freeze point, the winter solstice after GCC’s release. (Currently 0x0A00 for all branches.)
 
-Python (GDB scripting engine) often limits the toolchain’s minimum supported OS. However, Python is sometimes a bit aggressive, so we use some thunks to bring back support for earlier Windows versions. There is no well-defined rule for minimum supported OS; the one that costs “reasonable” effort is chosen.
+Python (GDB scripting engine) often limits the toolchain’s minimum supported OS. However, Python is sometimes a bit aggressive, so we use some thunks to bring back support for earlier Windows versions. The minimum supported OS is the one where the shared runtime libraries are thunk-free.
 
-| ABI variant | Minimum supported OS |
-| ----------- | -------------------- |
-| mcf | Windows 7 (NT 6.1) |
-| win32 | Windows Vista (NT 6.0) |
-| ucrt | Windows Vista (NT 6.0) |
-| msvcrt | Windows Vista (NT 6.0) |
+| Profile | Minimum supported OS |
+| ------- | -------------------- |
+| *-mcf | NT 6.1 (7) |
+| *-win32 | NT 6.0 (Vista) |
+| {64,64_v2}-{ucrt,msvcrt} | NT 5.2 (Server 2003) |
+| 32-{ucrt,msvcrt} | NT 5.1 (XP) |
 
 Some profiles have variants for even earlier Windows versions (and possibly older CPUs), as follows.
 
-| Profile variant | Minimum supported OS |
-| --------------- | -------------------- |
-| 64-ucrt_ws2003 | Windows Server 2003 (NT 5.2) |
-| 64-msvcrt_ws2003 | Windows Server 2003 (NT 5.2) |
-| 32-ucrt_winxp | Windows XP (NT 5.1) |
-| 32-msvcrt_win2000 | Windows 2000 (NT 5.0) |
-| 32_686-msvcrt_win98 | Windows NT 4.0<br>Windows 98 (4.10) |
-| 32_486-msvcrt_win98 | Windows NT 4.0<br>Windows 98 (4.10) |
-| 32_386-msvcrt_win95 | Windows NT 4.0<br>Windows 98 (4.10)<br>Limited Windows 95 (4.00) |
+| Profile variant | Branch 16 | Branch 15, 14, 13 |
+| --------------- | --------- | ----------------- |
+| 32-msvcrt_win2000 | | NT 5.0 (2000) |
+| 32_686-msvcrt_win98 | NT 4.0, 4.10 (98) | NT 4.0, 4.10 (98) |
+| 32_486-msvcrt_win98 | NT 4.0, 4.10 (98) | NT 4.0, 4.10 (98) |
+| 32_386-msvcrt_win95 | NT 4.0, 4.10 (98)<br>4.00 (95, limited) | NT 4.0, 4.10 (98)<br>4.00 (95, limited) |
 
 Limitations on Windows 95:
 

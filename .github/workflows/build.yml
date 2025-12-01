@@ -22,8 +22,7 @@ jobs:
             '64_v2-mcf', '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt',
           ]
           all_old_profile = [
-            '64-ucrt_ws2003', '64-msvcrt_ws2003',
-            '32-ucrt_winxp', '32-msvcrt_win2000',
+            '32-msvcrt_win2000',
             '32_686-msvcrt_win98',
             '32_486-msvcrt_win98',
             '32_386-msvcrt_win95',
@@ -34,95 +33,103 @@ jobs:
             '32_486-msvcrt_win98',
           ]
 
+          exclude_profile_branch = [
+            {'profile': '32-msvcrt_win2000', 'branch': '16'},
+          ]
+
           wsl_branch = ['15']
           wsl_profile = ['64-mcf', '64-ucrt']
 
           sat_group = [
             {
-              'name': '64-nt6x',
+              'name': '64-stable',
               'profile': json.dumps(['64-mcf', '64-win32', '64-ucrt', '64-msvcrt']),
               'pattern': '{mingw64-mcf-*,mingw64-win32-*,mingw64-ucrt-*,mingw64-msvcrt-*}',
               'dict': '512m',
             },
             {
-              'name': '64_v2-nt6x',
+              'name': '64_v2-stable',
               'profile': json.dumps(['64_v2-mcf', '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt']),
               'pattern': '{mingw64_v2-mcf-*,mingw64_v2-win32-*,mingw64_v2-ucrt-*,mingw64_v2-msvcrt-*}',
               'dict': '512m',
             },
             {
-              'name': '32-nt6x',
+              'name': '32-stable',
               'profile': json.dumps(['32-mcf', '32-win32', '32-ucrt', '32-msvcrt']),
               'pattern': '{mingw32-mcf-*,mingw32-win32-*,mingw32-ucrt-*,mingw32-msvcrt-*}',
               'dict': '512m',
             },
             {
-              'name': '64-nt52',
-              'profile': json.dumps(['64-ucrt_ws2003', '64-msvcrt_ws2003']),
-              'pattern': '{mingw64-ucrt_ws2003-*,mingw64-msvcrt_ws2003-*}',
-              'dict': '256m',
+              'name': '32-unstable',
+              'profile': json.dumps(['32-msvcrt_win2000']),
+              'pattern': 'mingw32-msvcrt_win2000-*',
+              'dict': '128m',
             },
             {
-              'name': '32-nt5x',
-              'profile': json.dumps(['32-ucrt_winxp', '32-msvcrt_win2000']),
-              'pattern': '{mingw32-ucrt_winxp-*,mingw32-msvcrt_win2000-*}',
-              'dict': '256m',
-            },
-            {
-              'name': '32_686-9x',
+              'name': '32_686-unstable',
               'profile': json.dumps(['32_686-msvcrt_win98']),
               'pattern': 'mingw32_686-*',
               'dict': '128m',
             },
             {
-              'name': '32_486-9x',
+              'name': '32_486-unstable',
               'profile': json.dumps(['32_486-msvcrt_win98']),
               'pattern': 'mingw32_486-*',
               'dict': '128m',
             },
             {
-              'name': '32_386-9x',
+              'name': '32_386-unstable',
               'profile': json.dumps(['32_386-msvcrt_win95']),
               'pattern': 'mingw32_386-*',
               'dict': '128m',
             },
           ]
 
+          sat_exclude_profile_branch = ':'.join([
+            f'{x['profile']}-{x['branch']}'
+            for x in exclude_profile_branch
+          ])
+
           if '${{ github.ref_type }}' == 'tag':
             current_branch = '${{ github.ref_name }}'.split('-')[0].split('.')[0]
             branch = [current_branch]
-            profile = common_profile + release_old_profile
+            profile = [
+              p for p in (common_profile + release_old_profile)
+              if not any(
+                p == x['profile'] and branch == x['branch']
+                for x in exclude_profile_branch)]
+            execlude_profile_branch = []
             release = True
             prerelease = int(current_branch) >= 16
-            release_xmake = release_old_profile
           else:
             branch = all_branch
             profile = common_profile + all_old_profile
             release = False
             prerelease = True
-            release_xmake = all_old_profile
 
           print(f'branch={json.dumps(branch)}')
           print(f'profile={json.dumps(profile)}')
+          print(f'exclude_profile_branch={json.dumps(exclude_profile_branch)}')
           print(f'shared_profile={json.dumps(common_profile)}')
           print(f'wsl_branch={json.dumps(wsl_branch)}')
           print(f'wsl_profile={json.dumps(wsl_profile)}')
           print(f'release={json.dumps(release)}')
           print(f'prerelease={json.dumps(prerelease)}')
-          print(f'release_xmake={json.dumps(release_xmake)}')
           print(f'sat_group={json.dumps(sat_group)}')
+          print(f'sat_exclude_profile_branch={sat_exclude_profile_branch}')
           EOF
 
     outputs:
       branch: ${{ steps.param.outputs.branch }}
       profile: ${{ steps.param.outputs.profile }}
+      exclude_profile_branch: ${{ steps.param.outputs.exclude_profile_branch }}
       shared_profile: ${{ steps.param.outputs.shared_profile }}
       wsl_branch: ${{ steps.param.outputs.wsl_branch }}
       wsl_profile: ${{ steps.param.outputs.wsl_profile }}
       release: ${{ steps.param.outputs.release }}
       prerelease: ${{ steps.param.outputs.prerelease }}
-      release_xmake: ${{ steps.param.outputs.release_xmake }}
       sat_group: ${{ steps.param.outputs.sat_group }}
+      sat_exclude_profile_branch: ${{ steps.param.outputs.sat_exclude_profile_branch }}
 
   download_source:
     name: Download source
@@ -172,6 +179,7 @@ jobs:
       matrix:
         branch: ${{ fromJson(needs.param.outputs.branch) }}
         profile: ${{ fromJson(needs.param.outputs.profile) }}
+        exclude: ${{ fromJson(needs.param.outputs.exclude_profile_branch) }}
     uses: ./.github/workflows/build_single.yml
     with:
       branch: ${{ matrix.branch }}
@@ -260,10 +268,6 @@ jobs:
             $(echo '${{ needs.param.outputs.profile }}' | jq -r '.[]')
           )
 
-          xmake_list=(
-            $(echo '${{ needs.param.outputs.release_xmake }}' | jq -r '.[]')
-          )
-
           for pn in ${mingw_list[@]} ; do
             {
               dn=mingw$pn-${{ matrix.branch }}
@@ -279,7 +283,7 @@ jobs:
           done
           wait
 
-          for pn in ${xmake_list[@]} ; do
+          for pn in ${mingw_list[@]} ; do
             {
               dn=mingw$pn-${{ matrix.branch }}
               fn=$(ls xmake-mingw$pn-*.tar.zst)
@@ -358,6 +362,9 @@ jobs:
 
           for b in ${branch[@]} ; do
             for p in ${profile[@]} ; do
+              if [[ ":${{ needs.param.outputs.sat_exclude_profile_branch }}:" == *":$p-$b:"* ]] ; then
+                continue
+              fi
               podman run --rm --cap-add=sys_admin \
                 -v $PWD:/mnt -w /mnt \
                 -v $PWD/layer:/tmp/layer \
