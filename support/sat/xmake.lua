@@ -4,6 +4,7 @@ add_rules("mode.debug", "mode.release")
 set_languages("c11")
 
 add_defines('DEBUG_BUILD_DIR="build/debug"')
+add_defines('ENABLE_SHARED')
 add_defines('MINGW_DIR="mingw64"')
 add_defines('XMAKE_ARCH="x86_64"')
 
@@ -12,3 +13,6 @@ target("test-compiler")
 
 target("test-make-gdb")
   add_files("common.c", "test-make-gdb.c")
+
+target("test-shared")
+  add_files("common.c", "test-shared.c")

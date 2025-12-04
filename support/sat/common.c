@@ -8,6 +8,10 @@
 const int MAX_CMDLINE = 32767;
 const int MAX_ENV = 32767;
 
+static void clean_shared_libs_recursive(const char *tar_dir,
+                                        const char *ref_dir);
+static void install_shared_libs_recursive(const char *tar_dir,
+                                          const char *ref_dir);
 static void mkdir_exist_ok(const char *dir);
 static bool need_quote(const char *arg);
 
@@ -18,10 +22,103 @@ void change_to_self_dir() {
     error_exit("Failed to change to self directory\n");
 }
 
+void clean_shared_libs() {
+  char mingw_root_dir[MAX_PATH];
+  resolve_mingw_root_dir(mingw_root_dir);
+
+  char shared_dir[MAX_PATH];
+  snprintf(shared_dir, sizeof(shared_dir), "%s/lib/shared", mingw_root_dir);
+
+  clean_shared_libs_recursive(mingw_root_dir, shared_dir);
+}
+
+static void clean_shared_libs_recursive(const char *tar_dir,
+                                        const char *ref_dir) {
+  WIN32_FIND_DATAA find_data;
+  char search_path[MAX_PATH];
+  snprintf(search_path, sizeof(search_path), "%s/*", ref_dir);
+
+  HANDLE hFind = FindFirstFileA(search_path, &find_data);
+  if (hFind == INVALID_HANDLE_VALUE)
+    error_exit("Failed to walk directory\n");
+  do {
+    if (strcmp(find_data.cFileName, ".") != 0 &&
+        strcmp(find_data.cFileName, "..") != 0) {
+
+      char ref_path[MAX_PATH];
+      snprintf(ref_path, sizeof(ref_path), "%s/%s", ref_dir,
+               find_data.cFileName);
+
+      char target_path[MAX_PATH];
+      snprintf(target_path, sizeof(target_path), "%s/%s", tar_dir,
+               find_data.cFileName);
+
+      if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        clean_shared_libs_recursive(target_path, ref_path);
+      } else {
+        if (GetFileAttributesA(target_path) == INVALID_FILE_ATTRIBUTES)
+          continue;
+        if (!DeleteFileA(target_path))
+          error_exit("Failed to clean shared library\n");
+      }
+    }
+  } while (FindNextFileA(hFind, &find_data));
+
+  if (GetLastError() != ERROR_NO_MORE_FILES)
+    error_exit("Failed to walk directory\n");
+  FindClose(hFind);
+}
+
 void error_exit(const char *msg) {
   fprintf(stderr, "%s\n", msg);
   _getch();
   exit(EXIT_FAILURE);
+}
+
+void install_shared_libs() {
+  char mingw_root_dir[MAX_PATH];
+  resolve_mingw_root_dir(mingw_root_dir);
+
+  char shared_dir[MAX_PATH];
+  snprintf(shared_dir, sizeof(shared_dir), "%s/lib/shared", mingw_root_dir);
+
+  install_shared_libs_recursive(mingw_root_dir, shared_dir);
+}
+
+static void install_shared_libs_recursive(const char *tar_dir,
+                                          const char *ref_dir) {
+  WIN32_FIND_DATAA find_data;
+  char search_path[MAX_PATH];
+  snprintf(search_path, sizeof(search_path), "%s/*", ref_dir);
+
+  HANDLE hFind = FindFirstFileA(search_path, &find_data);
+  if (hFind == INVALID_HANDLE_VALUE)
+    error_exit("Failed to walk directory\n");
+  do {
+    if (strcmp(find_data.cFileName, ".") != 0 &&
+        strcmp(find_data.cFileName, "..") != 0) {
+
+      char ref_path[MAX_PATH];
+      snprintf(ref_path, sizeof(ref_path), "%s/%s", ref_dir,
+               find_data.cFileName);
+
+      char tar_path[MAX_PATH];
+      snprintf(tar_path, sizeof(tar_path), "%s/%s", tar_dir,
+               find_data.cFileName);
+
+      if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        mkdir_exist_ok(tar_path);
+        install_shared_libs_recursive(tar_path, ref_path);
+      } else {
+        if (!CopyFileA(ref_path, tar_path, FALSE))
+          error_exit("Failed to copy shared library\n");
+      }
+    }
+  } while (FindNextFileA(hFind, &find_data));
+
+  if (GetLastError() != ERROR_NO_MORE_FILES)
+    error_exit("Failed to walk directory\n");
+  FindClose(hFind);
 }
 
 bool is_nt() {
@@ -113,16 +210,43 @@ void prepend_to_env_path(const char *path) {
   SetEnvironmentVariableA("PATH", env_path);
 }
 
-void resolve_mingw_bin_dir(char dir[MAX_PATH]) {
-  const char *const rel_mingw_bin_dir = MINGW_DIR "/bin";
-  const int rel_len = strlen(rel_mingw_bin_dir);
+int resolve_mingw_bin_dir(char dir[MAX_PATH]) {
+  const char *const rel_bin_dir = "/bin";
+  const int rel_len = strlen(rel_bin_dir);
+
+  int dir_len = resolve_mingw_root_dir(dir);
+  if (dir_len + rel_len + 1 >= MAX_PATH)
+    error_exit("Executable path is too long\n");
+
+  memcpy(dir + dir_len, rel_bin_dir, rel_len);
+  dir[dir_len + rel_len] = 0;
+  return dir_len + rel_len;
+}
+
+int resolve_mingw_lib_shared_dir(char dir[MAX_PATH]) {
+  const char *const rel_lib_shared_dir = "/lib/shared";
+  const int rel_len = strlen(rel_lib_shared_dir);
+
+  int dir_len = resolve_mingw_root_dir(dir);
+  if (dir_len + rel_len + 1 >= MAX_PATH)
+    error_exit("Executable path is too long\n");
+
+  memcpy(dir + dir_len, rel_lib_shared_dir, rel_len);
+  dir[dir_len + rel_len] = 0;
+  return dir_len + rel_len;
+}
+
+int resolve_mingw_root_dir(char dir[MAX_PATH]) {
+  const char *const rel_mingw_root_dir = "/" MINGW_DIR;
+  const int rel_len = strlen(rel_mingw_root_dir);
 
   int dir_len = resolve_self_dir(dir);
   if (dir_len + rel_len + 1 >= MAX_PATH)
     error_exit("Executable path is too long\n");
 
-  memcpy(dir + dir_len, rel_mingw_bin_dir, rel_len);
+  memcpy(dir + dir_len, rel_mingw_root_dir, rel_len);
   dir[dir_len + rel_len] = 0;
+  return dir_len + rel_len;
 }
 
 int resolve_self_dir(char dir[MAX_PATH]) {
@@ -132,7 +256,7 @@ int resolve_self_dir(char dir[MAX_PATH]) {
   if (dir_len >= MAX_PATH)
     error_exit("Executable path is too long\n");
 
-  while (dir[dir_len - 1] != '/' && dir[dir_len - 1] != '\\')
+  while (dir[dir_len] != '/' && dir[dir_len] != '\\')
     dir_len--;
   dir[dir_len] = 0;
   return dir_len;

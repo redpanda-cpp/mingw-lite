@@ -11,9 +11,7 @@ int main(int argc, char *argv[]) {
   resolve_mingw_bin_dir(mingw_bin_dir);
   prepend_to_env_path(mingw_bin_dir);
 
-#ifdef ENABLE_SHARED
-  clean_shared_libs();
-#endif
+  install_shared_libs();
 
   change_to_self_dir();
 
@@ -23,7 +21,7 @@ int main(int argc, char *argv[]) {
       "--verbose",
       "--plat=mingw",
       ("--arch=" XMAKE_ARCH),
-      "--builddir=build",
+      "--builddir=build-shared",
       lt_win98() ? "--ldflags=-fno-lto" : NULL,
       NULL,
   };
@@ -48,7 +46,7 @@ int main(int argc, char *argv[]) {
   if (wait(xmake_test_process) != 0)
     error_exit("xmake test failed");
 
-  printf("[test-compiler] done\n");
+  printf("[test-shared] done\n");
 
   _getch();
 

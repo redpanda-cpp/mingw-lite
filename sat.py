@@ -64,7 +64,7 @@ def write_gdb_commands(ver: BranchProfile, paths: ProjectPaths):
     )
     f.write(content.encode())
 
-def compile_test_programs(ver: BranchProfile, paths: ProjectPaths):
+def compile_test_programs(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   mingw_dir = paths.sat_mingw_dir.relative_to(paths.sat_dir)
   xmake_arch = XMAKE_ARCH_MAP[ver.arch]
   debug_build_dir = f'build/mingw/{xmake_arch}/debug'
@@ -75,6 +75,8 @@ def compile_test_programs(ver: BranchProfile, paths: ProjectPaths):
     f'-DXMAKE_ARCH="{xmake_arch}"',
     f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
   ]
+  if config.enable_shared:
+    flags.append('-DENABLE_SHARED')
 
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
@@ -86,8 +88,10 @@ def compile_test_programs(ver: BranchProfile, paths: ProjectPaths):
     common_c = paths.root_dir / 'support/sat/common.c'
     test_compiler_c = paths.root_dir / 'support/sat/test-compiler.c'
     test_make_gdb_c = paths.root_dir / 'support/sat/test-make-gdb.c'
+    test_shared_c = paths.root_dir / 'support/sat/test-shared.c'
     test_compiler_exe = paths.sat_dir / 'test-compiler.exe'
     test_make_gdb_exe = paths.sat_dir / 'test-make-gdb.exe'
+    test_shared_exe = paths.sat_dir / 'test-shared.exe'
 
     subprocess.run([
       gcc_exe,
@@ -103,6 +107,14 @@ def compile_test_programs(ver: BranchProfile, paths: ProjectPaths):
       '-o', test_make_gdb_exe,
     ], check=True)
 
+    if config.enable_shared:
+      subprocess.run([
+        gcc_exe,
+        *flags,
+        test_shared_c, common_c,
+        '-o', test_shared_exe,
+      ], check=True)
+
 def main():
   config = parse_args()
 
@@ -117,7 +129,7 @@ def main():
 
   write_gdb_commands(ver, paths)
 
-  compile_test_programs(ver, paths)
+  compile_test_programs(ver, paths, config)
 
 if __name__ == '__main__':
   main()

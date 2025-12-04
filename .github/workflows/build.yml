@@ -45,42 +45,49 @@ jobs:
               'name': '64-stable',
               'profile': json.dumps(['64-mcf', '64-win32', '64-ucrt', '64-msvcrt']),
               'pattern': '{mingw64-mcf-*,mingw64-win32-*,mingw64-ucrt-*,mingw64-msvcrt-*}',
+              'enable_shared': True,
               'dict': '512m',
             },
             {
               'name': '64_v2-stable',
               'profile': json.dumps(['64_v2-mcf', '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt']),
               'pattern': '{mingw64_v2-mcf-*,mingw64_v2-win32-*,mingw64_v2-ucrt-*,mingw64_v2-msvcrt-*}',
+              'enable_shared': True,
               'dict': '512m',
             },
             {
               'name': '32-stable',
               'profile': json.dumps(['32-mcf', '32-win32', '32-ucrt', '32-msvcrt']),
               'pattern': '{mingw32-mcf-*,mingw32-win32-*,mingw32-ucrt-*,mingw32-msvcrt-*}',
+              'enable_shared': True,
               'dict': '512m',
             },
             {
               'name': '32-unstable',
               'profile': json.dumps(['32-msvcrt_win2000']),
               'pattern': 'mingw32-msvcrt_win2000-*',
+              'enable_shared': False,
               'dict': '128m',
             },
             {
               'name': '32_686-unstable',
               'profile': json.dumps(['32_686-msvcrt_win98']),
               'pattern': 'mingw32_686-*',
+              'enable_shared': False,
               'dict': '128m',
             },
             {
               'name': '32_486-unstable',
               'profile': json.dumps(['32_486-msvcrt_win98']),
               'pattern': 'mingw32_486-*',
+              'enable_shared': False,
               'dict': '128m',
             },
             {
               'name': '32_386-unstable',
               'profile': json.dumps(['32_386-msvcrt_win95']),
               'pattern': 'mingw32_386-*',
+              'enable_shared': False,
               'dict': '128m',
             },
           ]
@@ -370,7 +377,7 @@ jobs:
                 -v $PWD/layer:/tmp/layer \
                 -v $PWD/pkg:/tmp/pkg \
                 mingw-lite/buildenv \
-                  ./sat.py --branch $b --profile $p
+                  ./sat.py --branch $b --profile $p ${{ matrix.enable_shared && '--enable-shared' || '' }}
               rm -rf layer/mingw$p-$b
             done
           done
