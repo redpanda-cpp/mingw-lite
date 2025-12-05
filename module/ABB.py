@@ -351,11 +351,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     '--without-libcc1',
     '--with-libiconv',
     '--with-tune=generic',
-    *cflags_B(
-      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-      optimize_for_size = ver.optimize_for_size,
-      lto = not ver.optimize_for_size,
-    ),
     *cflags_B('_FOR_TARGET',
       # CPPFLAGS_FOR_TARGET is not passed
       common_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
@@ -392,6 +387,11 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       '--enable-static',
       *common_flags,
+      *cflags_B(
+        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
+        lto = not ver.optimize_for_size,
+      ),
     ])
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_ABB.gcc)
@@ -452,6 +452,11 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--enable-shared',
       '--disable-static',
       *common_flags,
+      *cflags_B(
+        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
+        lto = False,
+      ),
     ])
     make_custom(build_dir, ['all-target'], config.jobs)
     make_custom(build_dir, [f'DESTDIR={paths.layer_ABB.gcc}', 'install-target'], jobs = 1)
