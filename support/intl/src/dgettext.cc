@@ -349,8 +349,8 @@ namespace intl
                                      wstring_view locale,
                                      string_view domain)
     {
-      constexpr wstring_view infix{LR"(\LC_MESSAGES\)"};
-      constexpr wstring_view suffix{L".mo"};
+      constexpr_if_consteval wstring_view infix{LR"(\LC_MESSAGES\)"};
+      constexpr_if_consteval wstring_view suffix{L".mo"};
 
       wstring result{prefix.data(), prefix.size()};
       result.append(locale.data(), locale.size());

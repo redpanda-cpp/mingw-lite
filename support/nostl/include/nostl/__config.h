@@ -30,13 +30,41 @@
   #endif
 #endif
 
+#if 0
+  // usage:
+  constexpr_if_consteval return_type op()
+  {
+    if_consteval
+    {
+      // slow, compile-time implementation
+    }
+    else
+    {
+      // fast, run-time implementation
+    }
+  }
+#endif
 #ifdef __cpp_if_consteval
+  // okay, consteval is supported
   #define if_consteval if consteval
-  #define if_not_consteval if !consteval
-#elif __has_builtin(__builtin_is_constant_evaluated)
-  #define if_consteval if (__builtin_is_constant_evaluated())
-  #define if_not_consteval if (!__builtin_is_constant_evaluated())
+  #define constexpr_if_consteval constexpr
+#elif defined(__has_builtin)
+  // cannot use `defined(...) && __has_builtin(...)`
+  // error: missing binary operator before token "("
+  #if __has_builtin(__builtin_is_constant_evaluated)
+    // okay, alternative syntax
+    #define if_consteval if (__builtin_is_constant_evaluated())
+    #define constexpr_if_consteval constexpr
+  #else
+    #define if_consteval if constexpr (true)
+    #define constexpr_if_consteval constexpr
+  #endif
+#elif defined(__cpp_if_constexpr)
+  // keep constexpr, but always use the slow path
+  #define if_consteval if constexpr (true)
+  #define constexpr_if_consteval constexpr
 #else
+  // constexpr is impossible, use fast path
   #define if_consteval if (false)
-  #define if_not_consteval if (true)
+  #define constexpr_if_consteval
 #endif

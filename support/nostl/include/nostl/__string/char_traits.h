@@ -62,7 +62,7 @@ namespace NS_NOSTL
   class char_traits<char> : public detail::char_traits_base<char, int>
   {
   public:
-    static constexpr char_type *
+    static constexpr_if_consteval char_type *
     move(char_type *dest, const char_type *src, size_t count)
     {
       if_consteval
@@ -75,7 +75,7 @@ namespace NS_NOSTL
       }
     }
 
-    static constexpr char_type *
+    static constexpr_if_consteval char_type *
     copy(char_type *dest, const char_type *src, size_t count)
     {
       if_consteval
@@ -88,7 +88,7 @@ namespace NS_NOSTL
       }
     }
 
-    static constexpr int
+    static constexpr_if_consteval int
     compare(const char_type *s1, const char_type *s2, size_t count)
     {
       if_consteval
@@ -107,7 +107,7 @@ namespace NS_NOSTL
       }
     }
 
-    static constexpr size_t length(const char_type *s)
+    static constexpr_if_consteval size_t length(const char_type *s)
     {
       if_consteval
       {
@@ -124,7 +124,7 @@ namespace NS_NOSTL
   class char_traits<wchar_t> : public detail::char_traits_base<wchar_t, wint_t>
   {
   public:
-    static constexpr char_type *
+    static constexpr_if_consteval char_type *
     move(char_type *dest, const char_type *src, size_t count)
     {
       if_consteval
@@ -137,7 +137,7 @@ namespace NS_NOSTL
       }
     }
 
-    static constexpr char_type *
+    static constexpr_if_consteval char_type *
     copy(char_type *dest, const char_type *src, size_t count)
     {
       if_consteval
@@ -150,7 +150,7 @@ namespace NS_NOSTL
       }
     }
 
-    static constexpr int
+    static constexpr_if_consteval int
     compare(const char_type *s1, const char_type *s2, size_t count)
     {
       if_consteval
@@ -163,7 +163,7 @@ namespace NS_NOSTL
       }
     }
 
-    static constexpr size_t length(const char_type *s)
+    static constexpr_if_consteval size_t length(const char_type *s)
     {
       if_consteval
       {
