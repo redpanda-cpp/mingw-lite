@@ -119,6 +119,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if v.major >= 16:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'dynamic-load-tzdb.patch')
 
+    # Fix constexpr exception link error
+    if v.major == 16:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-constexpr-exception-link-error.patch')
+
     # Disable vectorized lexer
     if ver.min_os.major < 5:
       if v.major >= 15:
@@ -196,8 +200,11 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if download_only:
     return
 
-  check_and_extract(paths.src_dir.iconv, paths.src_arx.iconv)
-  patch_done(paths.src_dir.iconv)
+  if check_and_extract(paths.src_dir.iconv, paths.src_arx.iconv):
+    # Fix rc naming convention
+    patch(paths.src_dir.iconv, paths.patch_dir / 'iconv' / 'fix-rc-naming-convention.patch')
+
+    patch_done(paths.src_dir.iconv)
 
 def _intl(ver: BranchProfile, paths: ProjectPaths):
   shutil.copytree(

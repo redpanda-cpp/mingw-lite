@@ -1,0 +1,57 @@
+diff --git a/lib/Makefile.in b/lib/Makefile.in
+index b93856b..6a6e199 100644
+--- a/lib/Makefile.in
++++ b/lib/Makefile.in
+@@ -61,7 +61,7 @@ SOURCES = $(srcdir)/iconv.c $(srcdir)/../libcharset/lib/localcharset.c $(srcdir)
+ OBJECTS = iconv.lo localcharset.lo compat.lo $(OBJECTS_EXP_@WOE32DLL@) $(OBJECTS_RES_@WOE32@)
+ OBJECTS_EXP_yes = iconv-exports.lo
+ OBJECTS_EXP_no =
+-OBJECTS_RES_yes = libiconv.res.lo
++OBJECTS_RES_yes = libiconv.rc.o.lo
+ OBJECTS_RES_no =
+ 
+ all : libiconv.la
+@@ -88,8 +88,8 @@ compat.lo : $(srcdir)/compat.c
+ iconv-exports.lo : $(srcdir)/../woe32dll/iconv-exports.c
+ 	$(LIBTOOL_COMPILE) $(CC) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(DEFS) -c $(srcdir)/../woe32dll/iconv-exports.c
+ 
+-libiconv.res.lo : $(srcdir)/../windows/libiconv.rc
+-	$(LIBTOOL_COMPILE) --tag=RC $(RC) `$(SHELL) $(srcdir)/../windows/windres-options --escape $(PACKAGE_VERSION)` -i $(srcdir)/../windows/libiconv.rc -o libiconv.res.lo --output-format=coff
++libiconv.rc.o.lo : $(srcdir)/../windows/libiconv.rc
++	$(LIBTOOL_COMPILE) --tag=RC $(RC) `$(SHELL) $(srcdir)/../windows/windres-options --escape $(PACKAGE_VERSION)` -i $(srcdir)/../windows/libiconv.rc -o libiconv.rc.o.lo --output-format=coff
+ 
+ # Installs the library and include files only. Typically called with only
+ # $(libdir) and $(includedir) - don't use $(prefix) and $(exec_prefix) here.
+diff --git a/src/Makefile.in b/src/Makefile.in
+index 92307d5..8361927 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -59,7 +59,7 @@ host = @host@
+ bindir_c_make = @bindir_c_make@
+ localedir_c_make = @localedir_c_make@
+ 
+-OBJECTS_RES_yes = iconv.res
++OBJECTS_RES_yes = iconv.rc.o
+ OBJECTS_RES_no =
+ 
+ # We cannot link with libintl until libiconv is installed. (When we call
+@@ -85,8 +85,8 @@ iconv_no_i18n.@OBJEXT@ : $(srcdir)/iconv_no_i18n.c $(srcdir)/iconv.c
+ iconv.@OBJEXT@ : $(srcdir)/iconv.c
+ 	$(CC) -c $(INCLUDES) -I../lib $(CFLAGS) $(CPPFLAGS) -DINSTALLDIR=$(bindir_c_make) -DLOCALEDIR=$(localedir_c_make) $(srcdir)/iconv.c
+ 
+-iconv.res : $(srcdir)/../windows/iconv.rc
+-	$(WINDRES) `$(SHELL) $(srcdir)/../windows/windres-options --escape $(PACKAGE_VERSION)` -i $(srcdir)/../windows/iconv.rc -o iconv.res --output-format=coff
++iconv.rc.o : $(srcdir)/../windows/iconv.rc
++	$(WINDRES) `$(SHELL) $(srcdir)/../windows/windres-options --escape $(PACKAGE_VERSION)` -i $(srcdir)/../windows/iconv.rc -o iconv.rc.o --output-format=coff
+ 
+ # The following rule is necessary to avoid a toplevel "make -n check" failure.
+ ../lib/libiconv.la :
+@@ -138,7 +138,7 @@ check : all
+ mostlyclean : clean
+ 
+ clean : force
+-	$(RM) *.@OBJEXT@ *.lo iconv.res iconv_no_i18n iconv_no_i18n$(EXEEXT) iconv$(EXEEXT) core *.stackdump
++	$(RM) *.@OBJEXT@ *.lo iconv.rc.o iconv_no_i18n iconv_no_i18n$(EXEEXT) iconv$(EXEEXT) core *.stackdump
+ 	$(RM) -r .libs _libs
+ 
+ distclean : clean
