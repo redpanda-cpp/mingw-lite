@@ -8,7 +8,7 @@ import subprocess
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro, temporary_rw_overlay
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro
 from module.util import cflags_A, cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
@@ -116,7 +116,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
-
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
@@ -128,27 +127,15 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       libgcc_a = build_dir / ver.target / 'libgcc/libgcc.a'
 
       if ver.march == 'i386':
-        # bootstrapping i386 libatomic is tricky.
-        # the configure script checks whether GCC can compile program.
-        # however, CRT startup code depends on libatomic, which is not built yet.
-        # here we provide fake symbols to pass the check.
-        libatomic_fake_object = build_dir / 'libatomic_fake.o'
-        subprocess.run([
-          f'{ver.target}-gcc', '-x', 'c', '-c', '-', '-o', libatomic_fake_object,
-        ], check = True, input = b''.join([
-          b'int __atomic_compare_exchange_4;',
-          b'int __sync_val_compare_and_swap_4;',
-          b'int __sync_bool_compare_and_swap_4;',
-        ]))
+        with overlayfs_ro(f'/usr/local/{ver.target}', [
+          # override crt
+          paths.layer_AAB.atomic_bootstrap / 'usr/local' / ver.target,
 
-        # we cannot add fake symbols to libgcc.a,
-        # because it will be overwritten by 'configure-target-libatomic'.
-        # here we randomly choose libkernel32.a.
-        lib_dir = Path('/usr/local') / ver.target / 'lib'
-        kernel32_a = lib_dir / 'libkernel32.a'
-
-        with temporary_rw_overlay(lib_dir):
-          add_objects_to_static_lib(f'{ver.target}-ar', kernel32_a, [libatomic_fake_object])
+          paths.layer_AAB.binutils / 'usr/local' / ver.target,
+          paths.layer_AAB.headers / 'usr/local' / ver.target,
+          paths.layer_AAB.gcc / 'usr/local' / ver.target,
+          paths.layer_AAB.crt / 'usr/local' / ver.target,
+        ]):
           make_custom(build_dir, ['all-target-libatomic'], config.jobs)
       else:
         make_custom(build_dir, ['all-target-libatomic'], config.jobs)
@@ -226,6 +213,34 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         build_dir / 'utf8-manifest.o',
         '-o', crt_object_dir / crt_object,
       ], check = True)
+
+    # bootstrapping i386 libatomic is tricky.
+    # the configure script checks whether GCC can compile program.
+    # however, CRT startup code depends on libatomic, which is not built yet.
+    # here we provide fake symbols to pass the check.
+
+    # also we cannot handle it in gcc phases (adding to libgcc.a),
+    # because it will be overwritten by 'configure-target-libatomic'.
+    # here we choose libkernel32.a.
+    if ver.march == 'i386':
+      libatomic_fake_object = build_dir / 'libatomic_fake.o'
+      subprocess.run([
+        f'{ver.target}-gcc', '-x', 'c', '-c', '-', '-o', libatomic_fake_object,
+      ], check = True, input = b''.join([
+        b'int __atomic_compare_exchange_4;',
+        b'int __sync_val_compare_and_swap_4;',
+        b'int __sync_bool_compare_and_swap_4;',
+      ]))
+
+      crt_kernel32 = paths.layer_AAB.crt / 'usr/local' / ver.target / 'lib/libkernel32.a'
+      atomic_kernel32 = paths.layer_AAB.atomic_bootstrap / 'usr/local' / ver.target / 'lib/libkernel32.a'
+      ensure(atomic_kernel32.parent)
+      shutil.copy(crt_kernel32, atomic_kernel32)
+      add_objects_to_static_lib(
+        f'{ver.target}-ar',
+        atomic_kernel32,
+        [libatomic_fake_object],
+      )
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [

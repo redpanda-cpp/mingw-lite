@@ -45,6 +45,7 @@ class LayerPathsAAA(NamedTuple):
 class LayerPathsAAB(NamedTuple):
   prefix: Path
 
+  atomic_bootstrap: Path
   binutils: Path
   crt: Path
   gcc: Path
@@ -250,6 +251,7 @@ class ProjectPaths:
     self.layer_AAB = LayerPathsAAB(
       prefix = layer_AAB_prefix,
 
+      atomic_bootstrap = layer_AAB_prefix / 'atomic-bootstrap',
       binutils = layer_AAB_prefix / 'binutils',
       crt = layer_AAB_prefix / 'crt',
       gcc = layer_AAB_prefix / 'gcc',

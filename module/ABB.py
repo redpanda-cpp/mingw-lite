@@ -10,7 +10,7 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro, remove_info_main_menu, remove_redundant_file, temporary_rw_overlay
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro, remove_info_main_menu, remove_redundant_file
 from module.util import cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
@@ -222,11 +222,14 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
-  ]), temporary_rw_overlay(f'/usr/local/{ver.target}'):
-    shutil.copytree(paths.layer_ABB.crt, f'/usr/local/{ver.target}', dirs_exist_ok = True)
+  ]), overlayfs_ro(f'/usr/local/{ver.target}', [
+    paths.layer_AAB.binutils / 'usr/local' / ver.target,
+    paths.layer_AAB.headers / 'usr/local' / ver.target,
+    paths.layer_AAB.gcc / 'usr/local' / ver.target,
 
+    paths.layer_ABB.crt,
+  ]):
     build_dir = paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB-shared'
     ensure(build_dir)
     configure(build_dir, [
@@ -305,11 +308,14 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
 
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
-  ]), temporary_rw_overlay(f'/usr/local/{ver.target}'):
-    shutil.copytree(paths.layer_ABB.crt, f'/usr/local/{ver.target}', dirs_exist_ok = True)
+  ]), overlayfs_ro(f'/usr/local/{ver.target}', [
+    paths.layer_AAB.binutils / 'usr/local' / ver.target,
+    paths.layer_AAB.headers / 'usr/local' / ver.target,
+    paths.layer_AAB.gcc / 'usr/local' / ver.target,
 
+    paths.layer_ABB.crt,
+  ]):
     build_dir = 'build-ABB-shared'
 
     meson_config(
@@ -440,18 +446,20 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
+  ]), overlayfs_ro(f'/usr/local/{ver.target}', [
+    paths.layer_AAB.binutils / 'usr/local' / ver.target,
+    paths.layer_AAB.headers / 'usr/local' / ver.target,
+    paths.layer_AAB.gcc / 'usr/local' / ver.target,
 
-    paths.layer_AAB.gmp / 'usr/local',
-    paths.layer_AAB.mpfr / 'usr/local',
-    paths.layer_AAB.mpc / 'usr/local',
-    paths.layer_AAB.iconv / 'usr/local',
-    paths.layer_AAB.intl / 'usr/local',
-  ]), temporary_rw_overlay(f'/usr/local/{ver.target}'):
-    shutil.copytree(paths.layer_ABB.crt, f'/usr/local/{ver.target}', dirs_exist_ok = True)
-    shutil.copytree(paths.layer_ABB.gcc / 'lib/shared', f'/usr/local/{ver.target}', dirs_exist_ok = True)
+    paths.layer_AAB.gmp / 'usr/local' / ver.target,
+    paths.layer_AAB.mpfr / 'usr/local' / ver.target,
+    paths.layer_AAB.mpc / 'usr/local' / ver.target,
+    paths.layer_AAB.iconv / 'usr/local' / ver.target,
+    paths.layer_AAB.intl / 'usr/local' / ver.target,
 
+    paths.layer_ABB.crt,
+  ]):
     build_dir = paths.src_dir.gcc / 'build-ABB-shared'
     ensure(build_dir)
 

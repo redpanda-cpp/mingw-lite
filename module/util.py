@@ -220,16 +220,6 @@ def remove_redundant_file(prefix: Path, ref: Path):
   if prefix.is_dir() and not list(prefix.iterdir()):
     prefix.rmdir()
 
-@contextmanager
-def temporary_rw_overlay(path: Union[Path, str]):
-  with TemporaryDirectory() as tmp:
-    try:
-      shutil.copytree(path, tmp, dirs_exist_ok = True)
-      subprocess.run(['mount', '--bind', tmp, path], check = True)
-      yield
-    finally:
-      subprocess.run(['umount', path], check = False)
-
 def xmake_build(cwd: Path, jobs: int):
   subprocess.run(
     ['xmake', 'build', '-j', str(jobs)],
