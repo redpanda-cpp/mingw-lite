@@ -199,19 +199,32 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
     # The future belongs to UTF-8.
     # Piping is used so widely in GNU toolchain that we have to apply UTF-8 manifest to all programs.
+    # Linking the UTF-8 manifest (and console hack object) to CRT init objects is an efficient way.
+    crt_object_dir = paths.layer_AAB.utf8 / 'usr/local' / ver.target / 'lib'
+    ensure(crt_object_dir)
+
+    subprocess.run([
+      f'{ver.target}-gcc',
+      '-std=c11',
+      '-Os', '-c',
+      paths.utf8_src_dir / 'console-hack.c',
+      '-o', build_dir / 'console-hack.o',
+    ], check = True)
     subprocess.run([
       f'{ver.target}-windres',
       '-O', 'coff',
       paths.utf8_src_dir / 'utf8-manifest.rc',
       '-o', build_dir / 'utf8-manifest.o',
     ], check = True)
-    for crt_object in ['crt1.o', 'crt1u.o', 'crt2.o', 'crt2u.o']:
+
+    for crt_object in ['crt2.o', 'crt2u.o']:
       subprocess.run([
         f'{ver.target}-gcc',
         '-r',
         build_dir / f'lib{ver.arch}' / crt_object,
+        build_dir / 'console-hack.o',
         build_dir / 'utf8-manifest.o',
-        '-o', paths.layer_AAB.crt / 'usr/local' / ver.target / 'lib' / crt_object,
+        '-o', crt_object_dir / crt_object,
       ], check = True)
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):

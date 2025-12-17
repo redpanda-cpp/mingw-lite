@@ -19,6 +19,9 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.xmake / 'usr/local',
 
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
@@ -42,6 +45,9 @@ def build_ABB_xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Na
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
@@ -367,6 +373,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     common_flags.append(f'--with-fpmath={ver.fpmath}')
 
   with overlayfs_ro('/usr/local', [
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
@@ -465,6 +474,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
@@ -555,6 +567,9 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
 def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
@@ -597,6 +612,9 @@ def _gmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
 def _pkgconf(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
