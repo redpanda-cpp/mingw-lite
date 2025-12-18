@@ -1,0 +1,32 @@
+diff --git a/gcc/cp/g++spec.cc b/gcc/cp/g++spec.cc
+index 7584f8c225b..85451529aa4 100644
+--- a/gcc/cp/g++spec.cc
++++ b/gcc/cp/g++spec.cc
+@@ -23,6 +23,11 @@ along with GCC; see the file COPYING3.  If not see
+ #include "tm.h"
+ #include "opts.h"
+ 
++#ifdef _WIN32
++#define WIN32_LEAN_AND_MEAN
++#include <windows.h>
++#endif
++
+ /* This bit is set if we saw a `-xfoo' language specification.  */
+ #define LANGSPEC	(1<<1)
+ /* This bit is set if they did `-lm' or `-lmath'.  */
+@@ -298,6 +303,15 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
+      libgcc.  */
+ #ifndef ENABLE_SHARED_LIBGCC
+   shared_libgcc = 0;
++#elif defined _WIN32
++  /* MinGW Lite extension: fallback to static libgcc if missing shared one (default state) */
++  {
++    char self[MAX_PATH];
++    GetModuleFileNameA (NULL, self, MAX_PATH);
++    const char *libgcc_s = make_relative_prefix (self, "/bin", "/lib/libgcc_s.a");
++    if (_access(libgcc_s, 0) != 0)
++      shared_libgcc = 0;
++  }
+ #endif
+ 
+   /* Add one for shared_libgcc or extra static library.  */

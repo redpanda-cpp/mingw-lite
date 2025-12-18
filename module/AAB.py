@@ -87,6 +87,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--enable-languages=c,c++,fortran',
       '--disable-libgomp',
       '--disable-libmpx',
+      '--disable-libstdcxx-pch',
       '--disable-multilib',
       '--disable-nls',
       f'--enable-threads={ver.thread}',

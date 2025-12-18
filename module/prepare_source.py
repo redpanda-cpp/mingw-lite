@@ -88,6 +88,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     else:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-make-variable_12.patch')
 
+    # Allow missing shared libgcc
+    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-missing-shared-libgcc.patch')
+
     # Fix __FILE__ macro encoding
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-file-macro-encoding.patch')
 

@@ -3,6 +3,7 @@ import logging
 import os
 from packaging.version import Version
 from pathlib import Path
+import re
 import shutil
 import subprocess
 from typing import Optional
@@ -10,7 +11,7 @@ from typing import Optional
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro, remove_info_main_menu, remove_redundant_file
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, ensure, overlayfs_ro, remove_info_main_menu
 from module.util import cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
@@ -185,41 +186,6 @@ def _crt_qt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
   shutil.copy(paths.in_tree_src_dir.thunk / 'LICENSE', license_dir / 'LICENSE')
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  common_flags = [
-    f'--host={ver.target}',
-    f'--build={config.build}',
-    *cflags_B(
-      cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-      optimize_for_size = ver.optimize_for_size,
-    ),
-  ]
-
-  with overlayfs_ro('/usr/local', [
-    paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
-    paths.layer_AAB.gcc / 'usr/local',
-    paths.layer_AAB.crt / 'usr/local',
-  ]):
-    build_dir = paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB'
-    ensure(build_dir)
-    configure(build_dir, [
-      '--prefix=',
-      '--enable-static',
-      '--disable-shared',
-      *common_flags,
-    ])
-    make_default(build_dir, config.jobs)
-
-    # as the basis of gthread interface, it should be considered as part of gcc
-    make_destdir_install(build_dir, paths.layer_ABB.gcc)
-
-  license_dir = paths.layer_ABB.gcc / 'share/licenses/winpthreads'
-  ensure(license_dir)
-  shutil.copy(paths.src_dir.mingw_target / 'mingw-w64-libraries/winpthreads/COPYING', license_dir / 'COPYING')
-
-  if not config.enable_shared:
-    return
-
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
@@ -230,18 +196,27 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
     paths.layer_ABB.crt,
   ]):
-    build_dir = paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB-shared'
+    build_dir = paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB'
     ensure(build_dir)
     configure(build_dir, [
-      '--prefix=/lib/shared',
-      '--disable-static',
-      '--enable-shared',
-      *common_flags,
+      '--prefix=',
+      f'--host={ver.target}',
+      f'--build={config.build}',
+      '--enable-shared' if config.enable_shared else '--disable-shared',
+      '--enable-static',
+      *cflags_B(
+        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
+      ),
     ])
     make_default(build_dir, config.jobs)
+
+    # as the basis of gthread interface, it should be considered as part of gcc
     make_destdir_install(build_dir, paths.layer_ABB.gcc)
 
-  remove_redundant_file(paths.layer_ABB.gcc / 'lib/shared', paths.layer_ABB.gcc)
+  license_dir = paths.layer_ABB.gcc / 'share/licenses/winpthreads'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.mingw_target / 'mingw-w64-libraries/winpthreads/COPYING', license_dir / 'COPYING')
 
 def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mcfgthread.replace('-ga', ''))
@@ -261,12 +236,20 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
 
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
-    paths.layer_AAB.crt / 'usr/local',
+  ]), overlayfs_ro(f'/usr/local/{ver.target}', [
+    paths.layer_AAB.binutils / 'usr/local' / ver.target,
+    paths.layer_AAB.headers / 'usr/local' / ver.target,
+    paths.layer_AAB.gcc / 'usr/local' / ver.target,
+
+    paths.layer_ABB.crt,
   ]):
     v = Version(ver.mcfgthread.replace('-ga', ''))
     build_dir = 'build-ABB'
+
+    build_targets = ['mcfgthread:static_library']
+    if config.enable_shared:
+      build_targets.append('mcfgthread:shared_library')
 
     meson_config(
       paths.src_dir.mcfgthread,
@@ -277,15 +260,22 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
       paths.src_dir.mcfgthread,
       jobs = config.jobs,
       build_dir = build_dir,
-      targets = ['mcfgthread:static_library'],
+      targets = build_targets,
     )
 
     # as the basis of gthread interface, it should be considered as part of gcc
     full_build_dir = paths.src_dir.mcfgthread / build_dir
     lib_dir = paths.layer_ABB.gcc / 'lib'
-    lib_name = f'libmcfgthread.a'
     ensure(lib_dir)
+    lib_name = 'libmcfgthread.a'
     shutil.copy(full_build_dir / lib_name, lib_dir / lib_name)
+    if config.enable_shared:
+      bin_dir = paths.layer_ABB.gcc / 'bin'
+      ensure(bin_dir)
+      dll_name = f'libmcfgthread-{v.major}.dll'
+      shutil.copy(full_build_dir / dll_name, bin_dir / dll_name)
+      imp_name = 'libmcfgthread.dll.a'
+      shutil.copy(full_build_dir / imp_name, lib_dir / imp_name)
 
   include_dir = paths.layer_ABB.gcc / 'include' / 'mcfgthread'
   ensure(include_dir)
@@ -303,81 +293,7 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
   for file in ['gcc-exception-3.1.txt', 'gpl-3.0.txt', 'lgpl-3.0.txt']:
     shutil.copy(paths.src_dir.mcfgthread / 'licenses' / file, license_dir / file)
 
-  if not config.enable_shared:
-    return
-
-  with overlayfs_ro('/usr/local', [
-    paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.gcc / 'usr/local',
-  ]), overlayfs_ro(f'/usr/local/{ver.target}', [
-    paths.layer_AAB.binutils / 'usr/local' / ver.target,
-    paths.layer_AAB.headers / 'usr/local' / ver.target,
-    paths.layer_AAB.gcc / 'usr/local' / ver.target,
-
-    paths.layer_ABB.crt,
-  ]):
-    build_dir = 'build-ABB-shared'
-
-    meson_config(
-      paths.src_dir.mcfgthread,
-      extra_args = meson_flags,
-      build_dir = build_dir,
-    )
-    meson_build(
-      paths.src_dir.mcfgthread,
-      jobs = config.jobs,
-      build_dir = build_dir,
-      targets = ['mcfgthread:shared_library'],
-    )
-
-    full_build_dir = paths.src_dir.mcfgthread / build_dir
-    lib_dir = paths.layer_ABB.gcc / 'lib/shared/lib'
-    lib_name = 'libmcfgthread.dll.a'
-    ensure(lib_dir)
-    shutil.copy(full_build_dir / lib_name, lib_dir / lib_name)
-    bin_dir = paths.layer_ABB.gcc / 'lib/shared/bin'
-    bin_name = f'libmcfgthread-{v.major}.dll'
-    ensure(bin_dir)
-    shutil.copy(full_build_dir / bin_name, bin_dir / bin_name)
-    subprocess.run([f'{ver.target}-strip', bin_dir / bin_name], check = True)
-
 def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  v = Version(ver.gcc)
-  common_flags = [
-    f'--with-gcc-major-version-only',
-    f'--target={ver.target}',
-    f'--host={ver.target}',
-    f'--build={config.build}',
-    # features
-    '--disable-bootstrap',
-    '--enable-checking=release',
-    '--enable-languages=c,c++',
-    '--enable-libgomp',
-    '--disable-libmpx',
-    '--disable-multilib',
-    '--enable-nls',
-    f'--enable-threads={ver.thread}',
-    '--disable-win32-registry',
-    # packages
-    f'--with-arch={ver.march}',
-    '--without-libcc1',
-    '--with-libiconv',
-    '--with-tune=generic',
-    *cflags_B('_FOR_TARGET',
-      # CPPFLAGS_FOR_TARGET is not passed
-      common_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-      optimize_for_size = ver.optimize_for_size,
-    ),
-    f'AR={ver.target}-gcc-ar',
-    f'RANLIB={ver.target}-gcc-ranlib',
-  ]
-
-  if ver.exception == 'dwarf':
-    common_flags.append('--disable-sjlj-exceptions')
-    common_flags.append('--with-dwarf2')
-  if ver.fpmath:
-    common_flags.append(f'--with-fpmath={ver.fpmath}')
-
   with overlayfs_ro('/usr/local', [
     # override CRT
     paths.layer_AAB.utf8 / 'usr/local',
@@ -393,23 +309,69 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.iconv / 'usr/local',
     paths.layer_AAB.intl / 'usr/local',
   ]):
+    v = Version(ver.gcc)
     build_dir = paths.src_dir.gcc / 'build-ABB'
     ensure(build_dir)
+
+    config_flags = []
+
+    if ver.exception == 'dwarf':
+      config_flags.append('--disable-sjlj-exceptions')
+      config_flags.append('--with-dwarf2')
+    if ver.fpmath:
+      config_flags.append(f'--with-fpmath={ver.fpmath}')
 
     configure(build_dir, [
       '--prefix=',
       '--libexecdir=/lib',
-      '--disable-shared',
+      f'--with-gcc-major-version-only',
+      f'--target={ver.target}',
+      f'--host={ver.target}',
+      f'--build={config.build}',
+      '--enable-shared' if config.enable_shared else '--disable-shared',
       '--enable-static',
-      *common_flags,
+      # features
+      '--disable-bootstrap',
+      '--enable-checking=release',
+      '--enable-languages=c,c++',
+      '--enable-libgomp',
+      '--disable-libmpx',
+      '--disable-libstdcxx-pch',
+      '--disable-multilib',
+      '--enable-nls',
+      f'--enable-threads={ver.thread}',
+      '--disable-win32-registry',
+      # packages
+      f'--with-arch={ver.march}',
+      '--without-libcc1',
+      '--with-libiconv',
+      '--with-tune=generic',
+      *config_flags,
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         optimize_for_size = ver.optimize_for_size,
         lto = not ver.optimize_for_size,
       ),
+      *cflags_B('_FOR_TARGET',
+        # CPPFLAGS_FOR_TARGET is not passed
+        common_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
+      ),
+      f'AR={ver.target}-gcc-ar',
+      f'RANLIB={ver.target}-gcc-ranlib',
     ])
-    make_default(build_dir, config.jobs)
-    make_destdir_install(build_dir, paths.layer_ABB.gcc)
+    make_custom(build_dir, ['all-host'], config.jobs)
+
+    with overlayfs_ro(f'/usr/local/{ver.target}', [
+      paths.layer_AAB.binutils / 'usr/local' / ver.target,
+      paths.layer_AAB.gcc / 'usr/local' / ver.target,
+
+      paths.layer_ABB.crt,
+      paths.layer_ABB.gcc,
+      paths.layer_ABB.headers,
+    ]):
+      make_custom(build_dir, ['all-target'], config.jobs)
+      make_destdir_install(build_dir, paths.layer_ABB.gcc)
 
     # add `print.o` to `libstdc++.a`, allowing `<print>` without `-lstdc++exp`
     # it's okay since we only keep ABI stable in a major version
@@ -434,51 +396,41 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
           atomic_objects.append(wrapper_obj)
       add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
 
+    # move out shared libraries
+    if config.enable_shared:
+      shared_destdir = paths.layer_ABB.gcc / 'lib/shared'
+      bin_dir = paths.layer_ABB.gcc / 'bin'
+      shared_bin_dir = shared_destdir / 'bin'
+      ensure(shared_bin_dir)
+      lib_dir = paths.layer_ABB.gcc / 'lib'
+      shared_lib_dir = shared_destdir / 'lib'
+      ensure(shared_lib_dir)
+
+      # normal dlls and their import libraires
+      for dll in bin_dir.glob('*.dll'):
+        subprocess.run([f'{ver.target}-strip', dll], check = True)
+        shutil.move(dll, shared_bin_dir / dll.name)
+        # e.g. libstd++-6.dll -> libstdc++.dll.a
+        imp_name = re.sub(r'(-[0-9]+)?.dll$', '.dll.a', dll.name)
+        shutil.move(lib_dir / imp_name, shared_lib_dir / imp_name)
+
+      # winpthreads also provides libpthread.a/.dll.a
+      shutil.move(lib_dir / 'libpthread.dll.a', shared_lib_dir / 'libpthread.dll.a')
+
+      # and shared libgcc
+      libgcc_s_dll = [*lib_dir.glob('libgcc_s*.dll')]
+      assert len(libgcc_s_dll) == 1
+      libgcc_s_dll = libgcc_s_dll[0]
+      subprocess.run([f'{ver.target}-strip', libgcc_s_dll], check = True)
+      shutil.move(libgcc_s_dll, shared_bin_dir / libgcc_s_dll.name)
+      shutil.move(lib_dir / 'libgcc_s.a', shared_lib_dir / 'libgcc_s.a')
+
   remove_info_main_menu(paths.layer_ABB.gcc)
 
   license_dir = paths.layer_ABB.gcc / 'share/licenses/gcc'
   ensure(license_dir)
   for file in ['COPYING', 'COPYING3', 'COPYING.RUNTIME', 'COPYING.LIB', 'COPYING3.LIB']:
     shutil.copy(paths.src_dir.gcc / file, license_dir / file)
-
-  if not config.enable_shared:
-    return
-
-  with overlayfs_ro('/usr/local', [
-    paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.gcc / 'usr/local',
-  ]), overlayfs_ro(f'/usr/local/{ver.target}', [
-    paths.layer_AAB.binutils / 'usr/local' / ver.target,
-    paths.layer_AAB.headers / 'usr/local' / ver.target,
-    paths.layer_AAB.gcc / 'usr/local' / ver.target,
-
-    paths.layer_AAB.gmp / 'usr/local' / ver.target,
-    paths.layer_AAB.mpfr / 'usr/local' / ver.target,
-    paths.layer_AAB.mpc / 'usr/local' / ver.target,
-    paths.layer_AAB.iconv / 'usr/local' / ver.target,
-    paths.layer_AAB.intl / 'usr/local' / ver.target,
-
-    paths.layer_ABB.crt,
-  ]):
-    build_dir = paths.src_dir.gcc / 'build-ABB-shared'
-    ensure(build_dir)
-
-    configure(build_dir, [
-      '--prefix=/lib/shared',
-      '--libexecdir=/lib/shared/lib',
-      '--enable-shared',
-      '--disable-static',
-      *common_flags,
-      *cflags_B(
-        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
-        lto = False,
-      ),
-    ])
-    make_custom(build_dir, ['all-target'], config.jobs)
-    make_custom(build_dir, [f'DESTDIR={paths.layer_ABB.gcc}', 'install-target'], jobs = 1)
-
-  remove_redundant_file(paths.layer_ABB.gcc / 'lib/shared', paths.layer_ABB.gcc)
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
