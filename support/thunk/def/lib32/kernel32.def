@@ -38,11 +38,15 @@ EXPORTS
   __ms_GetTempPathA@8 == GetTempPathA
   __ms_GetTempPathW@8 == GetTempPathW
   __ms_LCMapStringW@24 == LCMapStringW
+  __ms_LoadLibraryA@4 == LoadLibraryA
+  __ms_LoadLibraryW@4 == LoadLibraryW
   __ms_LockFileEx@24 == LockFileEx
   __ms_MoveFileExA@12 == MoveFileExA
   __ms_MultiByteToWideChar@24 == MultiByteToWideChar
   __ms_RemoveDirectoryA@4 == RemoveDirectoryA
   __ms_RemoveDirectoryW@4 == RemoveDirectoryW
+  __ms_SearchPathA@24 == SearchPathA
+  __ms_SearchPathW@24 == SearchPathW
   __ms_SetCurrentDirectoryA@4 == SetCurrentDirectoryA
   __ms_SetCurrentDirectoryW@4 == SetCurrentDirectoryW
   __ms_SetEnvironmentVariableA@8 == SetEnvironmentVariableA

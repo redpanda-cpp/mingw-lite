@@ -35,7 +35,7 @@ namespace mingw_thunk::internal
     return res;
   }
 
-  inline WIN32_FIND_DATAA w2a(const WIN32_FIND_DATAW &wide)
+  inline WIN32_FIND_DATAA w2u(const WIN32_FIND_DATAW &wide)
   {
     WIN32_FIND_DATAA res{};
 
@@ -48,14 +48,14 @@ namespace mingw_thunk::internal
     res.dwReserved0 = wide.dwReserved0;
     res.dwReserved1 = wide.dwReserved1;
 
-    stl::string a_name = w2a(wide.cFileName);
+    stl::string a_name = w2u(wide.cFileName);
     if (a_name.size() >= MAX_PATH)
       a_name.resize(MAX_PATH - 1);
     memcpy(res.cFileName, a_name.data(), a_name.size());
     res.cFileName[a_name.size()] = '\0';
 
     static_assert(sizeof(res.cAlternateFileName) == 14);
-    stl::string a_alt_name = w2a(wide.cAlternateFileName);
+    stl::string a_alt_name = w2u(wide.cAlternateFileName);
     if (a_alt_name.size() >= 14)
       a_alt_name.resize(14 - 1);
     memcpy(res.cAlternateFileName, a_alt_name.data(), a_alt_name.size());

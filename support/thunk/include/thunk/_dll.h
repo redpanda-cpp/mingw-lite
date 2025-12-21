@@ -2,6 +2,9 @@
 
 #include <libloaderapi.h>
 
+extern "C"
+    __attribute__((dllimport)) decltype(::LoadLibraryA) __ms_LoadLibraryA;
+
 namespace mingw_thunk::internal
 {
   struct module_handle
@@ -10,7 +13,7 @@ namespace mingw_thunk::internal
 
     module_handle(const char *module_name) noexcept
     {
-      module = LoadLibraryA(module_name);
+      module = __ms_LoadLibraryA(module_name);
     }
 
     module_handle(const module_handle &) = delete;
@@ -42,6 +45,7 @@ namespace mingw_thunk::internal
   __DECLARE_SIMPLE_EXPLICIT_DLL_MODULE(kernel32)
   __DECLARE_SIMPLE_EXPLICIT_DLL_MODULE(msvcrt)
   __DECLARE_SIMPLE_EXPLICIT_DLL_MODULE(ntdll)
+  __DECLARE_SIMPLE_EXPLICIT_DLL_MODULE(psapi)
   __DECLARE_SIMPLE_EXPLICIT_DLL_MODULE(shell32)
   __DECLARE_SIMPLE_EXPLICIT_DLL_MODULE(ws2_32)
 
@@ -57,9 +61,16 @@ namespace mingw_thunk::internal
   __DECLARE_CANONICAL_EXPLICIT_DLL_MODULE(api_ms_win_core_path_l1_1_0,
                                           "api-ms-win-core-path-l1-1-0.dll")
   __DECLARE_CANONICAL_EXPLICIT_DLL_MODULE(
+      api_ms_win_crt_environment_l1_1_0,
+      "api-ms-win-crt-environment-l1-1-0.dll")
+  __DECLARE_CANONICAL_EXPLICIT_DLL_MODULE(
       api_ms_win_crt_filesystem_l1_1_0, "api-ms-win-crt-filesystem-l1-1-0.dll")
+  __DECLARE_CANONICAL_EXPLICIT_DLL_MODULE(api_ms_win_crt_runtime_l1_1_0,
+                                          "api-ms-win-crt-runtime-l1-1-0.dll")
   __DECLARE_CANONICAL_EXPLICIT_DLL_MODULE(api_ms_win_crt_stdio_l1_1_0,
                                           "api-ms-win-crt-stdio-l1-1-0.dll")
+  __DECLARE_CANONICAL_EXPLICIT_DLL_MODULE(api_ms_win_crt_time_l1_1_0,
+                                          "api-ms-win-crt-time-l1-1-0.dll")
 
 #undef __DECLARE_CANONICAL_EXPLICIT_DLL_MODULE
 

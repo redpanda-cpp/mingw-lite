@@ -7,6 +7,7 @@ class BranchVersions:
   rev: str
 
   short_import: bool
+  utf8_thunk: bool
 
   mcfgthread: str
   mingw: str
@@ -33,6 +34,7 @@ class BranchVersions:
     rev: str,
 
     short_import: bool,
+    utf8_thunk: bool,
 
     mcfgthread: str,
     mingw: str,
@@ -52,6 +54,7 @@ class BranchVersions:
   ):
     self.gcc = gcc
     self.rev = rev
+    self.utf8_thunk = utf8_thunk
 
     self.short_import = short_import
 
@@ -165,6 +168,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '0',
 
     short_import = True,
+    utf8_thunk = True,
 
     mcfgthread = '2.2-ga.2',
     mingw = '13.0.0',
@@ -187,6 +191,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '7.1',
 
     short_import = False,
+    utf8_thunk = False,
 
     # ABI critical: 2025-08-08
     mcfgthread = '2.1-ga.1',
@@ -211,6 +216,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '6.1',
 
     short_import = False,
+    utf8_thunk = False,
 
     # ABI critical: 2024-08-01
     mcfgthread = '1.8-ga.4',
@@ -235,6 +241,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '6.1',
 
     short_import = False,
+    utf8_thunk = False,
 
     # trace back: 2023-12-22
     binutils = '2.41',

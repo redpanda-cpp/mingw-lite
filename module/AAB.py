@@ -200,13 +200,18 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
+    if ver.utf8_thunk:
+      thunk_profile = 'toolchain-utf8'
+    else:
+      thunk_profile = 'toolchain'
+
     xmake_config(thunk_src_dir, [
       '--buildir=build-AAB',
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
       f'--mingw-version={v.major}',
       f'--thunk-level={ver.min_os}',
-      '--profile=toolchain',
+      f'--profile={thunk_profile}',
     ])
     xmake_build(thunk_src_dir, config.jobs)
     xmake_install(thunk_src_dir, paths.layer_AAB.thunk / 'usr/local' / ver.target)
@@ -244,7 +249,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     # The future belongs to UTF-8.
     # Piping is used so widely in GNU toolchain that we have to apply UTF-8 manifest to all programs.
-    # Linking the UTF-8 manifest (and console hack object) to CRT init objects is an efficient way.
+    # Linking UTF-8 objects (manifest and console hacks) to CRT init objects is an efficient way.
     crt_object_dir = paths.layer_AAB.utf8 / 'usr/local' / ver.target / 'lib'
     ensure(crt_object_dir)
 
@@ -252,23 +257,42 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'{ver.target}-gcc',
       '-std=c11',
       '-Os', '-c',
-      paths.utf8_src_dir / 'console-hack.c',
-      '-o', build_dir / 'console-hack.o',
+      paths.utf8_src_dir / 'console-mode-hack.c',
+      '-o', build_dir / 'console-mode-hack.o',
     ], check = True)
-    subprocess.run([
-      f'{ver.target}-windres',
-      '-O', 'coff',
-      paths.utf8_src_dir / 'utf8-manifest.rc',
-      '-o', build_dir / 'utf8-manifest.o',
-    ], check = True)
+    startup_adds = [build_dir / 'console-mode-hack.o']
+
+    if ver.utf8_thunk:
+      # New method: UTF-8 thunks for Win32 and CRT
+      # Most things has been done in thunks. What we need is console mode hack object.
+      pass
+    else:
+      # Old method: UTF-8 manifest
+      crt_object_dir = paths.layer_AAB.utf8 / 'usr/local' / ver.target / 'lib'
+      ensure(crt_object_dir)
+
+      subprocess.run([
+        f'{ver.target}-gcc',
+        '-std=c11',
+        '-Os', '-c',
+        paths.utf8_src_dir / 'console-code-page-hack.c',
+        '-o', build_dir / 'console-code-page-hack.o',
+      ], check = True)
+      startup_adds.append(build_dir / 'console-code-page-hack.o')
+      subprocess.run([
+        f'{ver.target}-windres',
+        '-O', 'coff',
+        paths.utf8_src_dir / 'utf8-manifest.rc',
+        '-o', build_dir / 'utf8-manifest.o',
+      ], check = True)
+      startup_adds.append(build_dir / 'utf8-manifest.o')
 
     for crt_object in ['crt2.o', 'crt2u.o']:
       subprocess.run([
         f'{ver.target}-gcc',
         '-r',
         build_dir / f'lib{ver.arch}' / crt_object,
-        build_dir / 'console-hack.o',
-        build_dir / 'utf8-manifest.o',
+        *startup_adds,
         '-o', crt_object_dir / crt_object,
       ], check = True)
 

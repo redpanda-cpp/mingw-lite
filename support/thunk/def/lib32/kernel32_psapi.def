@@ -1,0 +1,3 @@
+LIBRARY psapi.dll
+EXPORTS
+  __ms_GetModuleFileNameExW@16 == GetModuleFileNameExW

@@ -79,7 +79,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Disable default utf8 manifest
     # We patch the CRT init objects, so GCC's manifest should be disabled.
     # But we want no `--disable-win32-utf8-manifest` in configure flags to avoid confusion.
-    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-default-utf8-manifest.patch')
+    if not ver.utf8_thunk:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-default-utf8-manifest.patch')
 
     # Use Linux style tooldir
     # MinGW Lite install binutils with `tooldir=$prefix`, the common practice in Linux.
@@ -102,7 +103,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-missing-shared-libgcc.patch')
 
     # Fix __FILE__ macro encoding
-    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-file-macro-encoding.patch')
+    if not ver.utf8_thunk:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-file-macro-encoding.patch')
 
     # Fix VT sequence
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-vt-seq.patch')
@@ -157,6 +159,10 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.gdb, paths.src_arx.gdb):
     v = Version(ver.gdb)
 
+    # Disable runtime linking -A/-W
+    if ver.utf8_thunk:
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'disable-runtime-linking-aw.patch')
+
     # Fix path corruption
     if v.major >= 15:
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-path-corruption_15.patch')
@@ -173,7 +179,8 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-iconv-cp65001.patch')
 
     # Fix pythondir
-    patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
+    if not ver.utf8_thunk:
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
 
     # Fix 'skip gfile' `fnmatch`
     if v.major == 17:

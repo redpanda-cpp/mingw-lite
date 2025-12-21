@@ -307,6 +307,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
 
+    if ver.utf8_thunk:
+      config_flags.append('--disable-win32-utf8-manifest')
+
     configure(build_dir, [
       '--prefix=',
       '--libexecdir=/lib',

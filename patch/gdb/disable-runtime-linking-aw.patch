@@ -1,0 +1,116 @@
+diff --git a/gdb/configure b/gdb/configure
+index d0bdba6eb36..e4b41a0d555 100755
+--- a/gdb/configure
++++ b/gdb/configure
+@@ -19430,7 +19430,7 @@ fi
+ 
+ $as_echo "#define USE_WIN32API 1" >>confdefs.h
+ 
+-      WIN32APILIBS="-lws2_32"
++      WIN32APILIBS="-lws2_32 -lpsapi"
+       ;;
+   esac
+ 
+diff --git a/gdb/nat/windows-nat.c b/gdb/nat/windows-nat.c
+index 7b0fbc53413..9cadc9f9c73 100644
+--- a/gdb/nat/windows-nat.c
++++ b/gdb/nat/windows-nat.c
+@@ -49,8 +49,6 @@ EnumProcessModules_ftype *EnumProcessModules;
+ EnumProcessModulesEx_ftype *EnumProcessModulesEx;
+ #endif
+ GetModuleInformation_ftype *GetModuleInformation;
+-GetModuleFileNameExA_ftype *GetModuleFileNameExA;
+-GetModuleFileNameExW_ftype *GetModuleFileNameExW;
+ LookupPrivilegeValueA_ftype *LookupPrivilegeValueA;
+ OpenProcessToken_ftype *OpenProcessToken;
+ GetCurrentConsoleFont_ftype *GetCurrentConsoleFont;
+@@ -964,19 +962,14 @@ initialize_loadable ()
+       GPA (hm, EnumProcessModulesEx);
+ #endif
+       GPA (hm, GetModuleInformation);
+-      GPA (hm, GetModuleFileNameExA);
+-      GPA (hm, GetModuleFileNameExW);
+     }
+ 
+-  if (!EnumProcessModules || !GetModuleInformation
+-      || !GetModuleFileNameExA || !GetModuleFileNameExW)
++  if (!EnumProcessModules || !GetModuleInformation)
+     {
+       /* Set variables to dummy versions of these processes if the function
+ 	 wasn't found in psapi.dll.  */
+       EnumProcessModules = bad;
+       GetModuleInformation = bad;
+-      GetModuleFileNameExA = bad;
+-      GetModuleFileNameExW = bad;
+ 
+       result = false;
+     }
+diff --git a/gdb/nat/windows-nat.h b/gdb/nat/windows-nat.h
+index 2f50742c810..1ff1217c401 100644
+--- a/gdb/nat/windows-nat.h
++++ b/gdb/nat/windows-nat.h
+@@ -348,10 +348,6 @@ extern BOOL create_process (const wchar_t *image, wchar_t *command_line,
+ #define EnumProcessModulesEx		dyn_EnumProcessModulesEx
+ #undef GetModuleInformation
+ #define GetModuleInformation		dyn_GetModuleInformation
+-#undef GetModuleFileNameExA
+-#define GetModuleFileNameExA		dyn_GetModuleFileNameExA
+-#undef GetModuleFileNameExW
+-#define GetModuleFileNameExW		dyn_GetModuleFileNameExW
+ #define LookupPrivilegeValueA		dyn_LookupPrivilegeValueA
+ #define OpenProcessToken		dyn_OpenProcessToken
+ #define GetConsoleFontSize		dyn_GetConsoleFontSize
+@@ -394,14 +390,6 @@ typedef BOOL WINAPI (GetModuleInformation_ftype) (HANDLE, HMODULE,
+ 						  LPMODULEINFO, DWORD);
+ extern GetModuleInformation_ftype *GetModuleInformation;
+ 
+-typedef DWORD WINAPI (GetModuleFileNameExA_ftype) (HANDLE, HMODULE, LPSTR,
+-						  DWORD);
+-extern GetModuleFileNameExA_ftype *GetModuleFileNameExA;
+-
+-typedef DWORD WINAPI (GetModuleFileNameExW_ftype) (HANDLE, HMODULE,
+-						   LPWSTR, DWORD);
+-extern GetModuleFileNameExW_ftype *GetModuleFileNameExW;
+-
+ typedef BOOL WINAPI (LookupPrivilegeValueA_ftype) (LPCSTR, LPCSTR, PLUID);
+ extern LookupPrivilegeValueA_ftype *LookupPrivilegeValueA;
+ 
+diff --git a/gdbserver/configure b/gdbserver/configure
+index 1554296172e..ed42cbb792e 100755
+--- a/gdbserver/configure
++++ b/gdbserver/configure
+@@ -8000,7 +8000,7 @@ fi
+ 
+ $as_echo "#define USE_WIN32API 1" >>confdefs.h
+ 
+-      WIN32APILIBS="-lws2_32"
++      WIN32APILIBS="-lws2_32 -lpsapi"
+       ;;
+   esac
+ 
+diff --git a/gdbsupport/common.m4 b/gdbsupport/common.m4
+index cde8bd6df57..ba3c7938720 100644
+--- a/gdbsupport/common.m4
++++ b/gdbsupport/common.m4
+@@ -31,7 +31,7 @@ AC_DEFUN([GDB_AC_COMMON], [
+ 		 POSIX API.  On Windows, we use the Windows API when
+ 		 building for MinGW, but the POSIX API when building
+ 		 for Cygwin.])
+-      WIN32APILIBS="-lws2_32"
++      WIN32APILIBS="-lws2_32 -lpsapi"
+       ;;
+   esac
+ 
+diff --git a/gdbsupport/configure b/gdbsupport/configure
+index 133ddfa7f6c..6153ecd9298 100755
+--- a/gdbsupport/configure
++++ b/gdbsupport/configure
+@@ -10897,7 +10897,7 @@ fi
+ 
+ $as_echo "#define USE_WIN32API 1" >>confdefs.h
+ 
+-      WIN32APILIBS="-lws2_32"
++      WIN32APILIBS="-lws2_32 -lpsapi"
+       ;;
+   esac
+ 

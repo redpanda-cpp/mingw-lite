@@ -28,23 +28,26 @@ namespace mingw_thunk
 
     wchar_t buffer[MAX_PATH];
     DWORD len = GetFullPathNameW(relPath, MAX_PATH, buffer, nullptr);
+
     if (len == 0) {
       internal::dosmaperr(GetLastError());
       return nullptr;
-    } else if (len >= MAX_PATH) {
+    }
+
+    if (len >= MAX_PATH) {
       _set_errno(ENAMETOOLONG);
       return nullptr;
-    } else {
-      if (len + 1 <= maxLength) {
-        if (!absPath)
-          absPath = (wchar_t *)malloc(sizeof(wchar_t) * (len + 1));
-        wmemcpy(absPath, buffer, len);
-        absPath[len] = 0;
-        return absPath;
-      } else {
-        _set_errno(ERANGE);
-        return nullptr;
-      }
     }
+
+    if (absPath && len >= maxLength) {
+      _set_errno(ERANGE);
+      return nullptr;
+    }
+
+    if (!absPath)
+      absPath = (wchar_t *)malloc(sizeof(wchar_t) * (len + 1));
+    wmemcpy(absPath, buffer, len);
+    absPath[len] = 0;
+    return absPath;
   }
 } // namespace mingw_thunk

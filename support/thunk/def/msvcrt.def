@@ -1,0 +1,6 @@
+LIBRARY msvcrt.dll
+EXPORTS
+  __ms_fflush == fflush
+  __ms_fputc == fputc
+  __ms_fputs == fputs
+  __ms_puts == puts

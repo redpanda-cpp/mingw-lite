@@ -1,4 +1,5 @@
 LIBRARY kernel32.dll
 EXPORTS
+  __ms_LoadLibraryA == LoadLibraryA
   __ms_MultiByteToWideChar == MultiByteToWideChar
   __ms_WideCharToMultiByte == WideCharToMultiByte

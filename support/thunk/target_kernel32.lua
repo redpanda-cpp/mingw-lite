@@ -4,11 +4,13 @@ target('alias-short-kernel32')
   if is_arch('i386', 'i686') then
     on_build(build_short_import_library({
       'def/lib32/kernel32.def',
-      'def/lib32/kernel32_ntdll.def'}))
+      'def/lib32/kernel32_ntdll.def',
+      'def/lib32/kernel32_psapi.def'}))
   else
     on_build(build_short_import_library({
       'def/kernel32.def',
-      'def/kernel32_ntdll.def'}))
+      'def/kernel32_ntdll.def',
+      'def/kernel32_psapi.def'}))
   end
 
 target('overlay-kernel32')
@@ -50,9 +52,11 @@ target('overlay-kernel32')
         'kernel32/w/GetFullPathNameW.cc',
         'kernel32/w/GetModuleFileNameW.cc',
         'kernel32/w/GetTempPathW.cc',
+        'kernel32/w/LoadLibraryW.cc',
         'kernel32/w/MoveFileExW.cc',
         'kernel32/w/ReadDirectoryChangesW.cc',
         'kernel32/w/RemoveDirectoryW.cc',
+        'kernel32/w/SearchPathW.cc',
         'kernel32/w/SetCurrentDirectoryW.cc',
         'kernel32/w/SetEnvironmentVariableW.cc',
         'kernel32/w/WriteConsoleW.cc')
@@ -120,6 +124,7 @@ target('overlay-kernel32')
         'kernel32/6.1/GetActiveProcessorGroupCount.cc',
         'kernel32/6.1/GetMaximumProcessorCount.cc',
         'kernel32/6.1/GetMaximumProcessorGroupCount.cc',
+        'kernel32/6.1/K32GetModuleFileNameExW.cc',
         'kernel32/6.1/SetWaitableTimerEx.cc')
     end
     if ntddi_version() < ntddi_win8() then
@@ -129,6 +134,38 @@ target('overlay-kernel32')
         'kernel32/6.2/GetCurrentThreadStackLimits.cc',
         'kernel32/6.2/GetSystemTimePreciseAsFileTime.cc',
         'kernel32/6.2/RemoveDllDirectory.cc')
+    end
+  end
+
+  if profile_toolchain_utf8() then
+    add_files(
+      'kernel32/u/CopyFileExA.cc',
+      'kernel32/u/CreateFileA.cc',
+      'kernel32/u/CreateProcessA.cc',
+      'kernel32/u/CreateSymbolicLinkA.cc',
+      'kernel32/u/CreateWaitableTimerA.cc',
+      'kernel32/u/FindFirstFileA.cc',
+      'kernel32/u/FindNextFileA.cc',
+      'kernel32/u/GetACP.cc',
+      'kernel32/u/GetCPInfoExA.cc',
+      'kernel32/u/GetFileAttributesA.cc',
+      'kernel32/u/GetFileAttributesExA.cc',
+      'kernel32/u/GetFinalPathNameByHandleA.cc',
+      'kernel32/u/GetFullPathNameA.cc',
+      'kernel32/u/GetModuleFileNameA.cc',
+      'kernel32/u/GetOEMCP.cc',
+      'kernel32/u/GetSystemWow64DirectoryA.cc',
+      'kernel32/u/K32GetModuleFileNameExA.cc',
+      'kernel32/u/LoadLibraryA.cc',
+      'kernel32/u/MoveFileExA.cc',
+      'kernel32/u/MultiByteToWideChar.cc',
+      'kernel32/u/NeedCurrentDirectoryForExePathA.cc',
+      'kernel32/u/SearchPathA.cc',
+      'kernel32/u/WideCharToMultiByte.cc')
+    if ntddi_version() < ntddi_win98() then
+      add_files(
+        'kernel32/a/3.9999+4.10/MultiByteToWideChar.impl.cc',
+        'kernel32/a/3.9999+4.10/WideCharToMultiByte.impl.cc')
     end
   end
 
@@ -186,6 +223,7 @@ target('overlay-kernel32')
         'kernel32/w/GetFileAttributesExW.cc',
         'kernel32/w/GetFileAttributesW.cc',
         'kernel32/w/GetFullPathNameW.cc',
+        'kernel32/w/LoadLibraryW.cc',
         'kernel32/w/MoveFileExW.cc',
         'kernel32/w/RemoveDirectoryW.cc',
         'kernel32/w/WriteConsoleW.cc')
@@ -212,11 +250,13 @@ target('alias-long-kernel32')
   if is_arch('i386', 'i686') then
     on_build(build_long_import_library({
       'def/lib32/kernel32.def',
-      'def/lib32/kernel32_ntdll.def'}))
+      'def/lib32/kernel32_ntdll.def',
+      'def/lib32/kernel32_psapi.def'}))
   else
     on_build(build_long_import_library({
       'def/kernel32.def',
-      'def/kernel32_ntdll.def'}))
+      'def/kernel32_ntdll.def',
+      'def/kernel32_psapi.def'}))
   end
 
 target('thunk-kernel32')
@@ -238,6 +278,7 @@ target('thunk-kernel32')
     'kernel32/6.1/GetActiveProcessorGroupCount.cc',
     'kernel32/6.1/GetMaximumProcessorCount.cc',
     'kernel32/6.1/GetMaximumProcessorGroupCount.cc',
+    'kernel32/6.1/K32GetModuleFileNameExW.cc',
     'kernel32/6.1/SetWaitableTimerEx.cc',
     'kernel32/6.2/AddDllDirectory.cc',
     'kernel32/6.2/CopyFile2.cc',
@@ -339,6 +380,35 @@ target('test-kernel32-a')
   enable_test_options()
   skip_install()
 
+target('thunk-kernel32-u')
+  add_files(
+    'kernel32/u/CopyFileExA.cc',
+    'kernel32/u/CreateFileA.cc',
+    'kernel32/u/CreateProcessA.cc',
+    'kernel32/u/FindFirstFileA.cc',
+    'kernel32/u/FindNextFileA.cc',
+    'kernel32/u/GetACP.cc',
+    'kernel32/u/GetFileAttributesA.cc',
+    'kernel32/u/GetFileAttributesExA.cc',
+    'kernel32/u/GetFinalPathNameByHandleA.cc',
+    'kernel32/u/GetFullPathNameA.cc',
+    'kernel32/u/GetModuleFileNameA.cc',
+    'kernel32/u/GetOEMCP.cc',
+    'kernel32/u/K32GetModuleFileNameExA.cc',
+    'kernel32/u/LoadLibraryA.cc',
+    'kernel32/u/MultiByteToWideChar.cc',
+    'kernel32/u/SearchPathA.cc',
+    'kernel32/u/WideCharToMultiByte.cc')
+  enable_thunk_options()
+  merge_win32_alias()
+  skip_install()
+
+  if is_arch('i386', 'i686') then
+    add_files(
+      'kernel32/a/3.9999+4.10/MultiByteToWideChar.impl.cc',
+      'kernel32/a/3.9999+4.10/WideCharToMultiByte.impl.cc')
+  end
+
 target('thunk-kernel32-w')
   add_files(
     'kernel32/w/CopyFileExW.cc',
@@ -359,9 +429,11 @@ target('thunk-kernel32-w')
     'kernel32/w/GetFullPathNameW.cc',
     'kernel32/w/GetModuleFileNameW.cc',
     'kernel32/w/GetTempPathW.cc',
+    'kernel32/w/LoadLibraryW.cc',
     'kernel32/w/MoveFileExW.cc',
     'kernel32/w/ReadDirectoryChangesW.cc',
     'kernel32/w/RemoveDirectoryW.cc',
+    'kernel32/w/SearchPathW.cc',
     'kernel32/w/SetCurrentDirectoryW.cc',
     'kernel32/w/SetEnvironmentVariableW.cc',
     'kernel32/w/WriteConsoleW.cc')
