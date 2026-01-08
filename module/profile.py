@@ -163,7 +163,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     binutils = '2.45.1',
     expat = '2.7.3',
-    gdb = '16.3',
+    gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
@@ -171,7 +171,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.0',
+    python = '3.14.2',
     z = '1.3.1',
   ),
   '15': BranchVersions(
@@ -182,9 +182,10 @@ BRANCHES: Dict[str, BranchVersions] = {
     mcfgthread = '2.1-ga.1',
     mingw = '13.0.0',
 
+    # freeze: 2025-12-21
     binutils = '2.45.1',
     expat = '2.7.3',
-    gdb = '16.3',
+    gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.18',
     make = '4.4.1',
@@ -192,7 +193,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.0',
+    python = '3.14.2',
     z = '1.3.1',
   ),
   '14': BranchVersions(
@@ -214,7 +215,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.3.0',
-    python = '3.13.9',
+    python = '3.13.11',
     z = '1.3.1',
   ),
   '13': BranchVersions(

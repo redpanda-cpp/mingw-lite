@@ -450,16 +450,8 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.pdcurses / 'usr/local',
     paths.layer_AAB.python / 'usr/local',
   ]):
-    v = Version(ver.gdb)
-    v_gcc = Version(ver.gcc)
     build_dir = paths.src_dir.gdb / 'build-ABB'
     ensure(build_dir)
-
-    c_extra = []
-
-    # GCC 15 defaults to C23, in which `foo()` means `foo(void)` instead of `foo(...)`.
-    if v_gcc.major >= 15 and v < Version('17'):
-      c_extra.append('-std=gnu11')
 
     cflags = cflags_B(
       cpp_extra = [
@@ -468,7 +460,6 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         # workaround: bfd and gnulib disagree about i686 time_t
         '-D__MINGW_USE_VC2005_COMPAT',
       ],
-      c_extra = c_extra,
       optimize_for_size = ver.optimize_for_size,
     )
 

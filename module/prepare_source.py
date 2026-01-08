@@ -169,10 +169,6 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Fix pythondir
     patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
 
-    # Fix ui-style regex init
-    if v.major >= 16:
-      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-ui-style-regex-init.patch')
-
     if ver.min_os.major < 4:
       # Ignore 9x long path
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'ignore-9x-long-path.patch')

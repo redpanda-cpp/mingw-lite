@@ -13,18 +13,18 @@ index 23312471c65..50ef661fa32 100644
  #define _SIZEOF_PYTIME_T 8
  
 diff --git a/Modules/_threadmodule.c b/Modules/_threadmodule.c
-index 775cd704cda..709ea0e745d 100644
+index 1389a1ef2c1..75daa3a8542 100644
 --- a/Modules/_threadmodule.c
 +++ b/Modules/_threadmodule.c
-@@ -2479,7 +2479,7 @@ _thread__get_name_impl(PyObject *module)
-     // Windows implementation
+@@ -2485,7 +2485,7 @@ _thread__get_name_impl(PyObject *module)
      assert(pGetThreadDescription != NULL);
  
--    wchar_t *name;
-+    const wchar_t *name;
-     HRESULT hr = pGetThreadDescription(GetCurrentThread(), &name);
+     wchar_t *name;
+-    HRESULT hr = pGetThreadDescription(GetCurrentThread(), &name);
++    HRESULT hr = pGetThreadDescription(GetCurrentThread(), (const wchar_t **)&name);
      if (FAILED(hr)) {
          PyErr_SetFromWindowsErr(0);
+         return NULL;
 diff --git a/Modules/blake2module.c b/Modules/blake2module.c
 index ae37e2d3383..4a3c319684b 100644
 --- a/Modules/blake2module.c
@@ -107,7 +107,7 @@ index 8cd470f4f80..619862a5c35 100644
      // fmt: off
      (void)eax1; (void)ebx1; (void)ecx1; (void)edx1;
 diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
-index e1576f809fa..7a8c167b489 100644
+index 6e878e3de37..b26104ad928 100644
 --- a/Modules/posixmodule.c
 +++ b/Modules/posixmodule.c
 @@ -219,6 +219,7 @@
@@ -118,20 +118,20 @@ index e1576f809fa..7a8c167b489 100644
  #endif
  
  
-@@ -5226,7 +5227,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
- /*[clinic end generated code: output=ab7f1a88b654581c input=dc93b1d3984cffb6]*/
- {
-     wchar_t *buffer;
--    wchar_t *end;
-+    const wchar_t *end;
-     PyObject *result = NULL;
-     HRESULT ret;
+@@ -5239,7 +5240,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
+     }
  
+     Py_BEGIN_ALLOW_THREADS
+-    ret = PathCchSkipRoot(buffer, &end);
++    ret = PathCchSkipRoot(buffer, (const wchar_t **)&end);
+     Py_END_ALLOW_THREADS
+     if (FAILED(ret)) {
+         result = Py_BuildValue("sO", "", path->object);
 diff --git a/Python/sysmodule.c b/Python/sysmodule.c
-index 5eeb3e9910b..943cae2e7ee 100644
+index a7280c0da2e..261b14340eb 100644
 --- a/Python/sysmodule.c
 +++ b/Python/sysmodule.c
-@@ -3853,6 +3853,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
+@@ -3856,6 +3856,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
  #ifdef MS_COREDLL
      SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
      SET_SYS_FROM_STRING("winver", PyWin_DLLVersionString);
@@ -140,3 +140,16 @@ index 5eeb3e9910b..943cae2e7ee 100644
  #endif
  #ifdef ABIFLAGS
      SET_SYS_FROM_STRING("abiflags", ABIFLAGS);
+diff --git a/Python/traceback.c b/Python/traceback.c
+index 86273da3c8a..e1d709918c3 100644
+--- a/Python/traceback.c
++++ b/Python/traceback.c
+@@ -1218,7 +1218,7 @@ write_thread_name(int fd, PyThreadState *tstate)
+     }
+ 
+     wchar_t *name;
+-    HRESULT hr = pGetThreadDescription(thread, &name);
++    HRESULT hr = pGetThreadDescription(thread, (const wchar_t **)&name);
+     if (!FAILED(hr)) {
+         if (name[0] != 0) {
+             PUTS(fd, " [");
