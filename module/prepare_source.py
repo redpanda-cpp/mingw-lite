@@ -455,7 +455,7 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     patch_done(paths.src_dir.xmake)
 
 def _z(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  url = f'https://zlib.net/fossils/{paths.src_arx.z.name}'
+  url = f'https://github.com/madler/zlib/releases/download/v{ver.z}/{paths.src_arx.z.name}'
   validate_and_download(paths.src_arx.z, url)
   if download_only:
     return
