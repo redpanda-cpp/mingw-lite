@@ -119,9 +119,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if v.major >= 16:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'dynamic-load-tzdb.patch')
 
-    # Fix constexpr exception link error
+    # Fix IPA miscompile
     if v.major == 16:
-      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-constexpr-exception-link-error.patch')
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ipa-miscompile.patch')
 
     # Disable vectorized lexer
     if ver.min_os.major < 5:
