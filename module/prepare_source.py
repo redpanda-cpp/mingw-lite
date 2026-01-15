@@ -81,6 +81,16 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # But we want no `--disable-win32-utf8-manifest` in configure flags to avoid confusion.
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-default-utf8-manifest.patch')
 
+    # Use Linux style tooldir
+    # MinGW Lite install binutils with `tooldir=$prefix`, the common practice in Linux.
+    # However, GCC tries to locate the tools in $prefix/$triplet and then falls back to PATH.
+    # It will fail without PATH, or even worse, calls unexpected tools from other toolchain.
+    # We adjust the strategy to make it work without PATH.
+    if v.major >= 15:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'use-linux-style-tooldir_15.patch')
+    else:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'use-linux-style-tooldir_13.patch')
+
     # Fix make variable
     # - gcc 12 use `override CFLAGS +=` to handle PGO build, which breaks workaround for ucrt `access`
     if v.major >= 14:

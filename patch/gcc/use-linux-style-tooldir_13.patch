@@ -1,0 +1,34 @@
+diff --git a/gcc/gcc-ar.cc b/gcc/gcc-ar.cc
+index 5e5b63e1988..7425acf1475 100644
+--- a/gcc/gcc-ar.cc
++++ b/gcc/gcc-ar.cc
+@@ -103,8 +103,12 @@ setup_prefixes (const char *exec_path)
+ 
+ 
+   /* Build the relative path to the target-specific tool directory.  */
++#ifdef CROSS_DIRECTORY_STRUCTURE
+   self_tooldir_prefix = concat (tooldir_base_prefix, target_machine,
+ 				dir_separator, NULL);
++#else
++  self_tooldir_prefix = concat (tooldir_base_prefix, dir_separator, NULL);
++#endif
+   self_tooldir_prefix = concat (self_exec_prefix, target_machine, 
+ 				dir_separator, target_version, dir_separator,
+ 				self_tooldir_prefix, NULL);
+diff --git a/gcc/gcc.cc b/gcc/gcc.cc
+index 319a045c285..b476907917d 100644
+--- a/gcc/gcc.cc
++++ b/gcc/gcc.cc
+@@ -5369,8 +5369,12 @@ process_command (unsigned int decoded_options_count,
+     }
+ 
+   gcc_assert (!IS_ABSOLUTE_PATH (tooldir_base_prefix));
++#ifdef CROSS_DIRECTORY_STRUCTURE
+   tooldir_prefix2 = concat (tooldir_base_prefix, spec_machine,
+ 			    dir_separator_str, NULL);
++#else
++  tooldir_prefix2 = concat (tooldir_base_prefix, dir_separator_str, NULL);
++#endif
+ 
+   /* Look for tools relative to the location from which the driver is
+      running, or, if that is not available, the configured prefix.  */
