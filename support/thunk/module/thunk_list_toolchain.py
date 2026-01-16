@@ -46,6 +46,7 @@ THUNK_LIST_TOOLCHAIN_WIN32 = {
       'GlobalMemoryStatusEx',
       'Module32First',
       'Module32Next',
+      'OpenThread',
       'SetFilePointerEx',
     ],
   },
