@@ -129,10 +129,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if v.major >= 16:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'dynamic-load-tzdb.patch')
 
-    # Fix IPA miscompile
-    if v.major == 16:
-      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ipa-miscompile.patch')
-
     # Disable vectorized lexer
     if ver.min_os.major < 5:
       if v.major >= 15:
