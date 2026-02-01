@@ -6,6 +6,8 @@ class BranchVersions:
   gcc: str
   rev: str
 
+  short_import: bool
+
   mcfgthread: str
   mingw: str
 
@@ -30,6 +32,8 @@ class BranchVersions:
     gcc: str,
     rev: str,
 
+    short_import: bool,
+
     mcfgthread: str,
     mingw: str,
 
@@ -48,6 +52,8 @@ class BranchVersions:
   ):
     self.gcc = gcc
     self.rev = rev
+
+    self.short_import = short_import
 
     self.mcfgthread = mcfgthread
     self.mingw = mingw
@@ -158,6 +164,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '16-20260215',
     rev = '0',
 
+    short_import = True,
+
     mcfgthread = '2.2-ga.2',
     mingw = '13.0.0',
 
@@ -177,6 +185,8 @@ BRANCHES: Dict[str, BranchVersions] = {
   '15': BranchVersions(
     gcc = '15.2.0',
     rev = '7.1',
+
+    short_import = False,
 
     # ABI critical: 2025-08-08
     mcfgthread = '2.1-ga.1',
@@ -200,6 +210,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '14.3.0',
     rev = '6.1',
 
+    short_import = False,
+
     # ABI critical: 2024-08-01
     mcfgthread = '1.8-ga.4',
     mingw = '12.0.0',
@@ -221,6 +233,8 @@ BRANCHES: Dict[str, BranchVersions] = {
   '13': BranchVersions(
     gcc = '13.4.0',
     rev = '6.1',
+
+    short_import = False,
 
     # trace back: 2023-12-22
     binutils = '2.41',

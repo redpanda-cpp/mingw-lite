@@ -47,6 +47,7 @@ class LayerPathsAAB(NamedTuple):
 
   atomic_bootstrap: Path
   binutils: Path
+  crt0: Path
   crt: Path
   gcc: Path
   headers: Path
@@ -65,6 +66,7 @@ class LayerPathsABB(NamedTuple):
   prefix: Path
 
   binutils: Path
+  crt0: Path
   crt: Path
   gcc: Path
   gdb: Path
@@ -253,6 +255,7 @@ class ProjectPaths:
 
       atomic_bootstrap = layer_AAB_prefix / 'atomic-bootstrap',
       binutils = layer_AAB_prefix / 'binutils',
+      crt0 = layer_AAB_prefix / 'crt0',
       crt = layer_AAB_prefix / 'crt',
       gcc = layer_AAB_prefix / 'gcc',
       headers = layer_AAB_prefix / 'headers',
@@ -273,6 +276,7 @@ class ProjectPaths:
       prefix = layer_ABB_prefix,
 
       binutils = layer_ABB_prefix / 'binutils',
+      crt0 = layer_ABB_prefix / 'crt0',
       crt = layer_ABB_prefix / 'crt',
       gcc = layer_ABB_prefix / 'gcc',
       gdb = layer_ABB_prefix / 'gdb',

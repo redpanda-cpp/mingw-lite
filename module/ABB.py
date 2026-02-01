@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from typing import Optional
 
+from module.alt_crt import postprocess_crt_import_libraries
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
@@ -140,9 +141,25 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-default-win32-winnt=0x{max(ver.win32_winnt, 0x0400):04X}',
       *multilib_flags,
       *cflags_B(optimize_for_size = ver.optimize_for_size),
+      # create modern (short) import libraries
+      # https://github.com/mingw-w64/mingw-w64/issues/149
+      'DLLTOOL=llvm-dlltool',
+      'AR=llvm-ar',
+      'RANLIB=llvm-ranlib',
     ])
     make_default(build_dir, config.jobs)
-    make_destdir_install(build_dir, paths.layer_ABB.crt)
+    make_destdir_install(build_dir, paths.layer_ABB.crt0)
+
+    # Post-process import libraries to handle weak symbol aliases
+    # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
+    # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
+    crt0_lib_dir = paths.layer_ABB.crt0 / 'lib'
+    crt_lib_dir = paths.layer_ABB.crt / 'lib'
+    postprocess_crt_import_libraries(ver, crt0_lib_dir, crt_lib_dir, config.jobs)
+
+    crt0_inc_dir = paths.layer_ABB.crt0 / 'include'
+    crt_inc_dir = paths.layer_ABB.crt / 'include'
+    shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
 
   license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
   ensure(license_dir)

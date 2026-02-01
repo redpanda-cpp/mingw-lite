@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
+from module.alt_crt import postprocess_crt_import_libraries
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
@@ -181,9 +182,25 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-default-win32-winnt=0x{ver.win32_winnt:04X}',
       *multilib_flags,
       *cflags_B(optimize_for_size = ver.optimize_for_size),
+      # create modern (short) import libraries
+      # https://github.com/mingw-w64/mingw-w64/issues/149
+      'DLLTOOL=llvm-dlltool',
+      'AR=llvm-ar',
+      'RANLIB=llvm-ranlib',
     ])
     make_default(build_dir, config.jobs)
-    make_destdir_install(build_dir, paths.layer_AAB.crt)
+    make_destdir_install(build_dir, paths.layer_AAB.crt0)
+
+    # Post-process import libraries to handle weak symbol aliases
+    # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
+    # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
+    crt0_lib_dir = paths.layer_AAB.crt0 / 'usr/local' / ver.target / 'lib'
+    crt_lib_dir = paths.layer_AAB.crt / 'usr/local' / ver.target / 'lib'
+    postprocess_crt_import_libraries(ver, crt0_lib_dir, crt_lib_dir, config.jobs)
+
+    crt0_inc_dir = paths.layer_AAB.crt0 / 'usr/local' / ver.target / 'include'
+    crt_inc_dir = paths.layer_AAB.crt / 'usr/local' / ver.target / 'include'
+    shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
 
     # The future belongs to UTF-8.
     # Piping is used so widely in GNU toolchain that we have to apply UTF-8 manifest to all programs.
@@ -238,7 +255,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       ensure(atomic_kernel32.parent)
       shutil.copy(crt_kernel32, atomic_kernel32)
       add_objects_to_static_lib(
-        f'{ver.target}-ar',
+        'llvm-ar',
         atomic_kernel32,
         [libatomic_fake_object],
       )
