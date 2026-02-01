@@ -1,70 +1,12 @@
 #pragma once
 
-#include <thunk/test.h>
-
-#include <libloaderapi.h>
-
-namespace mingw_thunk::internal
-{
-  struct module_handle
-  {
-    HMODULE module;
-
-    module_handle(const char *module_name) noexcept
-    {
-      module = LoadLibraryA(module_name);
-    }
-
-    module_handle(const module_handle &) = delete;
-
-    ~module_handle() noexcept
-    {
-      if (module)
-        FreeLibrary(module);
-    }
-
-    template <typename Fn>
-    Fn *get_function(const char *function_name) const noexcept
-    {
-      return module
-                 ? reinterpret_cast<Fn *>(GetProcAddress(module, function_name))
-                 : nullptr;
-    }
-  };
-
-  inline module_handle module_advapi32{"advapi32.dll"};
-  inline module_handle module_bcrypt{"bcrypt.dll"};
-  inline module_handle module_kernel32{"kernel32.dll"};
-  inline module_handle module_msvcrt{"msvcrt.dll"};
-  inline module_handle module_ntdll{"ntdll.dll"};
-  inline module_handle module_shell32{"shell32.dll"};
-  inline module_handle module_ws2_32{"ws2_32.dll"};
-
-  inline module_handle module_api_ms_win_core_path_l1_1_0{
-      "api-ms-win-core-path-l1-1-0.dll"};
-} // namespace mingw_thunk::internal
-
-#ifdef ENABLE_TEST_OVERRIDE
-
-#define __DECLARE_TRY_GET_FUNCTION(function)                                   \
-  namespace                                                                    \
-  {                                                                            \
-    inline fn_##function##_t *try_get_##function() noexcept                    \
-    {                                                                          \
-      internal::touched = true;                                                \
-      return nullptr;                                                          \
-    }                                                                          \
-  }
-
-#else // ifdef ENABLE_TEST_OVERRIDE
+#include "_dll.h"
 
 #define __DECLARE_TRY_GET_FUNCTION(function)                                   \
   inline auto *try_get_##function() noexcept                                   \
   {                                                                            \
     return get_##function();                                                   \
   }
-
-#endif // ifdef ENABLE_TEST_OVERRIDE
 
 #ifdef _WIN64
 
@@ -98,7 +40,7 @@ namespace mingw_thunk::internal
     inline auto *get_##function() noexcept                                     \
     {                                                                          \
       static auto *pfn =                                                       \
-          internal::module_##module.get_function<fn_##function##_t>(           \
+          internal::module_##module().get_function<fn_##function##_t>(         \
               #function);                                                      \
       return pfn;                                                              \
     }                                                                          \
@@ -112,5 +54,11 @@ namespace mingw_thunk::internal
                                                                                \
   extern "C" return_type calling_convention function(__VA_ARGS__)
 
-#define __DEFINE_CRT_THUNK(return_type, function, ...)                         \
-  __DEFINE_THUNK(msvcrt, 0, return_type, __cdecl, function, __VA_ARGS__)
+#define __DECLARE_CRT_IMP_ALIAS(symbol, function)                              \
+  auto *dllimport_##symbol __asm__(                                            \
+      __DLLIMPORT_SYMBOL_NAME___cdecl(symbol, 0)) = &function;
+
+#define __DECLARE_FORCE_OVERRIDE_MINGW_EMU(function)                           \
+  int force_override_mingw_emu_##fuction __asm__(                              \
+      "__force_override_mingw_emu" __DLLIMPORT_SYMBOL_NAME___cdecl(function,   \
+                                                                   0)) = 0;

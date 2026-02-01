@@ -1,6 +1,7 @@
 #pragma once
 
 #include <corecrt.h>
+#include <limits.h>
 #include <stdint.h>
 #include <time.h>
 

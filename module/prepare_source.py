@@ -254,11 +254,23 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.mingw, paths.src_arx.mingw):
     v = Version(ver.mingw)
 
+    do_regenerate = False
+
+    # CRT: Fix import module name
+    if v.major >= 12:
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-import-module-name_12.patch')
+    else:
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-import-module-name_11.patch')
+
     # CRT: Fix x64 wassert
-    if ver.min_os.major < 6 and v.major < 13:
-      if v.major >= 12:
+    if ver.min_os.major < 6:
+      if v.major >= 13:
+        pass
+      elif v.major >= 12:
+        do_regenerate = True
         patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-wassert_12.patch')
       else:
+        do_regenerate = True
         patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-wassert_11.patch')
 
     # CRT: Fix x64 difftime64
@@ -267,87 +279,18 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     # CRT: Fix i386 strtoi64, strtoui64
     if ver.min_os < Version('5.1') and v.major == 11:
+      do_regenerate = True
       patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
 
     # Winpthreads: Fix linkage
     if v.major == 13:
       patch(paths.src_dir.mingw, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
 
+    if do_regenerate:
+      _autoreconf(paths.src_dir.mingw)
+      _automake(paths.src_dir.mingw)
+
     patch_done(paths.src_dir.mingw)
-
-def _mingw_host(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  if download_only:
-    return
-
-  if check_and_sync(paths.src_dir.mingw_host, paths.src_dir.mingw):
-    # CRT: Add mingw thunks
-    thunk_flags = []
-    if ver.default_crt == 'msvcrt':
-      thunk_flags.append('--msvcrt')
-
-    subprocess.run([
-      './patch.py',
-      paths.src_dir.mingw_host,
-      '-a', ver.arch,
-      '--level', 'toolchain',
-      '--nt-ver', str(ver.min_os),
-      *thunk_flags,
-    ], cwd = paths.in_tree_src_tree.thunk, check = True)
-
-    _autoreconf(paths.src_dir.mingw_host / 'mingw-w64-crt')
-    _automake(paths.src_dir.mingw_host / 'mingw-w64-crt')
-
-    patch_done(paths.src_dir.mingw_host)
-
-def _mingw_target(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  if download_only:
-    return
-
-  if check_and_sync(paths.src_dir.mingw_target, paths.src_dir.mingw):
-    # CRT: Add mingw thunks
-    thunk_flags = []
-    if ver.default_crt == 'msvcrt':
-      thunk_flags.append('--msvcrt')
-    if ver.thunk_free:
-      thunk_flags.append('--assert-thunk-free')
-
-    subprocess.run([
-      './patch.py',
-      paths.src_dir.mingw_target,
-      '-a', ver.arch,
-      '--level', 'core',
-      '--nt-ver', str(ver.min_os),
-      *thunk_flags,
-    ], cwd = paths.in_tree_src_tree.thunk, check = True)
-
-    _autoreconf(paths.src_dir.mingw_target / 'mingw-w64-crt')
-    _automake(paths.src_dir.mingw_target / 'mingw-w64-crt')
-
-    patch_done(paths.src_dir.mingw_target)
-
-def _mingw_qt(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  if download_only:
-    return
-
-  if check_and_sync(paths.src_dir.mingw_qt, paths.src_dir.mingw):
-    # CRT: Add mingw thunks
-    msvcrt_flag = []
-    if ver.default_crt == 'msvcrt':
-      msvcrt_flag.append('--msvcrt')
-
-    subprocess.run([
-      './patch.py',
-      paths.src_dir.mingw_qt,
-      '-a', ver.arch,
-      '--level', 'qt',
-      '--nt-ver', str(ver.min_os),
-      *msvcrt_flag,
-    ], cwd = paths.in_tree_src_tree.thunk, check = True)
-
-    _autoreconf(paths.src_dir.mingw_qt / 'mingw-w64-crt')
-    _automake(paths.src_dir.mingw_qt / 'mingw-w64-crt')
-
-    patch_done(paths.src_dir.mingw_qt)
 
 def _mpc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/mpc/{paths.src_arx.mpc.name}'
@@ -426,6 +369,19 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     patch_done(paths.src_dir.python)
 
+def _thunk(ver: BranchProfile, paths: ProjectPaths):
+  shutil.copytree(
+    paths.in_tree_src_tree.thunk,
+    paths.in_tree_src_dir.thunk,
+    ignore = shutil.ignore_patterns(
+      '.cache',
+      '.vscode',
+      '.xmake',
+      'build',
+    ),
+    dirs_exist_ok = True,
+  )
+
 def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   release_name = paths.src_arx.xmake.name.replace('xmake-', 'xmake-v')
   url = f'https://github.com/xmake-io/xmake/releases/download/v{ver.xmake}/{release_name}'
@@ -485,13 +441,11 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   if ver.thread == 'mcf':
     _mcfgthread(ver, paths, download_only)
   _mingw(ver, paths, download_only)
-  _mingw_host(ver, paths, download_only)
-  _mingw_target(ver, paths, download_only)
-  _mingw_qt(ver, paths, download_only)
   _mpc(ver, paths, download_only)
   _mpfr(ver, paths, download_only)
   _pdcurses(ver, paths, download_only)
   _pkgconf(ver, paths, download_only)
   _python(ver, paths, download_only)
+  _thunk(ver, paths)
   _xmake(ver, paths, download_only)
   _z(ver, paths, download_only)

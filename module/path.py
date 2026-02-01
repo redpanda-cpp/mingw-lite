@@ -16,9 +16,6 @@ class SourcePaths(NamedTuple):
   make: Path
   mcfgthread: Path
   mingw: Path
-  mingw_host: Path
-  mingw_target: Path
-  mingw_qt: Path
   mpc: Path
   mpfr: Path
   pdcurses: Path
@@ -51,6 +48,7 @@ class LayerPathsAAB(NamedTuple):
   crt: Path
   gcc: Path
   headers: Path
+  thunk: Path
   utf8: Path
 
   expat: Path
@@ -73,9 +71,8 @@ class LayerPathsABB(NamedTuple):
   headers: Path
   make: Path
   pkgconf: Path
+  thunk: Path
   xmake: Path
-
-  crt_qt: Path
 
 class ProjectPaths:
   root_dir: Path
@@ -88,7 +85,6 @@ class ProjectPaths:
   meson_cross_file: Path
 
   mingw_pkg: Path
-  mingw_qt_pkg: Path
   xmake_pkg: Path
   cross_pkg: Path
 
@@ -140,7 +136,6 @@ class ProjectPaths:
     self.meson_cross_file = self.root_dir / f'support/meson/{ver.target}.txt'
 
     self.mingw_pkg = self.dist_dir / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
-    self.mingw_qt_pkg = self.dist_dir / f'q-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.xmake_pkg = self.dist_dir / f'xmake-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.cross_pkg = self.dist_dir / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
 
@@ -164,9 +159,6 @@ class ProjectPaths:
         if ver.thread == 'mcf'
         else None,
       mingw = f'mingw-w64-v{ver.mingw}',
-      mingw_host = f'mingw-w64-v{ver.mingw}-host',
-      mingw_target = f'mingw-w64-v{ver.mingw}-target',
-      mingw_qt = f'mingw-w64-v{ver.mingw}-qt',
       mpc = f'mpc-{ver.mpc}',
       mpfr = f'mpfr-{ver.mpfr}',
       pdcurses = f'PDCurses-{ver.pdcurses}',
@@ -188,9 +180,6 @@ class ProjectPaths:
         if ver.thread == 'mcf'
         else None,
       mingw = self.build_dir / src_name.mingw,
-      mingw_host = self.build_dir / src_name.mingw_host,
-      mingw_target = self.build_dir / src_name.mingw_target,
-      mingw_qt = self.build_dir / src_name.mingw_qt,
       mpc = self.build_dir / src_name.mpc,
       mpfr = self.build_dir / src_name.mpfr,
       pdcurses = self.build_dir / src_name.pdcurses,
@@ -214,9 +203,6 @@ class ProjectPaths:
         if ver.thread == 'mcf'
         else None,
       mingw = self.assets_dir / f'{src_name.mingw}.tar.bz2',
-      mingw_host = None,
-      mingw_target = None,
-      mingw_qt = None,
       mpc = self.assets_dir / f'{src_name.mpc}.tar.gz',
       mpfr = self.assets_dir / f'{src_name.mpfr}.tar.xz',
       pdcurses = self.assets_dir / f'{src_name.pdcurses}.tar.gz',
@@ -228,7 +214,7 @@ class ProjectPaths:
 
     self.in_tree_src_dir = InTreeSourcePaths(
       intl = self.build_dir / 'intl',
-      thunk = None,
+      thunk = self.build_dir / 'thunk',
     )
 
     self.in_tree_src_tree = InTreeSourcePaths(
@@ -259,6 +245,7 @@ class ProjectPaths:
       crt = layer_AAB_prefix / 'crt',
       gcc = layer_AAB_prefix / 'gcc',
       headers = layer_AAB_prefix / 'headers',
+      thunk = layer_AAB_prefix / 'thunk',
       utf8 = layer_AAB_prefix / 'utf8',
 
       expat = layer_AAB_prefix / 'expat',
@@ -283,9 +270,8 @@ class ProjectPaths:
       headers = layer_ABB_prefix / 'headers',
       make = layer_ABB_prefix / 'make',
       pkgconf = layer_ABB_prefix / 'pkgconf',
+      thunk = layer_ABB_prefix / 'thunk',
       xmake = layer_ABB_prefix / 'xmake',
-
-      crt_qt = layer_ABB_prefix / 'crt_qt',
     )
 
     # test phase

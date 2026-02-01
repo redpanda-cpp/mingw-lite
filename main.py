@@ -21,7 +21,7 @@ from module.util import ensure, overlayfs_ro
 # XYZ: build = X, host = Y, target = Z
 from module.AAA import build_AAA_library, build_AAA_tool
 from module.AAB import build_AAB_compiler, build_AAB_library
-from module.ABB import build_ABB_xmake, build_ABB_toolchain
+from module.ABB import build_ABB_toolchain, build_ABB_xmake
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.build_dir.exists():
@@ -110,13 +110,6 @@ def package_layers(pkg_dir: Path, layers: list[Path], dst: Path):
   with overlayfs_ro(pkg_dir, layers):
     _package(pkg_dir.parent, files, dst)
 
-def package_xmake(paths: ProjectPaths):
-  layers = [
-    paths.layer_ABB.xmake,
-  ]
-
-  package_layers(paths.pkg_dir, layers, paths.xmake_pkg)
-
 def package_mingw(paths: ProjectPaths):
   layers = [
     paths.layer_ABB.binutils,
@@ -130,18 +123,12 @@ def package_mingw(paths: ProjectPaths):
 
   package_layers(paths.pkg_dir, layers, paths.mingw_pkg)
 
-def package_mingw_qt(paths: ProjectPaths):
+def package_xmake(paths: ProjectPaths):
   layers = [
-    paths.layer_ABB.binutils,
-    paths.layer_ABB.crt_qt,
-    paths.layer_ABB.gcc,
-    paths.layer_ABB.gdb,
-    paths.layer_ABB.headers,
-    paths.layer_ABB.make,
-    paths.layer_ABB.pkgconf,
+    paths.layer_ABB.xmake,
   ]
 
-  package_layers(paths.pkg_dir, layers, paths.mingw_qt_pkg)
+  package_layers(paths.pkg_dir, layers, paths.xmake_pkg)
 
 def main():
   config = parse_args()
@@ -177,8 +164,6 @@ def main():
 
   build_ABB_toolchain(ver, paths, config)
   package_mingw(paths)
-  if config.qt:
-    package_mingw_qt(paths)
   build_ABB_xmake(ver, paths, config)
   package_xmake(paths)
 

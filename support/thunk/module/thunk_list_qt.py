@@ -1,2 +1,0 @@
-THUNK_LIST_QT_WIN32 = {
-}

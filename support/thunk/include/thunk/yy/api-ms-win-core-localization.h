@@ -2,14 +2,16 @@
 
 #include <thunk/yy/yy.h>
 
+#include <stdlib.h>
+
 #include <windows.h>
 
 // YY-Thunks 1.1.6
 namespace mingw_thunk::internal
 {
   // 尝试将一个中性语言匹配到实际区域
-  static LPCWSTR __fastcall DownlevelNeutralToSpecificLocaleName(
-      LPCWSTR szLocaleName)
+  static LPCWSTR __fastcall
+  DownlevelNeutralToSpecificLocaleName(LPCWSTR szLocaleName)
   {
     struct NeutralToSpecific
     {

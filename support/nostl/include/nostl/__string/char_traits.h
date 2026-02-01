@@ -21,6 +21,17 @@ namespace NS_NOSTL
       using char_type = CharT;
       using int_type = Int;
 
+    public:
+      constexpr static bool eq(char_type a, char_type b)
+      {
+        return a == b;
+      }
+
+      constexpr static bool lt(char_type a, char_type b)
+      {
+        return a < b;
+      }
+
     protected:
       static constexpr char_type *
       consteval_move(char_type *dest, const char_type *src, size_t count)
@@ -62,6 +73,16 @@ namespace NS_NOSTL
   class char_traits<char> : public detail::char_traits_base<char, int>
   {
   public:
+    constexpr static bool eq(char_type a, char_type b)
+    {
+      return static_cast<unsigned char>(a) == static_cast<unsigned char>(b);
+    }
+
+    constexpr static bool lt(char_type a, char_type b)
+    {
+      return static_cast<unsigned char>(a) < static_cast<unsigned char>(b);
+    }
+
     static constexpr_if_consteval char_type *
     move(char_type *dest, const char_type *src, size_t count)
     {

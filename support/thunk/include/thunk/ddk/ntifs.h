@@ -2,9 +2,7 @@
 
 #include <winternl.h>
 
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
+extern "C" NTSYSCALLAPI NTSTATUS NTAPI
 NtQueryDirectoryFile(IN HANDLE FileHandle,
                      IN HANDLE Event OPTIONAL,
                      IN PIO_APC_ROUTINE ApcRoutine OPTIONAL,

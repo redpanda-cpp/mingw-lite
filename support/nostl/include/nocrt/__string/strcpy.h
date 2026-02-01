@@ -6,7 +6,7 @@
 
 namespace NS_NOCRT
 {
-  inline void *strcpy(char *dst, const char *src)
+  inline char *strcpy(char *__restrict dst, const char *__restrict src)
   {
     char *cur = dst;
     while (*src) {

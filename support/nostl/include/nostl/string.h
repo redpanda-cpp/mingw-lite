@@ -106,6 +106,12 @@ namespace NS_NOSTL
     storage_t storage;
 
   public:
+    static constexpr size_t max_sso_size()
+    {
+      return sso_capacity - 1;
+    }
+
+  public:
     constexpr basic_string() : storage()
     {
     }
@@ -209,6 +215,26 @@ namespace NS_NOSTL
     constexpr const CharT &operator[](size_type pos) const
     {
       return data()[pos];
+    }
+
+    constexpr CharT &front()
+    {
+      return data()[0];
+    }
+
+    constexpr const CharT &front() const
+    {
+      return data()[0];
+    }
+
+    constexpr CharT &back()
+    {
+      return data()[size() - 1];
+    }
+
+    constexpr const CharT &back() const
+    {
+      return data()[size() - 1];
     }
 
     constexpr const CharT *data() const
@@ -354,6 +380,20 @@ namespace NS_NOSTL
       storage_t tmp = storage;
       storage = other.storage;
       other.storage = tmp;
+    }
+
+    constexpr size_type rfind(CharT ch, size_type pos = npos) const
+    {
+      if (empty())
+        return npos;
+      if (pos == npos || pos >= size())
+        pos = size() - 1;
+      for (size_type i = 0; i <= pos; ++i) {
+        size_type idx = pos - i;
+        if (Traits::eq(data()[idx], ch))
+          return idx;
+      }
+      return npos;
     }
 
     template <class StringViewLike>

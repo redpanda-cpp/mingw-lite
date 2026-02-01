@@ -1,6 +1,7 @@
 #pragma once
 
 #include <processthreadsapi.h>
+#include <winnt.h>
 #include <winternl.h>
 
 #include "__config.h"
@@ -16,12 +17,12 @@ namespace NS_NOCRT
   inline int *__errno_location()
   {
     DWORD tls_index = __errno_tls_index();
-    PVOID *pslot;
+    void **pslot;
     if (tls_index < TLS_MINIMUM_AVAILABLE) {
       pslot = &NtCurrentTeb()->TlsSlots[tls_index];
     } else {
-      PVOID *expansion_slots =
-          static_cast<PVOID *>(NtCurrentTeb()->TlsExpansionSlots);
+      void **expansion_slots =
+          static_cast<void **>(NtCurrentTeb()->TlsExpansionSlots);
       pslot = &expansion_slots[tls_index - TLS_MINIMUM_AVAILABLE];
     }
     return reinterpret_cast<int *>(pslot);

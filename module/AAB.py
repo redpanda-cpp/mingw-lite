@@ -34,7 +34,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   make_destdir_install(build_dir, paths.layer_AAB.binutils)
 
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.src_dir.mingw_host / 'mingw-w64-headers' / 'build-AAB'
+  build_dir = paths.src_dir.mingw / 'mingw-w64-headers' / 'build-AAB'
   ensure(build_dir)
   configure(build_dir, [
     f'--prefix=/usr/local/{ver.target}',
@@ -159,12 +159,13 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   yield
 
 def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v = Version(ver.mingw)
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
   ]):
-    build_dir = paths.src_dir.mingw_host / 'mingw-w64-crt' / 'build-AAB'
+    build_dir = paths.src_dir.mingw / 'mingw-w64-crt' / 'build-AAB'
     ensure(build_dir)
 
     multilib_flags = [
@@ -191,17 +192,56 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAB.crt0)
 
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt0 / 'usr/local',
+  ]):
+    thunk_src_dir = paths.in_tree_src_dir.thunk
+
+    xmake_config(thunk_src_dir, [
+      '--buildir=build-AAB',
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      f'--mingw-version={v.major}',
+      f'--thunk-level={ver.min_os}',
+      '--profile=toolchain',
+    ])
+    xmake_build(thunk_src_dir, config.jobs)
+    xmake_install(thunk_src_dir, paths.layer_AAB.thunk / 'usr/local' / ver.target)
+
     # Post-process import libraries to handle weak symbol aliases
     # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
     # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
+    thunk_lib_dir = paths.layer_AAB.thunk / 'usr/local' / ver.target / 'lib'
     crt0_lib_dir = paths.layer_AAB.crt0 / 'usr/local' / ver.target / 'lib'
     crt_lib_dir = paths.layer_AAB.crt / 'usr/local' / ver.target / 'lib'
-    postprocess_crt_import_libraries(ver, crt0_lib_dir, crt_lib_dir, config.jobs)
+    postprocess_crt_import_libraries(
+      ver,
+      thunk_lib_dir,
+      crt0_lib_dir,
+      crt_lib_dir,
+      assert_thunk_free = False,
+      jobs = config.jobs,
+    )
+
+    # special handling libmsvcrt.a
+    if ver.default_crt == 'msvcrt':
+      shutil.copy(crt_lib_dir / 'libmsvcrt-os.a', crt_lib_dir / 'libmsvcrt.a')
+    if ver.default_crt == 'ucrt':
+      shutil.copy(crt_lib_dir / 'libucrt.a', crt_lib_dir / 'libmsvcrt.a')
 
     crt0_inc_dir = paths.layer_AAB.crt0 / 'usr/local' / ver.target / 'include'
     crt_inc_dir = paths.layer_AAB.crt / 'usr/local' / ver.target / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
 
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt / 'usr/local',
+  ]):
     # The future belongs to UTF-8.
     # Piping is used so widely in GNU toolchain that we have to apply UTF-8 manifest to all programs.
     # Linking the UTF-8 manifest (and console hack object) to CRT init objects is an efficient way.
@@ -267,7 +307,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
-    build_dir = paths.src_dir.mingw_host / 'mingw-w64-libraries' / 'winpthreads' / 'build-AAB'
+    build_dir = paths.src_dir.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'build-AAB'
     ensure(build_dir)
     configure(build_dir, [
       f'--prefix=/usr/local/{ver.target}',

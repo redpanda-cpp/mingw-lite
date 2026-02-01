@@ -1,7 +1,5 @@
 #pragma once
 
-#include <thunk/test.h>
-
 #include <sysinfoapi.h>
 
 namespace mingw_thunk::internal
@@ -13,28 +11,6 @@ namespace mingw_thunk::internal
       GetVersionExA(&osvi);
     return osvi;
   }
-
-#ifdef ENABLE_TEST_OVERRIDE
-
-  inline bool is_nt() noexcept
-  {
-    touched = true;
-    return false;
-  }
-
-  inline bool os_lt(int epoch, int major, int minor) noexcept
-  {
-    touched = true;
-    return true;
-  }
-
-  inline bool os_lt(int major, int minor) noexcept
-  {
-    touched = true;
-    return true;
-  }
-
-#else
 
   inline bool is_nt() noexcept
   {
@@ -59,8 +35,6 @@ namespace mingw_thunk::internal
   {
     return os_lt(VER_PLATFORM_WIN32_NT, major, minor);
   }
-
-#endif
 
   inline bool os_geq(int major, int minor) noexcept
   {

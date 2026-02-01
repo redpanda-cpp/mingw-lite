@@ -1,0 +1,9 @@
+LIBRARY ntdll.dll
+EXPORTS
+  __ms_NtQueryDirectoryFile == NtQueryDirectoryFile
+  __ms_NtQueryInformationFile == NtQueryInformationFile
+  __ms_NtSetInformationFile == NtSetInformationFile
+  __ms_RtlDosPathNameToNtPathName_U == RtlDosPathNameToNtPathName_U
+  __ms_RtlFreeUnicodeString == RtlFreeUnicodeString
+  __ms_RtlNtStatusToDosError == RtlNtStatusToDosError
+  __ms_RtlPcToFileHeader == RtlPcToFileHeader

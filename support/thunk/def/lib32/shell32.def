@@ -1,0 +1,3 @@
+LIBRARY shell32.dll
+EXPORTS
+  __ms_CommandLineToArgvW@8 == CommandLineToArgvW

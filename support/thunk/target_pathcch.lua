@@ -1,0 +1,59 @@
+target('overlay-pathcch')
+  enable_thunk_options()
+
+  if profile_toolchain_or_utf8() then
+    if ntddi_version() < ntddi_win8() then
+      add_files(
+        'pathcch/6.2/PathAllocCanonicalize.cc',
+        'pathcch/6.2/PathAllocCombine.cc',
+        'pathcch/6.2/PathCchAddBackslash.cc',
+        'pathcch/6.2/PathCchAddBackslashEx.cc',
+        'pathcch/6.2/PathCchAddExtension.cc',
+        'pathcch/6.2/PathCchAppend.cc',
+        'pathcch/6.2/PathCchAppendEx.cc',
+        'pathcch/6.2/PathCchCanonicalize.cc',
+        'pathcch/6.2/PathCchCanonicalizeEx.cc',
+        'pathcch/6.2/PathCchCombine.cc',
+        'pathcch/6.2/PathCchCombineEx.cc',
+        'pathcch/6.2/PathCchFindExtension.cc',
+        'pathcch/6.2/PathCchIsRoot.cc',
+        'pathcch/6.2/PathCchRemoveBackslash.cc',
+        'pathcch/6.2/PathCchRemoveBackslashEx.cc',
+        'pathcch/6.2/PathCchRemoveExtension.cc',
+        'pathcch/6.2/PathCchRemoveFileSpec.cc',
+        'pathcch/6.2/PathCchRenameExtension.cc',
+        'pathcch/6.2/PathCchSkipRoot.cc',
+        'pathcch/6.2/PathCchStripPrefix.cc',
+        'pathcch/6.2/PathCchStripToRoot.cc',
+        'pathcch/6.2/PathIsUNCEx.cc')
+    end
+  end
+
+target('thunk-pathcch')
+  add_files(
+    'pathcch/6.2/PathAllocCanonicalize.cc',
+    'pathcch/6.2/PathAllocCombine.cc',
+    'pathcch/6.2/PathCchAddBackslash.cc',
+    'pathcch/6.2/PathCchAddBackslashEx.cc',
+    'pathcch/6.2/PathCchAddExtension.cc',
+    'pathcch/6.2/PathCchAppend.cc',
+    'pathcch/6.2/PathCchAppendEx.cc',
+    'pathcch/6.2/PathCchCanonicalize.cc',
+    'pathcch/6.2/PathCchCanonicalizeEx.cc',
+    'pathcch/6.2/PathCchCombine.cc',
+    'pathcch/6.2/PathCchCombineEx.cc',
+    'pathcch/6.2/PathCchFindExtension.cc',
+    'pathcch/6.2/PathCchIsRoot.cc',
+    'pathcch/6.2/PathCchRemoveBackslash.cc',
+    'pathcch/6.2/PathCchRemoveBackslashEx.cc',
+    'pathcch/6.2/PathCchRemoveExtension.cc',
+    'pathcch/6.2/PathCchRemoveFileSpec.cc',
+    'pathcch/6.2/PathCchRenameExtension.cc',
+    'pathcch/6.2/PathCchSkipRoot.cc',
+    'pathcch/6.2/PathCchStripPrefix.cc',
+    'pathcch/6.2/PathCchStripToRoot.cc',
+    'pathcch/6.2/PathIsUNCEx.cc')
+  enable_if_x86()
+  enable_thunk_options()
+  merge_win32_alias()
+  skip_install()

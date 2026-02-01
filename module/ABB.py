@@ -17,34 +17,6 @@ from module.util import cflags_B, configure, make_custom, make_default, make_des
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
 
-def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  with overlayfs_ro('/usr/local', [
-    paths.layer_AAA.xmake / 'usr/local',
-
-    # override CRT
-    paths.layer_AAB.utf8 / 'usr/local',
-
-    paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
-    paths.layer_AAB.gcc / 'usr/local',
-    paths.layer_AAB.crt / 'usr/local',
-  ]):
-    build_dir = paths.src_dir.xmake / 'core'
-    xmake_config(build_dir, [
-      '-m', 'releasedbg',
-      '--plat=mingw',
-      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
-    ])
-    xmake_build(build_dir, config.jobs)
-    xmake_install(build_dir, paths.layer_ABB.xmake, ['cli'])
-
-  license_dir = paths.layer_ABB.xmake / 'share/licenses/xmake'
-  ensure(license_dir)
-  shutil.copy(paths.src_dir.xmake / 'LICENSE.md', license_dir / 'LICENSE.md')
-
-def build_ABB_xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  _xmake(ver, paths, config)
-
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     # override CRT
@@ -96,7 +68,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     shutil.copy(paths.src_dir.binutils / file, license_dir / file)
 
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.src_dir.mingw_target / 'mingw-w64-headers' / 'build-ABB'
+  build_dir = paths.src_dir.mingw / 'mingw-w64-headers' / 'build-ABB'
   ensure(build_dir)
   configure(build_dir, [
     '--prefix=',
@@ -114,16 +86,17 @@ def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
 
   license_dir = paths.layer_ABB.headers / 'share/licenses/headers'
   ensure(license_dir)
-  shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'COPYING')
+  shutil.copy(paths.src_dir.mingw / 'COPYING', license_dir / 'COPYING')
 
 def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v = Version(ver.mingw)
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.crt / 'usr/local',
   ]):
-    build_dir = paths.src_dir.mingw_target / 'mingw-w64-crt' / 'build-ABB'
+    build_dir = paths.src_dir.mingw / 'mingw-w64-crt' / 'build-ABB'
     ensure(build_dir)
 
     multilib_flags = [
@@ -150,12 +123,45 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_ABB.crt0)
 
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt0 / 'usr/local',
+  ]):
+    thunk_src_dir = paths.in_tree_src_dir.thunk
+
+    xmake_config(thunk_src_dir, [
+      '--buildir=build-ABB',
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      f'--mingw-version={v.major}',
+      f'--thunk-level={ver.min_os}',
+      '--profile=core',
+    ])
+    xmake_build(thunk_src_dir, config.jobs)
+    xmake_install(thunk_src_dir, paths.layer_ABB.thunk)
+
     # Post-process import libraries to handle weak symbol aliases
     # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
     # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
+    thunk_lib_dir = paths.layer_ABB.thunk / 'lib'
     crt0_lib_dir = paths.layer_ABB.crt0 / 'lib'
     crt_lib_dir = paths.layer_ABB.crt / 'lib'
-    postprocess_crt_import_libraries(ver, crt0_lib_dir, crt_lib_dir, config.jobs)
+    postprocess_crt_import_libraries(
+      ver,
+      thunk_lib_dir,
+      crt0_lib_dir,
+      crt_lib_dir,
+      assert_thunk_free = ver.thunk_free,
+      jobs = config.jobs,
+    )
+
+    # special handling libmsvcrt.a
+    if ver.default_crt == 'msvcrt':
+      shutil.copy(crt_lib_dir / 'libmsvcrt-os.a', crt_lib_dir / 'libmsvcrt.a')
+    if ver.default_crt == 'ucrt':
+      shutil.copy(crt_lib_dir / 'libucrt.a', crt_lib_dir / 'libmsvcrt.a')
 
     crt0_inc_dir = paths.layer_ABB.crt0 / 'include'
     crt_inc_dir = paths.layer_ABB.crt / 'include'
@@ -163,44 +169,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
   ensure(license_dir)
-  shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'COPYING')
-
-def _crt_qt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  with overlayfs_ro('/usr/local', [
-    paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
-    paths.layer_AAB.gcc / 'usr/local',
-    paths.layer_AAB.crt / 'usr/local',
-  ]):
-    build_dir = paths.src_dir.mingw_qt / 'mingw-w64-crt' / 'build-ABB'
-    ensure(build_dir)
-
-    multilib_flags = [
-      '--enable-lib64' if ver.arch == '64' else '--disable-lib64',
-      '--enable-libarm64' if ver.arch == 'arm64' else '--disable-libarm64',
-      '--enable-lib32' if ver.arch == '32' else '--disable-lib32',
-      '--disable-libarm32',
-    ]
-
-    configure(build_dir, [
-      '--prefix=',
-      f'--host={ver.target}',
-      f'--build={config.build}',
-      f'--with-default-msvcrt={ver.default_crt}',
-      f'--with-default-win32-winnt=0x{max(ver.win32_winnt, 0x0400):04X}',
-      *multilib_flags,
-      *cflags_B(optimize_for_size = ver.optimize_for_size),
-    ])
-    make_default(build_dir, config.jobs)
-    make_destdir_install(build_dir, paths.layer_ABB.crt_qt)
-
-  license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
-  ensure(license_dir)
-  shutil.copy(paths.src_dir.mingw_target / 'COPYING', license_dir / 'COPYING')
-
-  license_dir = paths.layer_ABB.crt / 'share/licenses/thunk'
-  ensure(license_dir)
-  shutil.copy(paths.in_tree_src_dir.thunk / 'LICENSE', license_dir / 'LICENSE')
+  shutil.copy(paths.src_dir.mingw / 'COPYING', license_dir / 'COPYING')
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -213,7 +182,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
     paths.layer_ABB.crt,
   ]):
-    build_dir = paths.src_dir.mingw_target / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB'
+    build_dir = paths.src_dir.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'build-ABB'
     ensure(build_dir)
     configure(build_dir, [
       '--prefix=',
@@ -233,7 +202,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
   license_dir = paths.layer_ABB.gcc / 'share/licenses/winpthreads'
   ensure(license_dir)
-  shutil.copy(paths.src_dir.mingw_target / 'mingw-w64-libraries/winpthreads/COPYING', license_dir / 'COPYING')
+  shutil.copy(paths.src_dir.mingw / 'mingw-w64-libraries/winpthreads/COPYING', license_dir / 'COPYING')
 
 def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mcfgthread.replace('-ga', ''))
@@ -627,9 +596,6 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
 
   _crt(ver, paths, config)
 
-  if config.qt:
-    _crt_qt(ver, paths, config)
-
   _winpthreads(ver, paths, config)
 
   if ver.thread == 'mcf':
@@ -642,3 +608,31 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
   _gmake(ver, paths, config)
 
   _pkgconf(ver, paths, config)
+
+def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt / 'usr/local',
+  ]):
+    build_dir = paths.src_dir.xmake / 'core'
+    xmake_config(build_dir, [
+      '-m', 'releasedbg',
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+    ])
+    xmake_build(build_dir, config.jobs)
+    xmake_install(build_dir, paths.layer_ABB.xmake, ['cli'])
+
+  license_dir = paths.layer_ABB.xmake / 'share/licenses/xmake'
+  ensure(license_dir)
+  shutil.copy(paths.src_dir.xmake / 'LICENSE.md', license_dir / 'LICENSE.md')
+
+def build_ABB_xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  _xmake(ver, paths, config)
