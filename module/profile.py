@@ -176,7 +176,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '15': BranchVersions(
     gcc = '15.2.0',
-    rev = '6.1',
+    rev = '7',
 
     # ABI critical: 2025-08-08
     mcfgthread = '2.1-ga.1',
