@@ -1,0 +1,13 @@
+diff --git a/gdb/skip.c b/gdb/skip.c
+index a9ee223c277..c6d548d11ea 100644
+--- a/gdb/skip.c
++++ b/gdb/skip.c
+@@ -549,7 +549,7 @@ skiplist_entry::do_skip_gfile_p (const symtab_and_line &function_sal) const
+       /* Note: symtab_to_fullname caches its result, thus we don't have to.  */
+       const char *fullname = symtab_to_fullname (function_sal.symtab);
+ 
+-      result = gdb_filename_fnmatch (m_file.c_str (), fullname, FNM_NOESCAPE);
++      result = gdb_filename_fnmatch (m_file.c_str (), fullname, FNM_NOESCAPE) == 0;
+     }
+ 
+   if (debug_skip)

@@ -175,6 +175,10 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Fix pythondir
     patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
 
+    # Fix 'skip gfile' `fnmatch`
+    if v.major == 17:
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-skip-gfile-fnmatch.patch')
+
     if ver.min_os.major < 4:
       # Ignore 9x long path
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'ignore-9x-long-path.patch')
