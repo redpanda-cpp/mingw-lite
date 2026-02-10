@@ -17,6 +17,65 @@ from module.util import cflags_B, configure, make_custom, make_default, make_des
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
 
+def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  ensure(paths.layer_ABB.test_driver)
+
+  mingw_dir = paths.sat_mingw_dir.relative_to(paths.sat_dir)
+  xmake_arch = XMAKE_ARCH_MAP[ver.arch]
+  debug_build_dir = f'build/mingw/{xmake_arch}/debug'
+
+  flags = [
+    '-std=c11', '-O2', '-municode', '-s',
+    f'-DMINGW_DIR="{mingw_dir}"',
+    f'-DXMAKE_ARCH="{xmake_arch}"',
+    f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
+  ]
+  if config.enable_shared:
+    flags.append('-DENABLE_SHARED')
+  if ver.utf8_thunk:
+    flags.append('-DENABLE_UTF8')
+
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.crt / 'usr/local',
+  ]):
+    gcc_exe = f'{ver.target}-gcc'
+
+    src_dir = paths.root_dir / 'support/sat'
+    pkg_dir = paths.layer_ABB.test_driver
+    common_c = src_dir / 'common.c'
+
+    subprocess.run([
+      gcc_exe,
+      *flags,
+      src_dir / 'set-path.c', common_c,
+      '-o', pkg_dir / 'set-path.exe',
+    ], check = True)
+
+    subprocess.run([
+      gcc_exe,
+      *flags,
+      src_dir / 'test-compiler.c', common_c,
+      '-o', pkg_dir / 'test-compiler.exe',
+    ], check = True)
+
+    subprocess.run([
+      gcc_exe,
+      *flags,
+      src_dir / 'test-make-gdb.c', common_c,
+      '-o', pkg_dir / 'test-make-gdb.exe',
+    ], check = True)
+
+    if config.enable_shared:
+      subprocess.run([
+        gcc_exe,
+        *flags,
+        src_dir / 'test-shared.c', common_c,
+        '-o', pkg_dir / 'test-shared.exe',
+      ], check = True)
+
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     # override CRT

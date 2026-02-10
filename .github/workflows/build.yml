@@ -23,6 +23,7 @@ jobs:
           ]
           all_old_profile = [
             '32-msvcrt_win2000',
+            '32_686-msvcrt_winnt40',
             '32_686-msvcrt_win98',
             '32_486-msvcrt_win98',
             '32_386-msvcrt_win95',
@@ -35,6 +36,9 @@ jobs:
 
           exclude_profile_branch = [
             {'profile': '32-msvcrt_win2000', 'branch': '16'},
+            {'profile': '32_686-msvcrt_winnt40', 'branch': '15'},
+            {'profile': '32_686-msvcrt_winnt40', 'branch': '14'},
+            {'profile': '32_686-msvcrt_winnt40', 'branch': '13'},
           ]
 
           wsl_branch = ['15']
@@ -71,7 +75,7 @@ jobs:
             },
             {
               'name': '32_686-unstable',
-              'profile': json.dumps(['32_686-msvcrt_win98']),
+              'profile': json.dumps(['32_686-msvcrt_winnt40', '32_686-msvcrt_win98']),
               'pattern': 'mingw32_686-*',
               'enable_shared': False,
               'dict': '128m',
@@ -321,7 +325,7 @@ jobs:
             dist/xmake-mingw*.7z
 
   sat_archive:
-    name: Semi-automated testing archive
+    name: Semi-automated test archive (${{ matrix.name }})
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     runs-on: ubuntu-24.04
     needs: [param, build_container, build]
@@ -338,18 +342,12 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: buildenv
-          path: assets
-
-      - uses: actions/download-artifact@v4
-        with:
           pattern: ${{ matrix.pattern }}
           path: dist
           merge-multiple: true
 
-      - name: Load container
-        run: |
-          zstdcat assets/buildenv.tar.zst | podman load
+      - run: |
+          rm dist/x-mingw*.tar.zst
 
       - name: Create test archive
         run: |
@@ -363,26 +361,12 @@ jobs:
           mkdir layer
           mkdir pkg
 
-          for p in ${profile[@]} ; do
-            # filename can differ from branch name when a a new branch is just created
-            for archive in $(ls dist/x-mingw$p-*.tar.zst) ; do
-              bsdtar -C layer -xf $archive
-            done
-          done
-          rm dist/x-mingw*.tar.zst
-
           for b in ${branch[@]} ; do
             for p in ${profile[@]} ; do
               if [[ ":${{ needs.param.outputs.sat_exclude_profile_branch }}:" == *":$p-$b:"* ]] ; then
                 continue
               fi
-              podman run --rm --cap-add=sys_admin \
-                -v $PWD:/mnt -w /mnt \
-                -v $PWD/layer:/tmp/layer \
-                -v $PWD/pkg:/tmp/pkg \
-                mingw-lite/buildenv \
-                  ./sat.py --branch $b --profile $p ${{ matrix.enable_shared && '--enable-shared' || '' }}
-              rm -rf layer/mingw$p-$b
+              ./sat.py --branch $b --profile $p ${{ matrix.enable_shared && '--enable-shared' || '' }}
             done
           done
 

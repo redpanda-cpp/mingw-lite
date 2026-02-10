@@ -11,6 +11,8 @@ import socket
 import subprocess
 from subprocess import PIPE
 import sys
+from tempfile import TemporaryDirectory
+from traceback import print_exc
 
 from module.args import parse_args
 from module.path import ProjectPaths
@@ -34,25 +36,32 @@ def prepare_dirs(paths: ProjectPaths):
   )
 
 def extract(path: Path, arx: Path):
-  subprocess.run([
-    'bsdtar',
-    '-C', path.parent,
-    '-xf', arx,
-    '--no-same-owner',
-    # workaround zstd pipe error with Windows `tar.exe`
-    # https://github.com/libarchive/libarchive/issues/2512
-    '--ignore-zeros',
-  ], check = True)
+  if platform.system() == 'Windows':
+    # Windows `tar.exe` does not support Unicode path
+    # (WTF? it's a system component distributed by Microsoft!)
+    with TemporaryDirectory() as tmp:
+      subprocess.run([
+        'bsdtar',
+        '-C', tmp,
+        '-xf', arx,
+        '--no-same-owner',
+        # workaround zstd pipe error with Windows `tar.exe`
+        # https://github.com/libarchive/libarchive/issues/2512
+        '--ignore-zeros',
+      ], check = True)
+      shutil.copytree(tmp, path, dirs_exist_ok = True)
+  else:
+    subprocess.run([
+      'bsdtar',
+      '-C', path,
+      '-xf', arx,
+      '--no-same-owner',
+    ], check = True)
 
 def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
-  extract(paths.test_mingw_dir, paths.mingw_pkg)
-  extract(paths.test_mingw_dir, paths.xmake_pkg)
-
-def winepath(path: Path):
-  if platform.system() == 'Windows':
-    return str(path)
-  else:
-    return subprocess.check_output(['winepath', '-w', path]).decode().strip()
+  extract(paths.test_dir, paths.test_driver_pkg)
+  extract(paths.test_dir, paths.mingw_pkg)
+  extract(paths.test_dir, paths.xmake_pkg)
 
 def available_port():
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -60,11 +69,12 @@ def available_port():
     return s.getsockname()[1]
 
 def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
+  rel_mingw_dir = paths.test_mingw_dir.relative_to(paths.test_dir)
   xmake = paths.test_mingw_dir / 'bin/xmake.exe'
   subprocess.check_call([
     xmake, 'f', *verbose,
     '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
-    f'--mingw={winepath(paths.test_mingw_dir)}',
+    f'--mingw={rel_mingw_dir}',
   ], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test_dir)
@@ -72,49 +82,37 @@ def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[s
 def test_mingw_shared(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
   shutil.copytree(paths.test_mingw_dir / 'lib/shared', paths.test_mingw_dir, dirs_exist_ok = True)
 
+  rel_mingw_dir = paths.test_mingw_dir.relative_to(paths.test_dir)
   xmake = paths.test_mingw_dir / 'bin/xmake.exe'
   subprocess.check_call([
     xmake, 'f', *verbose,
     f'--builddir=build-shared',
     '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
-    f'--mingw={winepath(paths.test_mingw_dir)}',
+    f'--mingw={rel_mingw_dir}',
   ], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test_dir)
 
 def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
-  bin_dir = paths.test_mingw_dir / 'bin'
-  make_exe = bin_dir / 'mingw32-make.exe'
-  gdb_exe = bin_dir / 'gdb.exe'
-  gdbserver_exe = bin_dir / 'gdbserver.exe'
-
-  build_dir = paths.test_dir / 'build' / 'mingw' / XMAKE_ARCH_MAP[ver.arch] / 'debug'
-  inferior = build_dir / 'breakpoint.exe'
-  in_gdb_inferior = winepath(inferior).replace('\\', '/')
-  ensure(build_dir)
+  xmake_arch = XMAKE_ARCH_MAP[ver.arch]
+  build_dir = f'build/mingw/{xmake_arch}/debug'
+  inferior = f'{build_dir}/breakpoint.exe'
+  ensure(paths.test_dir / build_dir)
 
   # make
-  if platform.system() == 'Windows':
-    saved_path = os.environ['PATH']
-    os.environ['PATH'] = str(bin_dir) + ':' + os.environ['PATH']
-  else:
-    os.environ['WINEPATH'] = winepath(bin_dir)
+  subprocess.check_call([
+    paths.test_dir / 'set-path.exe',
+    'mingw32-make.exe', f'DIR={build_dir}', 'SUFFIX=.exe',
+  ], cwd = paths.test_dir)
 
-  subprocess.check_call([make_exe, f'DIR={build_dir}', 'SUFFIX=.exe'], cwd = paths.test_dir)
-
-  if platform.system() == 'Windows':
-    os.environ['PATH'] = saved_path
-  else:
-    del os.environ['WINEPATH']
-  
   # gdb
   port = available_port()
   comm = f'localhost:{port}'
 
-  gdb_command_file = paths.test_dir / 'gdb_command.txt'
-  with open(gdb_command_file, 'wb') as f:
+  gdb_command_file = 'gdb_command.txt'
+  with open(paths.test_dir / gdb_command_file, 'wb') as f:
     content = (
-      f'file {in_gdb_inferior}\n'  # old releases disconnect when retriving symbol from gdbserver
+      f'file {inferior}\n'
       'set sysroot C:\n'
       f'target remote {comm}\n'
       'b 14\n'
@@ -141,7 +139,11 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
     '$5 = std::vector of length 6, capacity', '= {0, 1, 1, 2, 3, 5}',
   ]
 
-  gdbserver = subprocess.Popen([gdbserver_exe, comm, winepath(inferior)], cwd = paths.test_dir)
+  bin_dir = paths.test_mingw_dir / 'bin'
+  gdb_exe = bin_dir / 'gdb.exe'
+  gdbserver_exe = bin_dir / 'gdbserver.exe'
+
+  gdbserver = subprocess.Popen([gdbserver_exe, comm, inferior], cwd = paths.test_dir)
   gdb = subprocess.Popen([gdb_exe, '--batch', f'--command={gdb_command_file}'], cwd = paths.test_dir, stdout = PIPE)
   gdb.wait(timeout = 10.0)
   if gdb.returncode != 0:
@@ -156,6 +158,10 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
       raise Exception(f"expected output line '{line}' not found in gdb output:\n{gdb_output}")
 
 def main():
+  # We want UTF-8 pipe in CI (console not affected)
+  if platform.system() == 'Windows':
+    sys.stdout.reconfigure(encoding = 'UTF-8')
+
   config = parse_args()
 
   if config.verbose >= 2:

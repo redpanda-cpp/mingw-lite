@@ -5,8 +5,13 @@ set_languages("c11")
 
 add_defines('DEBUG_BUILD_DIR="build/debug"')
 add_defines('ENABLE_SHARED')
+add_defines('ENABLE_UTF8')
 add_defines('MINGW_DIR="mingw64"')
 add_defines('XMAKE_ARCH="x86_64"')
+add_ldflags('-municode', {force = true})
+
+target("set-path")
+  add_files("common.c", "set-path.c")
 
 target("test-compiler")
   add_files("common.c", "test-compiler.c")

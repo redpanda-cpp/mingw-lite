@@ -355,7 +355,8 @@ PROFILES: Dict[str, ProfileInfo] = {
 
   '32-msvcrt_win2000': None, # branch-dependent
 
-  '32_686-msvcrt_win98': _create_profile('32_686', 'msvcrt', 'posix', '3.9999+4.10', False),
+  '32_686-msvcrt_winnt40': _create_profile('32_686', 'msvcrt', 'posix', '4.0',         False),
+  '32_686-msvcrt_win98':   _create_profile('32_686', 'msvcrt', 'posix', '3.9999+4.10', False),
 
   '32_486-msvcrt_win98': _create_profile('32_486', 'msvcrt', 'posix', '3.9999+4.10', False),
 

@@ -21,7 +21,7 @@ from module.util import ensure, overlayfs_ro
 # XYZ: build = X, host = Y, target = Z
 from module.AAA import build_AAA_library, build_AAA_tool
 from module.AAB import build_AAB_compiler, build_AAB_library
-from module.ABB import build_ABB_toolchain, build_ABB_xmake
+from module.ABB import build_ABB_test_driver, build_ABB_toolchain, build_ABB_xmake
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.build_dir.exists():
@@ -87,6 +87,13 @@ def package_cross(paths: ProjectPaths):
   ]
 
   _package(paths.layer_dir.parent, files, paths.cross_pkg)
+
+def package_test_driver(paths: ProjectPaths):
+  files = [
+    *_sort_tarball(paths.layer_ABB.test_driver, paths.layer_ABB.test_driver),
+  ]
+
+  _package(paths.layer_ABB.test_driver, files, paths.test_driver_pkg)
 
 def package_layers(pkg_dir: Path, layers: list[Path], dst: Path):
   files = []
@@ -162,6 +169,8 @@ def main():
     build_AAB_library(ver, paths, config)
     package_cross(paths)
 
+  build_ABB_test_driver(ver, paths, config)
+  package_test_driver(paths)
   build_ABB_toolchain(ver, paths, config)
   package_mingw(paths)
   build_ABB_xmake(ver, paths, config)

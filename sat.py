@@ -8,13 +8,14 @@ import subprocess
 from module.args import parse_args
 from module.path import ProjectPaths
 from module.profile import BranchProfile, resolve_profile
-from module.util import XMAKE_ARCH_MAP, overlayfs_ro
+from module.util import XMAKE_ARCH_MAP, ensure
 
 def clean(config: argparse.Namespace, paths: ProjectPaths):
   if paths.sat_dir.exists():
     shutil.rmtree(paths.sat_dir)
 
 def prepare_dirs(paths: ProjectPaths):
+  ensure(paths.sat_dir.parent)
   shutil.copytree(
     paths.test_src_dir,
     paths.sat_dir,
@@ -29,19 +30,20 @@ def prepare_dirs(paths: ProjectPaths):
 def extract(path: Path, arx: Path):
   subprocess.run([
     'bsdtar',
-    '-C', path.parent,
+    '-C', path,
     '-xf', arx,
     '--no-same-owner',
   ], check = True)
 
 def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
-  extract(paths.sat_mingw_dir, paths.mingw_pkg)
-  extract(paths.sat_mingw_dir, paths.xmake_pkg)
+  extract(paths.sat_dir, paths.test_driver_pkg)
+  extract(paths.sat_dir, paths.mingw_pkg)
+  extract(paths.sat_dir, paths.xmake_pkg)
 
 def write_gdb_commands(ver: BranchProfile, paths: ProjectPaths):
-  mingw_arch = XMAKE_ARCH_MAP[ver.arch]
-  xmake_arch = f'build/mingw/{mingw_arch}/debug'
-  inferior = f'{xmake_arch}/breakpoint.exe'
+  xmake_arch = XMAKE_ARCH_MAP[ver.arch]
+  build_dir = f'build/mingw/{xmake_arch}/debug'
+  inferior = f'{build_dir}/breakpoint.exe'
 
   with open(paths.sat_dir / 'gdb-command.txt', 'wb') as f:
     content = (
@@ -64,57 +66,6 @@ def write_gdb_commands(ver: BranchProfile, paths: ProjectPaths):
     )
     f.write(content.encode())
 
-def compile_test_programs(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  mingw_dir = paths.sat_mingw_dir.relative_to(paths.sat_dir)
-  xmake_arch = XMAKE_ARCH_MAP[ver.arch]
-  debug_build_dir = f'build/mingw/{xmake_arch}/debug'
-
-  flags = [
-    '-std=c11', '-O2', '-s',
-    f'-DMINGW_DIR="{mingw_dir}"',
-    f'-DXMAKE_ARCH="{xmake_arch}"',
-    f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
-  ]
-  if config.enable_shared:
-    flags.append('-DENABLE_SHARED')
-
-  with overlayfs_ro('/usr/local', [
-    paths.layer_AAB.binutils / 'usr/local',
-    paths.layer_AAB.headers / 'usr/local',
-    paths.layer_AAB.gcc / 'usr/local',
-    paths.layer_AAB.crt / 'usr/local',
-  ]):
-    gcc_exe = f'{ver.target}-gcc'
-    common_c = paths.root_dir / 'support/sat/common.c'
-    test_compiler_c = paths.root_dir / 'support/sat/test-compiler.c'
-    test_make_gdb_c = paths.root_dir / 'support/sat/test-make-gdb.c'
-    test_shared_c = paths.root_dir / 'support/sat/test-shared.c'
-    test_compiler_exe = paths.sat_dir / 'test-compiler.exe'
-    test_make_gdb_exe = paths.sat_dir / 'test-make-gdb.exe'
-    test_shared_exe = paths.sat_dir / 'test-shared.exe'
-
-    subprocess.run([
-      gcc_exe,
-      *flags,
-      test_compiler_c, common_c,
-      '-o', test_compiler_exe,
-    ], check=True)
-
-    subprocess.run([
-      gcc_exe,
-      *flags,
-      test_make_gdb_c, common_c,
-      '-o', test_make_gdb_exe,
-    ], check=True)
-
-    if config.enable_shared:
-      subprocess.run([
-        gcc_exe,
-        *flags,
-        test_shared_c, common_c,
-        '-o', test_shared_exe,
-      ], check=True)
-
 def main():
   config = parse_args()
 
@@ -128,8 +79,6 @@ def main():
   prepare_test_binary(ver, paths)
 
   write_gdb_commands(ver, paths)
-
-  compile_test_programs(ver, paths, config)
 
 if __name__ == '__main__':
   main()

@@ -1,0 +1,13 @@
+diff --git a/libcody/buffer.cc b/libcody/buffer.cc
+index 85c066fef71..e46110c84c5 100644
+--- a/libcody/buffer.cc
++++ b/libcody/buffer.cc
+@@ -292,7 +292,7 @@ int MessageBuffer::Lex (std::vector<std::string> &result)
+ 		  return EINVAL;
+ 		}
+ 
+-	      if (c < S2C(u8" ") || c >= 0x7f)
++	      if ((0 <= c && c < S2C(u8" ")) || c == 0x7f)
+ 		goto malformed;
+ 
+ 	      ++iter;

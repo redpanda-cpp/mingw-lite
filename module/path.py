@@ -63,6 +63,8 @@ class LayerPathsAAB(NamedTuple):
 class LayerPathsABB(NamedTuple):
   prefix: Path
 
+  test_driver: Path
+
   binutils: Path
   crt0: Path
   crt: Path
@@ -84,6 +86,7 @@ class ProjectPaths:
 
   meson_cross_file: Path
 
+  test_driver_pkg: Path
   mingw_pkg: Path
   xmake_pkg: Path
   cross_pkg: Path
@@ -135,6 +138,7 @@ class ProjectPaths:
 
     self.meson_cross_file = self.root_dir / f'support/meson/{ver.target}.txt'
 
+    self.test_driver_pkg = self.dist_dir / f'test-driver{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.mingw_pkg = self.dist_dir / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.xmake_pkg = self.dist_dir / f'xmake-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
     self.cross_pkg = self.dist_dir / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
@@ -262,6 +266,8 @@ class ProjectPaths:
     self.layer_ABB = LayerPathsABB(
       prefix = layer_ABB_prefix,
 
+      test_driver = layer_ABB_prefix / 'test-driver',
+
       binutils = layer_ABB_prefix / 'binutils',
       crt0 = layer_ABB_prefix / 'crt0',
       crt = layer_ABB_prefix / 'crt',
@@ -276,12 +282,15 @@ class ProjectPaths:
 
     # test phase
 
-    self.test_dir = Path(f'{tempfile.gettempdir()}/{abi_name}')
+    self.test_dir = Path(f'{tempfile.gettempdir()}/{abi_name}-नमस्ते')
     self.test_src_dir = self.root_dir / 'support' / 'test'
 
     self.test_mingw_dir = self.test_dir / abi_name
 
     # target semi-automated testing archive phase
 
-    self.sat_dir = self.root_dir / 'pkg' / f'sat{config.profile}-{config.branch}'
+    if ver.utf8_thunk and ver.min_os >= Version('4.0'):
+      self.sat_dir = self.root_dir / 'pkg' / f'sat{config.profile}-{config.branch}-नमस्ते'
+    else:
+      self.sat_dir = self.root_dir / 'pkg' / f'sat{config.profile}-{config.branch}-‘hello’'
     self.sat_mingw_dir = self.sat_dir / abi_name

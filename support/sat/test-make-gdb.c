@@ -4,8 +4,8 @@
 
 #include "common.h"
 
-int main(int argc, char *argv[]) {
-  char mingw_bin_dir[MAX_PATH];
+int wmain(int argc, wchar_t *argv[]) {
+  wchar_t mingw_bin_dir[MAX_PATH];
   resolve_mingw_bin_dir(mingw_bin_dir);
   prepend_to_env_path(mingw_bin_dir);
 
@@ -14,29 +14,31 @@ int main(int argc, char *argv[]) {
 #endif
 
   change_to_self_dir();
-  mkdir_p(DEBUG_BUILD_DIR);
+  mkdir_p(L"" DEBUG_BUILD_DIR);
 
-  const char *make_argv[] = {
-      "mingw32-make", ("DIR=" DEBUG_BUILD_DIR),
-      "SUFFIX=.exe",  lt_win98() ? "LDFLAGS=-fno-lto" : NULL,
+  const wchar_t *make_argv[] = {
+      L"mingw32-make",
+      (L"DIR=" DEBUG_BUILD_DIR),
+      L"SUFFIX=.exe",
+      lt_win98() ? L"LDFLAGS=-fno-lto" : NULL,
       NULL,
   };
   HANDLE make_process = spawn(make_argv);
   if (wait(make_process) != 0)
     error_exit("make failed");
 
-  const char *gdbserver_argv[] = {
-      "gdbserver",
-      "localhost:1234",
-      DEBUG_BUILD_DIR "/breakpoint.exe",
+  const wchar_t *gdbserver_argv[] = {
+      L"gdbserver",
+      L"localhost:1234",
+      L"" DEBUG_BUILD_DIR "/breakpoint.exe",
       NULL,
   };
   HANDLE gdbserver_process = spawn(gdbserver_argv);
 
-  const char *gdb_argv[] = {
-      "gdb",
-      "--batch",
-      "--command=gdb-command.txt",
+  const wchar_t *gdb_argv[] = {
+      L"gdb",
+      L"--batch",
+      L"--command=gdb-command.txt",
       NULL,
   };
   HANDLE gdb_process = spawn(gdb_argv);
