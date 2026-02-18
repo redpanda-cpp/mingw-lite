@@ -1,3 +1,5 @@
 LIBRARY shell32.dll
 EXPORTS
   __ms_CommandLineToArgvW@8 == CommandLineToArgvW
+  __ms_SHGetPathFromIDListA@8 == SHGetPathFromIDListA
+  __ms_SHGetPathFromIDListW@8 == SHGetPathFromIDListW

@@ -4,6 +4,7 @@
 #include "ddk/ntifs.h"
 
 #include <ntdef.h>
+#include <shlobj.h>
 #include <windows.h>
 #include <winternl.h>
 
@@ -69,8 +70,12 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(FindFirstFileW)
   __DECLARE_MS_IMPORT(FindNextFileA)
   __DECLARE_MS_IMPORT(FindNextFileW)
+  __DECLARE_MS_IMPORT(FreeEnvironmentStringsA)
+  __DECLARE_MS_IMPORT(FreeEnvironmentStringsW)
   __DECLARE_MS_IMPORT(GetCurrentDirectoryA)
   __DECLARE_MS_IMPORT(GetCurrentDirectoryW)
+  __DECLARE_MS_IMPORT(GetEnvironmentStrings)
+  __DECLARE_MS_IMPORT(GetEnvironmentStringsW)
   __DECLARE_MS_IMPORT(GetEnvironmentVariableA)
   __DECLARE_MS_IMPORT(GetEnvironmentVariableW)
   __DECLARE_MS_IMPORT(GetFileAttributesA)
@@ -115,6 +120,8 @@ namespace mingw_thunk
 
   // shell32
   __DECLARE_MS_IMPORT(CommandLineToArgvW)
+  __DECLARE_MS_IMPORT(SHGetPathFromIDListA)
+  __DECLARE_MS_IMPORT(SHGetPathFromIDListW)
 
   // crt: environment
   __DECLARE_MS_IMPORT(_wgetcwd)

@@ -47,7 +47,7 @@ CHECKSUMS: Dict[str, str] = {
   'pkgconf-pkgconf-2.3.0.tar.gz': '0ee103cd390c3ee0e77a7a1c71dcb79a50a426fa2a648f6d07f2678c23adc5e3',
   'pkgconf-pkgconf-2.5.1.tar.gz': '79721badcad1987dead9c3609eb4877ab9b58821c06bdacb824f2c8897c11f2a',
 
-  'xmake-3.0.4.tar.gz': 'b6968dbe266029987bee0a389175f8898042c0bd38f279befc40adaf8e67ce04',
+  'xmake-3.0.7.tar.gz': 'c9052e4550b8925268540603363d68fa90e4c1b407d0e6e00b735055afbea27f',
 
   'zlib-1.3.1.tar.gz': '9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23',
 }

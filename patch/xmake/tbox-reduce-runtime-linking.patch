@@ -1,0 +1,68 @@
+diff --git a/src/tbox/platform/windows/interface/kernel32.c b/src/tbox/platform/windows/interface/kernel32.c
+index 603737dc..c6fa9a05 100644
+--- a/src/tbox/platform/windows/interface/kernel32.c
++++ b/src/tbox/platform/windows/interface/kernel32.c
+@@ -41,19 +41,19 @@ static tb_bool_t tb_kernel32_instance_init(tb_kernel32_ref_t kernel32)
+ 
+     // init interfaces
+     TB_INTERFACE_LOAD(kernel32, RtlCaptureStackBackTrace);
+-    TB_INTERFACE_LOAD(kernel32, GetFileSizeEx);
++    TB_INTERFACE_LINK(kernel32, GetFileSizeEx);
+     TB_INTERFACE_LOAD(kernel32, CancelIoEx);
+     TB_INTERFACE_LOAD(kernel32, GetQueuedCompletionStatusEx);
+-    TB_INTERFACE_LOAD(kernel32, GetEnvironmentVariableW);
+-    TB_INTERFACE_LOAD(kernel32, SetEnvironmentVariableW);
+-    TB_INTERFACE_LOAD(kernel32, CreateProcessW);
++    TB_INTERFACE_LINK(kernel32, GetEnvironmentVariableW);
++    TB_INTERFACE_LINK(kernel32, SetEnvironmentVariableW);
++    TB_INTERFACE_LINK(kernel32, CreateProcessW);
+     TB_INTERFACE_LOAD(kernel32, WaitForMultipleObjects);
+     TB_INTERFACE_LOAD(kernel32, GetExitCodeProcess);
+     TB_INTERFACE_LOAD(kernel32, TerminateProcess);
+     TB_INTERFACE_LOAD(kernel32, SuspendThread);
+     TB_INTERFACE_LOAD(kernel32, ResumeThread);
+-    TB_INTERFACE_LOAD(kernel32, GetEnvironmentStringsW);
+-    TB_INTERFACE_LOAD(kernel32, FreeEnvironmentStringsW);
++    TB_INTERFACE_LINK(kernel32, GetEnvironmentStringsW);
++    TB_INTERFACE_LINK(kernel32, FreeEnvironmentStringsW);
+     TB_INTERFACE_LOAD(kernel32, SetHandleInformation);
+     TB_INTERFACE_LOAD(kernel32, SetFileCompletionNotificationModes);
+     TB_INTERFACE_LOAD(kernel32, CreateSymbolicLinkW);
+diff --git a/src/tbox/platform/windows/interface/prefix.h b/src/tbox/platform/windows/interface/prefix.h
+index 7e305a82..a0839578 100644
+--- a/src/tbox/platform/windows/interface/prefix.h
++++ b/src/tbox/platform/windows/interface/prefix.h
+@@ -37,4 +37,10 @@
+         \
+     } while (0)
+ 
++#define TB_INTERFACE_LINK(module_name, interface_name) \
++    do \
++    { \
++        module_name->interface_name = (tb_##module_name##_##interface_name##_t)&interface_name; \
++    } while (0)
++
+ #endif
+diff --git a/src/tbox/platform/windows/interface/shell32.c b/src/tbox/platform/windows/interface/shell32.c
+index 15aa24a0..ff9ead94 100644
+--- a/src/tbox/platform/windows/interface/shell32.c
++++ b/src/tbox/platform/windows/interface/shell32.c
+@@ -25,6 +25,7 @@
+ #include "shell32.h"
+ #include "../../atomic.h"
+ #include "../../../utils/singleton.h"
++#include <shlobj.h>
+ 
+ /* //////////////////////////////////////////////////////////////////////////////////////
+  * implementation
+@@ -41,8 +42,8 @@ static tb_bool_t tb_shell32_instance_init(tb_handle_t instance, tb_cpointer_t pr
+     tb_check_return_val(module, tb_false);
+ 
+     // init interfaces
+-    TB_INTERFACE_LOAD(shell32, SHGetSpecialFolderLocation);
+-    TB_INTERFACE_LOAD(shell32, SHGetPathFromIDListW);
++    TB_INTERFACE_LINK(shell32, SHGetSpecialFolderLocation);
++    TB_INTERFACE_LINK(shell32, SHGetPathFromIDListW);
+ 
+     // ok
+     return tb_true;

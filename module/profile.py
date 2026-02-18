@@ -25,7 +25,7 @@ class BranchVersions:
   python: str
   z: str
 
-  xmake = '3.0.4'
+  xmake = '3.0.7'
 
   def __init__(
     self,

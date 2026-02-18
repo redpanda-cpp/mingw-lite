@@ -22,8 +22,12 @@ EXPORTS
   __ms_FindFirstFileW@8 == FindFirstFileW
   __ms_FindNextFileA@8 == FindNextFileA
   __ms_FindNextFileW@8 == FindNextFileW
+  __ms_FreeEnvironmentStringsA@4 == FreeEnvironmentStringsA
+  __ms_FreeEnvironmentStringsW@4 == FreeEnvironmentStringsW
   __ms_GetCurrentDirectoryA@8 == GetCurrentDirectoryA
   __ms_GetCurrentDirectoryW@8 == GetCurrentDirectoryW
+  __ms_GetEnvironmentStrings@0 == GetEnvironmentStrings
+  __ms_GetEnvironmentStringsW@0 == GetEnvironmentStringsW
   __ms_GetEnvironmentVariableA@12 == GetEnvironmentVariableA
   __ms_GetEnvironmentVariableW@12 == GetEnvironmentVariableW
   __ms_GetFileAttributesA@4 == GetFileAttributesA

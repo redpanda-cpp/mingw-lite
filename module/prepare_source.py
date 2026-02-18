@@ -416,11 +416,14 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # DOS capital path
     patch(paths.src_dir.xmake, paths.patch_dir / 'xmake/DOS-CAPITAL-PATH.patch')
 
+    # Tbox: fix Windows 7 inherit console handle
+    patch(tbox, paths.patch_dir / 'xmake/tbox-fix-win7-inherit-console-handle.patch')
+
     # Tbox: ignore process group
     patch(tbox, paths.patch_dir / 'xmake/tbox-ignore-process-group.patch')
 
-    # Tbox: reduce kernel32 runtime linking
-    patch(tbox, paths.patch_dir / 'xmake/tbox-reduce-kernel32-runtime-linking.patch')
+    # Tbox: reduce runtime linking
+    patch(tbox, paths.patch_dir / 'xmake/tbox-reduce-runtime-linking.patch')
 
     # Tbox: fix 9x file time range
     patch(tbox, paths.patch_dir / 'xmake/tbox-fix-9x-file-time-range.patch')

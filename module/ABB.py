@@ -688,6 +688,7 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '-m', 'releasedbg',
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      '--mingw=/usr/local',
     ])
     xmake_build(build_dir, config.jobs)
     xmake_install(build_dir, paths.layer_ABB.xmake, ['cli'])
