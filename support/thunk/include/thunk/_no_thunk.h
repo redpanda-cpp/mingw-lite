@@ -108,6 +108,7 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(WideCharToMultiByte)
   __DECLARE_MS_IMPORT(WriteConsoleA)
   __DECLARE_MS_IMPORT(WriteConsoleW)
+  __DECLARE_MS_IMPORT(WriteFile)
 
   // ntdll
   __DECLARE_MS_IMPORT(NtQueryDirectoryFile)

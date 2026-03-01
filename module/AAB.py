@@ -601,6 +601,8 @@ def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     shutil.copy(paths.src_dir.pdcurses / 'curses.h', include_dir / 'curses.h')
 
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v_gcc = Version(ver.gcc)
+
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.python / 'usr/local',
 
@@ -630,7 +632,7 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     xmake_install(src_dir, stdlib_package_dir, ['stdlib'])
 
     python_lib = stdlib_package_dir / 'Lib'
-    shutil.copytree(f'/usr/local/share/gcc-{config.branch}/python', python_lib, dirs_exist_ok = True)
+    shutil.copytree(f'/usr/local/share/gcc-{v_gcc.major}/python', python_lib, dirs_exist_ok = True)
     subprocess.run([
       'python3', '-m', 'compileall',
       '-b',

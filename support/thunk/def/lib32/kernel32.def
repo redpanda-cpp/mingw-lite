@@ -61,3 +61,4 @@ EXPORTS
   __ms_WideCharToMultiByte@32 == WideCharToMultiByte
   __ms_WriteConsoleA@20 == WriteConsoleA
   __ms_WriteConsoleW@20 == WriteConsoleW
+  __ms_WriteFile@20 == WriteFile

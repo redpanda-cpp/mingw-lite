@@ -138,10 +138,11 @@ class ProjectPaths:
 
     self.meson_cross_file = self.root_dir / f'support/meson/{ver.target}.txt'
 
-    self.test_driver_pkg = self.dist_dir / f'test-driver{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
-    self.mingw_pkg = self.dist_dir / f'mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
-    self.xmake_pkg = self.dist_dir / f'xmake-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
-    self.cross_pkg = self.dist_dir / f'x-mingw{config.profile}-{ver.gcc}-r{ver.rev}.tar.zst'
+    pkg_id = f'{config.profile}-{ver.display_version or ver.gcc}-r{ver.rev}'
+    self.test_driver_pkg = self.dist_dir / f'test-driver{pkg_id}.tar.zst'
+    self.mingw_pkg = self.dist_dir / f'mingw{pkg_id}.tar.zst'
+    self.xmake_pkg = self.dist_dir / f'xmake-mingw{pkg_id}.tar.zst'
+    self.cross_pkg = self.dist_dir / f'x-mingw{pkg_id}.tar.zst'
 
     # build phase
 

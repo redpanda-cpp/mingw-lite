@@ -1,7 +1,9 @@
 import argparse
+from dataclasses import dataclass
 from packaging.version import Version
 from typing import Callable, Dict, Optional
 
+@dataclass
 class BranchVersions:
   gcc: str
   rev: str
@@ -25,55 +27,10 @@ class BranchVersions:
   python: str
   z: str
 
-  xmake = '3.0.7'
+  display_version: Optional[str] = None
+  xmake: str = '3.0.7'
 
-  def __init__(
-    self,
-
-    gcc: str,
-    rev: str,
-
-    short_import: bool,
-    utf8_thunk: bool,
-
-    mcfgthread: str,
-    mingw: str,
-
-    binutils: str,
-    expat: str,
-    gdb: str,
-    gmp: str,
-    iconv: str,
-    make: str,
-    mpc: str,
-    mpfr: str,
-    pdcurses: str,
-    pkgconf: str,
-    python: str,
-    z: str,
-  ):
-    self.gcc = gcc
-    self.rev = rev
-    self.utf8_thunk = utf8_thunk
-
-    self.short_import = short_import
-
-    self.mcfgthread = mcfgthread
-    self.mingw = mingw
-
-    self.binutils = binutils
-    self.expat = expat
-    self.gdb = gdb
-    self.gmp = gmp
-    self.iconv = iconv
-    self.make = make
-    self.mpc = mpc
-    self.mpfr = mpfr
-    self.pdcurses = pdcurses
-    self.pkgconf = pkgconf
-    self.python = python
-    self.z = z
-
+@dataclass
 class ProfileInfo:
   arch: str
   fpmath: Optional[str]
@@ -89,78 +46,14 @@ class ProfileInfo:
   min_os: Version
   thunk_free: bool
 
-  def __init__(
-    self,
-
-    arch: str,
-    fpmath: Optional[str],
-    march: str,
-    target: str,
-    optimize_for_size: bool,
-
-    default_crt: str,
-    exception: str,
-    thread: str,
-
-    win32_winnt: int,
-    min_os: Version,
-    thunk_free: bool,
-  ):
-    self.arch = arch
-    self.fpmath = fpmath
-    self.march = march
-    self.target = target
-    self.optimize_for_size = optimize_for_size
-
-    self.default_crt = default_crt
-    self.exception = exception
-    self.thread = thread
-
-    self.win32_winnt = win32_winnt
-    self.min_os = min_os
-    self.thunk_free = thunk_free
-
-class BranchProfile(BranchVersions):
-  arch: str
-  fpmath: Optional[str]
-  march: str
-  target: str
-  optimize_for_size: bool
-
-  default_crt: str
-  exception: str
-  thread: str
-
-  win32_winnt: int
-  min_os: Version
-  thunk_free: bool
-  min_winnt: int
-
-  def __init__(
-    self,
-    ver: BranchVersions,
-    info: ProfileInfo,
-  ):
-    BranchVersions.__init__(self, **ver.__dict__)
-
-    self.arch = info.arch
-    self.fpmath = info.fpmath
-    self.march = info.march
-    self.target = info.target
-    self.optimize_for_size = info.optimize_for_size
-
-    self.default_crt = info.default_crt
-    self.exception = info.exception
-    self.thread = info.thread
-
-    self.win32_winnt = info.win32_winnt
-    self.min_os = info.min_os
-    self.thunk_free = info.thunk_free
-
-    if info.min_os.major < 4:
-      self.min_winnt = 0x0400
+@dataclass
+class BranchProfile(BranchVersions, ProfileInfo):
+  @property
+  def min_winnt(self) -> int:
+    if self.min_os.major < 4:
+      return 0x0400
     else:
-      self.min_winnt = info.min_os.major * 0x100 + info.min_os.minor
+      return self.min_os.major * 0x100 + self.min_os.minor
 
 BRANCHES: Dict[str, BranchVersions] = {
   '16': BranchVersions(
@@ -263,6 +156,15 @@ BRANCHES: Dict[str, BranchVersions] = {
     z = '1.3.1',
   ),
 }
+
+BRANCHES['15+u8thunk'] = BranchVersions(
+  **{
+    **BRANCHES['15'].__dict__,
+    'display_version': '15.2.0+u8thunk',
+    'short_import': True,
+    'utf8_thunk': True,
+  }
+)
 
 _MINGW_ARCH_2_TRIPLET_MAP: dict[str, str] = {
   '64': 'x86_64-w64-mingw32',
@@ -380,6 +282,6 @@ def resolve_profile(config: argparse.Namespace) -> BranchProfile:
   else:
     info = PROFILES[config.profile]
   return BranchProfile(
-    ver = ver,
-    info = info,
+    **ver.__dict__,
+    **info.__dict__,
   )

@@ -166,7 +166,9 @@ target('overlay-kernel32')
       'kernel32/u/MultiByteToWideChar.cc',
       'kernel32/u/NeedCurrentDirectoryForExePathA.cc',
       'kernel32/u/SearchPathA.cc',
-      'kernel32/u/WideCharToMultiByte.cc')
+      'kernel32/u/WideCharToMultiByte.cc',
+      -- GCC calls WriteFile to write to console until 16
+      'kernel32/u/WriteFile.cc')
     if ntddi_version() < ntddi_win98() then
       add_files(
         'kernel32/a/3.9999+4.10/MultiByteToWideChar.impl.cc',
@@ -406,7 +408,8 @@ target('thunk-kernel32-u')
     'kernel32/u/LoadLibraryA.cc',
     'kernel32/u/MultiByteToWideChar.cc',
     'kernel32/u/SearchPathA.cc',
-    'kernel32/u/WideCharToMultiByte.cc')
+    'kernel32/u/WideCharToMultiByte.cc',
+    'kernel32/u/WriteFile.cc')
   enable_thunk_options()
   merge_win32_alias()
   skip_install()
