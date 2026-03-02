@@ -141,6 +141,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
       else:
         patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-vectorized-lexer_13.patch')
 
+    # Fix header case
+    if v.major == 16:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-header-case.patch')
+
     # Parser-friendly diagnostics
     po_dir = paths.src_dir.gcc / 'gcc' / 'po'
     po_files = list(po_dir.glob('*.po'))

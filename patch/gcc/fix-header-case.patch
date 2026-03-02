@@ -1,0 +1,15 @@
+diff --git a/libgfortran/caf/shmem/shared_memory.c b/libgfortran/caf/shmem/shared_memory.c
+index 0659e6ba023..c4bca5f2d42 100644
+--- a/libgfortran/caf/shmem/shared_memory.c
++++ b/libgfortran/caf/shmem/shared_memory.c
+@@ -38,8 +38,8 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+ #ifdef HAVE_SYS_MMAN_H
+ #include <sys/mman.h>
+ #elif defined(WIN32)
+-#include <Windows.h>
+-#include <Memoryapi.h>
++#include <windows.h>
++#include <memoryapi.h>
+ #endif
+ #include <unistd.h>
+ 
