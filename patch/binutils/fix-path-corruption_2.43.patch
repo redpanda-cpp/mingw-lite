@@ -1,5 +1,5 @@
 diff --git a/bfd/bfdio.c b/bfd/bfdio.c
-index 7063bcc1ae6..adcf4aa8519 100644
+index 2a7f77fa8d4..fea6534c89a 100644
 --- a/bfd/bfdio.c
 +++ b/bfd/bfdio.c
 @@ -122,7 +122,6 @@ _bfd_real_fopen (const char *filename, const char *modes)
@@ -10,7 +10,7 @@ index 7063bcc1ae6..adcf4aa8519 100644
    const wchar_t * prefix;
    size_t          sizeof_prefix;
    bool            strip_network_prefix = false;
-@@ -189,11 +188,7 @@ _bfd_real_fopen (const char *filename, const char *modes)
+@@ -189,11 +188,20 @@ _bfd_real_fopen (const char *filename, const char *modes)
      }
  
  #ifdef __MINGW32__
@@ -19,23 +19,46 @@ index 7063bcc1ae6..adcf4aa8519 100644
 -  _CRTIMP unsigned int __cdecl ___lc_codepage_func (void);
 -#endif
 -  const unsigned int cp = ___lc_codepage_func ();
++  /* The filename is retrieved from argv, Win32 API, CRT function, or file
++     (incl. console, pipe, socket, etc.).
++     1) argv is always encoded in ACP.
++     2) Win32 file APIs uses ACP or OEMCP, depending on return value of
++        AreFileApisANSI().
++     3) UCRT filesystem functions internally converts strings from/to wchar_t
++        and call wide variants. It uses CP_UTF8 (if C locale set to ".utf8"),
++        CP_ACP or CP_OEMCP (depending on AreFileApisANSI()).
++     4) MSVCRT filesystem functions simply pass strings to Win32 file APIs.
++     5) file can be encoded in any encoding, depending on the writer.
++
++     Ignoring case 5, which is impossible to handle, CP_ACP is the only choice
++     (and don't call SetFileApisToOEM() or setlocale(".utf8")). */
 +  const unsigned int cp = CP_ACP;
  #else
    const unsigned int cp = CP_UTF8;
  #endif
-@@ -203,13 +198,14 @@ _bfd_real_fopen (const char *filename, const char *modes)
-      2) Convert the string: Calling with cbMultiByte set to -1 includes the terminating null.  */
-   size_t     partPathWSize = MultiByteToWideChar (cp, 0, filename, -1, NULL, 0);
-   wchar_t *  partPath = calloc (partPathWSize, sizeof(wchar_t));
-+  size_t     partPathLen = partPathWSize - 1;
-   size_t     ix;
+@@ -207,10 +215,12 @@ _bfd_real_fopen (const char *filename, const char *modes)
  
    MultiByteToWideChar (cp, 0, filename, -1, partPath, partPathWSize);
  
-   /* Convert any UNIX style path separators into the DOS i.e. backslash separator.  */
-   for (ix = 0; ix < partPathLen; ix++)
+-  /* Convert any UNIX style path separators into the DOS i.e. backslash separator.  */
+-  for (ix = 0; ix < partPathLen; ix++)
 -    if (IS_UNIX_DIR_SEPARATOR(filename[ix]))
-+    if (IS_UNIX_DIR_SEPARATOR(partPath[ix]))
-       partPath[ix] = '\\';
+-      partPath[ix] = '\\';
++  /* Convert any UNIX style path separators into the DOS i.e. backslash
++     separator.  Short of a TOASCII()- or ISASCII()-like helper (taking
++     wchar_t as input) in libiberty, open-code that here for now.  */
++  for (ix = 0; partPath[ix] != L'\0'; ix++)
++    if (partPath[ix] <= L'\x7f' && IS_UNIX_DIR_SEPARATOR ((char)partPath[ix]))
++      partPath[ix] = L'\\';
  
    /* Getting the full path from the provided partial path.
+      1) Get the length.
+@@ -245,7 +255,7 @@ _bfd_real_fopen (const char *filename, const char *modes)
+   /* It is non-standard for modes to exceed 16 characters.  */
+   wchar_t  modesW[16];
+ 
+-  MultiByteToWideChar (cp, 0, modes, -1, modesW, sizeof(modesW));
++  MultiByteToWideChar (cp, 0, modes, -1, modesW, sizeof(modesW) / sizeof(wchar_t));
+ 
+   FILE *  file = _wfopen (fullPath, modesW);
+   free (fullPath);

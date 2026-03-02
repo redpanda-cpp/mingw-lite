@@ -1,0 +1,13 @@
+diff --git a/bfd/bfdio.c b/bfd/bfdio.c
+index 22c39a7b0cc..ebf3bfc3e74 100644
+--- a/bfd/bfdio.c
++++ b/bfd/bfdio.c
+@@ -117,6 +117,8 @@ _bfd_real_fopen (const char *filename, const char *modes)
+     }
+ 
+ #elif defined (_WIN32)
++  return close_on_exec (fopen (filename, modes));
++
+   /* PR 25713: Handle extra long path names possibly containing '..' and '.'.  */
+    wchar_t **     lpFilePart = {NULL};
+    const wchar_t  prefix[] = L"\\\\?\\";

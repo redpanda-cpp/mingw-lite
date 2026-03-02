@@ -46,14 +46,19 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     elif v >= Version('2.43'):
       patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.43.patch')
     else:
-      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.41.patch')
+      # early implementation is so buggy that we simply ignore it
+      # see below "Ingore long path"
+      pass
 
     # Don't optimize out libtool wrapper magic
     patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'dont-optimize-out-libtool-wrapper-magic.patch')
 
-    # Ignore 9x long path
-    if ver.min_os.major < 4:
-      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'ignore-9x-long-path.patch')
+    # Ignore long path
+    if v >= Version('2.43'):
+      if ver.min_os.major < 4:
+        patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'ignore-long-path_9x.patch')
+    else:
+      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'ignore-long-path_buggy.patch')
 
     patch_done(paths.src_dir.binutils)
 
@@ -180,7 +185,9 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if v.major >= 15:
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-path-corruption_15.patch')
     else:
-      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-path-corruption_14.patch')
+      # early implementation is so buggy that we simply ignore it
+      # see below "Ingore long path"
+      pass
 
     # Fix thread
     if v.major >= 16:
@@ -199,10 +206,14 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if v.major == 17:
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-skip-gfile-fnmatch.patch')
 
-    if ver.min_os.major < 4:
-      # Ignore 9x long path
-      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'ignore-9x-long-path.patch')
+    # Ignore long path
+    if v.major >= 15:
+      if ver.min_os.major < 4:
+        patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'ignore-long-path_9x.patch')
+    else:
+      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'ignore-long-path_buggy.patch')
 
+    if ver.min_os.major < 4:
       # Fix 9x select
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-9x-select.patch')
 
