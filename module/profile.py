@@ -63,11 +63,11 @@ BRANCHES: Dict[str, BranchVersions] = {
     short_import = True,
     utf8_thunk = True,
 
-    mcfgthread = '2.2-ga.2',
+    mcfgthread = '2.3-ga.1',
     mingw = '13.0.0',
 
-    binutils = '2.45.1',
-    expat = '2.7.3',
+    binutils = '2.46.0',
+    expat = '2.7.4',
     gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.18',
@@ -76,8 +76,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.2',
-    z = '1.3.1',
+    python = '3.14.3',
+    z = '1.3.2',
   ),
   '15': BranchVersions(
     gcc = '15.2.0',
@@ -92,7 +92,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     # freeze: 2025-12-21
     binutils = '2.45.1',
-    expat = '2.7.3',
+    expat = '2.7.4',
     gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.18',
@@ -101,8 +101,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.2',
-    z = '1.3.1',
+    python = '3.14.3',
+    z = '1.3.2',
   ),
   '14': BranchVersions(
     gcc = '14.3.0',
@@ -126,8 +126,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.3.0',
-    python = '3.13.11',
-    z = '1.3.1',
+    python = '3.13.12',
+    z = '1.3.2',
   ),
   '13': BranchVersions(
     gcc = '13.4.0',
@@ -153,7 +153,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     pkgconf = '2.1.1',
     python = '3.12.12',
-    z = '1.3.1',
+    z = '1.3.2',
   ),
 }
 

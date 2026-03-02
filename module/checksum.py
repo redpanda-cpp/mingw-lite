@@ -4,16 +4,17 @@ CHECKSUMS: Dict[str, str] = {
   'PDCurses-3.9.tar.gz': '590dbe0f5835f66992df096d3602d0271103f90cf8557a5d124f693c2b40d7ec',
 
   'Python-3.12.12.tar.xz': 'fb85a13414b028c49ba18bbd523c2d055a30b56b18b92ce454ea2c51edc656c4',
-  'Python-3.13.11.tar.xz': '16ede7bb7cdbfa895d11b0642fa0e523f291e6487194d53cf6d3b338c3a17ea2',
-  'Python-3.14.2.tar.xz': 'ce543ab854bc256b61b71e9b27f831ffd1bfd60a479d639f8be7f9757cf573e9',
+  'Python-3.13.12.tar.xz': '2a84cd31dd8d8ea8aaff75de66fc1b4b0127dd5799aa50a64ae9a313885b4593',
+  'Python-3.14.3.tar.xz': 'a97d5549e9ad81fe17159ed02c68774ad5d266c72f8d9a0b5a9c371fe85d902b',
 
   'binutils-2.41.tar.xz': 'ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450',
   'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',
   'binutils-2.45.1.tar.zst': '5249c7eb75aed113091aae5418903109e4651d81cb974d6aec274607dfe988bc',
+  'binutils-2.46.0.tar.zst': '8ba6a3c4d29eae4dc1bdffb29d1e99b2a658c3f4c6a23ea1c507e9fa47db2898',
 
   'expat-2.5.0.tar.xz': 'ef2420f0232c087801abf705e89ae65f6257df6b7931d37846a193ef2e8cdcbe',
   'expat-2.6.4.tar.xz': 'a695629dae047055b37d50a0ff4776d1d45d0a4c842cf4ccee158441f55ff7ee',
-  'expat-2.7.3.tar.xz': '71df8f40706a7bb0a80a5367079ea75d91da4f8c65c58ec59bcdfbf7decdab9f',
+  'expat-2.7.4.tar.xz': '9e9cabb457c1e09de91db2706d8365645792638eb3be1f94dbb2149301086ac0',
 
   'gcc-13.4.0.tar.xz': '9c4ce6dbb040568fdc545588ac03c5cbc95a8dbf0c7aa490170843afb59ca8f5',
   'gcc-14.3.0.tar.xz': 'e0dc77297625631ac8e50fa92fffefe899a4eb702592da5c32ef04e2293aca3a',
@@ -33,7 +34,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'mcfgthread-1.8-ga.4.tar.gz': 'd2318ef761927860b7a8963308145065047d8ad2102313b26e6eb2d88d9ef1e3',
   'mcfgthread-2.1-ga.1.tar.gz': '73d4ea39e8eee30738ed3f4a35f6cc4e5c6cba62570908ee37d1fc0bf5a7d722',
-  'mcfgthread-2.2-ga.2.tar.gz': 'f1246a4b6a68413dda0977da82ee408f2c07a81a0bc368408791e6c3be25300b',
+  'mcfgthread-2.3-ga.1.tar.gz': '78b91557e87c70f0915ef147ec01c2e64fbe887efddfd02f5d0196cd1c9e47e2',
 
   'mingw-w64-v11.0.1.tar.bz2': '3f66bce069ee8bed7439a1a13da7cb91a5e67ea6170f21317ac7f5794625ee10',
   'mingw-w64-v12.0.0.tar.bz2': 'cc41898aac4b6e8dd5cffd7331b9d9515b912df4420a3a612b5ea2955bbeed2f',
@@ -49,5 +50,5 @@ CHECKSUMS: Dict[str, str] = {
 
   'xmake-3.0.7.tar.gz': 'c9052e4550b8925268540603363d68fa90e4c1b407d0e6e00b735055afbea27f',
 
-  'zlib-1.3.1.tar.gz': '9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23',
+  'zlib-1.3.2.tar.gz': 'bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16',
 }

@@ -36,8 +36,14 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.binutils, paths.src_arx.binutils):
     v = Version(ver.binutils)
 
+    # Fix development flag
+    if v == Version('2.46.0'):
+      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-development-flag.patch')
+
     # Fix path corruption
-    if v >= Version('2.43'):
+    if v >= Version('2.46'):
+      patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.46.patch')
+    elif v >= Version('2.43'):
       patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.43.patch')
     else:
       patch(paths.src_dir.binutils, paths.patch_dir / 'binutils' / 'fix-path-corruption_2.41.patch')

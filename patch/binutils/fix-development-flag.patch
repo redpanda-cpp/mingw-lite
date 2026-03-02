@@ -1,0 +1,13 @@
+diff --git a/bfd/development.sh b/bfd/development.sh
+index 4f3952062f8..95859b161df 100644
+--- a/bfd/development.sh
++++ b/bfd/development.sh
+@@ -16,7 +16,7 @@
+ # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ # Controls whether to enable development-mode features by default.
+-development=true
++development=false
+ 
+ # Indicate whether this is a release branch.
+ experimental=false
