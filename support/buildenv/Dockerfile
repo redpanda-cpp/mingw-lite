@@ -1,4 +1,4 @@
-FROM docker.io/amd64/ubuntu:24.04
+FROM docker.io/library/ubuntu:24.04
 
 RUN apt-get update && \
     env DEBIAN_FRONTEND=noninteractive \

@@ -3,6 +3,12 @@ name: Build single
 on:
   workflow_call:
     inputs:
+      build_arch:
+        required: true
+        type: string
+      runner:
+        required: true
+        type: string
       profile:
         required: true
         type: string
@@ -12,11 +18,15 @@ on:
       enable_shared:
         required: true
         type: boolean
+      upload_prefix:
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner }}
 
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +39,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: buildenv
+          name: buildenv-${{ inputs.build_arch }}
           path: assets
 
       - name: Build
@@ -40,7 +50,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
+          name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
   test_on_linux:
@@ -66,7 +76,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
+          name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
       - name: Test
@@ -75,8 +85,15 @@ jobs:
 
   test_on_windows:
     name: Test on Windows
-    runs-on: windows-2022
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - windows-2025
+          - windows-2022
+          - windows-11-arm
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Set git to use LF
@@ -87,7 +104,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: mingw${{ inputs.profile }}-${{ inputs.branch }}
+          name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
       - uses: ./.github/setup-bsdtar

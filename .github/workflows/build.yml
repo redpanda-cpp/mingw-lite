@@ -41,8 +41,8 @@ jobs:
             {'profile': '32_686-msvcrt_winnt40', 'branch': '13'},
           ]
 
-          wsl_branch = ['15']
-          wsl_profile = ['64-mcf', '64-ucrt']
+          alt_branch = ['15']
+          alt_profile = ['64-mcf', '64-ucrt']
 
           sat_group = [
             {
@@ -122,8 +122,8 @@ jobs:
           print(f'profile={json.dumps(profile)}')
           print(f'exclude_profile_branch={json.dumps(exclude_profile_branch)}')
           print(f'shared_profile={json.dumps(common_profile)}')
-          print(f'wsl_branch={json.dumps(wsl_branch)}')
-          print(f'wsl_profile={json.dumps(wsl_profile)}')
+          print(f'alt_branch={json.dumps(alt_branch)}')
+          print(f'alt_profile={json.dumps(alt_profile)}')
           print(f'release={json.dumps(release)}')
           print(f'prerelease={json.dumps(prerelease)}')
           print(f'sat_group={json.dumps(sat_group)}')
@@ -135,8 +135,8 @@ jobs:
       profile: ${{ steps.param.outputs.profile }}
       exclude_profile_branch: ${{ steps.param.outputs.exclude_profile_branch }}
       shared_profile: ${{ steps.param.outputs.shared_profile }}
-      wsl_branch: ${{ steps.param.outputs.wsl_branch }}
-      wsl_profile: ${{ steps.param.outputs.wsl_profile }}
+      alt_branch: ${{ steps.param.outputs.alt_branch }}
+      alt_profile: ${{ steps.param.outputs.alt_profile }}
       release: ${{ steps.param.outputs.release }}
       prerelease: ${{ steps.param.outputs.prerelease }}
       sat_group: ${{ steps.param.outputs.sat_group }}
@@ -169,7 +169,16 @@ jobs:
 
   build_container:
     name: Build container
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        build_arch: [x86_64, aarch64]
+        include:
+          - build_arch: x86_64
+            runner: ubuntu-24.04
+          - build_arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
 
@@ -183,7 +192,7 @@ jobs:
       - name: Upload container
         uses: actions/upload-artifact@v4
         with:
-          name: buildenv
+          name: buildenv-${{ matrix.build_arch }}
           path: assets/buildenv.tar.zst
 
   build:
@@ -197,11 +206,31 @@ jobs:
         exclude: ${{ fromJson(needs.param.outputs.exclude_profile_branch) }}
     uses: ./.github/workflows/build_single.yml
     with:
+      build_arch: x86_64
+      runner: ubuntu-24.04
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
       enable_shared: ${{ contains(fromJson(needs.param.outputs.shared_profile), matrix.profile) }}
 
-  wsl_build_container:
+  alt_build_arm:
+    name: Alternative build (ARM)
+    needs: [param, download_source, build_container]
+    if: ${{ ! fromJson(needs.param.outputs.release) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJson(needs.param.outputs.alt_branch) }}
+        profile: ${{ fromJson(needs.param.outputs.alt_profile) }}
+    uses: ./.github/workflows/build_single.yml
+    with:
+      build_arch: aarch64
+      runner: ubuntu-24.04-arm
+      branch: ${{ matrix.branch }}
+      profile: ${{ matrix.profile }}
+      enable_shared: ${{ contains(fromJson(needs.param.outputs.shared_profile), matrix.profile) }}
+      upload_prefix: alt_build_arm-
+
+  build_container_wsl:
     name: Build container (WSL)
     needs: [param]
     if: ${{ ! fromJson(needs.param.outputs.release) }}
@@ -239,15 +268,15 @@ jobs:
           name: wsl-buildenv
           path: assets/buildenv.tar.zst
 
-  wsl_build:
-    name: Build (WSL)
-    needs: [param, download_source, wsl_build_container]
+  alt_build_wsl:
+    name: Alternative build (WSL)
+    needs: [param, download_source, build_container_wsl]
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     strategy:
       fail-fast: false
       matrix:
-        branch: ${{ fromJson(needs.param.outputs.wsl_branch) }}
-        profile: ${{ fromJson(needs.param.outputs.wsl_profile) }}
+        branch: ${{ fromJson(needs.param.outputs.alt_branch) }}
+        profile: ${{ fromJson(needs.param.outputs.alt_profile) }}
     uses: ./.github/workflows/wsl_build_single.yml
     with:
       branch: ${{ matrix.branch }}

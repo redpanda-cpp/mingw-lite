@@ -59,7 +59,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wsl${{ inputs.profile }}-${{ inputs.branch }}
+          name: alt_build_wsl-mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
       - name: Test
