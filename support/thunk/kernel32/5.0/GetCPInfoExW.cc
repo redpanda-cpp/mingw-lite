@@ -1,9 +1,7 @@
 #include "GetCPInfoExW.h"
 
 #include <thunk/_common.h>
-
-#include <nocrt/string.h>
-#include <nocrt/wchar.h>
+#include <thunk/string.h>
 
 #include <limits.h>
 
@@ -53,13 +51,13 @@ namespace mingw_thunk
       if (!GetCPInfo(CodePage, &info))
         return FALSE;
 
-      libc::memcpy(lpCPInfoEx, &info, sizeof(CPINFO));
+      c::memcpy(lpCPInfoEx, &info, sizeof(CPINFO));
 
       lpCPInfoEx->UnicodeDefaultChar = '?';
       lpCPInfoEx->CodePage = CodePage;
 
       if (CodePage == CP_UTF8) {
-        libc::wcscpy(lpCPInfoEx->CodePageName, L"UTF-8");
+        c::wcscpy(lpCPInfoEx->CodePageName, L"UTF-8");
       } else {
         wchar_t *name = lpCPInfoEx->CodePageName;
         *name++ = 'C';

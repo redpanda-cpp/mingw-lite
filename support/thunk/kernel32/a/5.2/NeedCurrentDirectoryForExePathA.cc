@@ -15,7 +15,17 @@ namespace mingw_thunk
     if (const auto pfn = try_get_NeedCurrentDirectoryForExePathA())
       return pfn(ExeName);
 
-    stl::wstring w_exe_name = internal::a2w(ExeName);
+    if (!ExeName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::w_str w_exe_name;
+    if (!w_exe_name.from_a(ExeName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return NeedCurrentDirectoryForExePathW(w_exe_name.c_str());
   }
 } // namespace mingw_thunk

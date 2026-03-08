@@ -5,8 +5,6 @@
 #include <errno.h>
 #include <stdint.h>
 
-#include <nocrt/wchar.h>
-
 namespace mingw_thunk
 {
   __DEFINE_THUNK(msvcrt,
@@ -50,7 +48,7 @@ namespace mingw_thunk
         return EINVAL;
       }
 
-      size_t len = libc::wcsnlen(strSource, count);
+      size_t len = wcsnlen(strSource, count);
 
       if (len >= numberOfElements) {
         *strDest = 0;
@@ -58,7 +56,7 @@ namespace mingw_thunk
         return ERANGE;
       }
 
-      libc::wmemcpy(strDest, strSource, len);
+      wmemcpy(strDest, strSource, len);
       strDest[len] = 0;
       return 0;
     }

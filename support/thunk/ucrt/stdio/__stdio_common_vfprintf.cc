@@ -1,6 +1,7 @@
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 
+#include <errno.h>
 #include <stdio.h>
 
 #include "@console_buffer.h"
@@ -19,7 +20,7 @@ namespace mingw_thunk
                  va_list arglist)
   {
     int fd = _fileno(stream);
-    if (!internal::is_console(fd))
+    if (!i::is_console(fd))
       return __ms___stdio_common_vfprintf(
           options, stream, format, locale, arglist);
 
@@ -29,14 +30,19 @@ namespace mingw_thunk
     if (bytes <= 0)
       return bytes;
 
-    stl::string buf(bytes, 0);
+    auto &buffer = g::stdio_buffer[fd];
+    size_t old_size = buffer.size();
+
+    if (!buffer.resize(old_size + bytes)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
     __stdio_common_vsprintf(
-        options, buf.data(), buf.size(), format, locale, arglist);
+        options, buffer.data() + old_size, bytes, format, locale, arglist);
 
-    auto &buffer = internal::stdio_buffer[fd];
-    buffer.append(buf.data(), buf.size());
+    buffer.flush_if_reaching_threshold(fd);
 
-    if (internal::is_buffered(stream)) {
+    if (i::is_buffered(stream)) {
       buffer.flush_complete_line(fd);
     } else {
       buffer.flush_complete_sequence(fd);

@@ -2,9 +2,8 @@
 
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
+#include <thunk/string.h>
 #include <thunk/unicode.h>
-
-#include <nocrt/string.h>
 
 #include <windows.h>
 
@@ -56,17 +55,17 @@ namespace mingw_thunk
       }
 
       if (cbMultiByte == -1)
-        cbMultiByte = libc::strlen(lpMultiByteStr) + 1;
+        cbMultiByte = c::strlen(lpMultiByteStr) + 1;
 
       int i_idx = 0;
       int o_idx = 0;
       while (i_idx < cbMultiByte) {
-        int n_bytes = internal::u8_dec_len(lpMultiByteStr[i_idx]);
+        int n_bytes = i::u8_dec_len(lpMultiByteStr[i_idx]);
         switch (n_bytes) {
         case 0: {
           INVALID_RETURN();
           i_idx += 1;
-          WRITE(internal::u16_rep);
+          WRITE(g::u16_rep);
           break;
         }
         case 1: {
@@ -76,60 +75,60 @@ namespace mingw_thunk
         }
         case 2:
           if (i_idx + 2 > cbMultiByte ||
-              !internal::u8_is_trail(lpMultiByteStr[i_idx + 1])) {
+              !i::u8_is_trail(lpMultiByteStr[i_idx + 1])) {
             INVALID_RETURN();
             i_idx += 1;
-            WRITE(internal::u16_rep);
+            WRITE(g::u16_rep);
             break;
           }
           {
             uint8_t b0 = READ();
             uint8_t b1 = READ();
-            WRITE(internal::u8_dec_2({b0, b1}));
+            WRITE(i::u8_dec_2({b0, b1}));
             break;
           }
         case 3:
           if (i_idx + 2 > cbMultiByte ||
-              !internal::u8_is_trail(lpMultiByteStr[i_idx + 1])) {
+              !i::u8_is_trail(lpMultiByteStr[i_idx + 1])) {
             INVALID_RETURN();
             i_idx += 1;
-            WRITE(internal::u16_rep);
+            WRITE(g::u16_rep);
             break;
           }
           if (i_idx + 3 > cbMultiByte ||
-              !internal::u8_is_trail(lpMultiByteStr[i_idx + 2])) {
+              !i::u8_is_trail(lpMultiByteStr[i_idx + 2])) {
             INVALID_RETURN();
             i_idx += 2;
-            WRITE(internal::u16_rep);
+            WRITE(g::u16_rep);
             break;
           }
           {
             uint8_t b0 = READ();
             uint8_t b1 = READ();
             uint8_t b2 = READ();
-            WRITE(internal::u8_dec_3({b0, b1, b2}));
+            WRITE(i::u8_dec_3({b0, b1, b2}));
             break;
           }
         case 4:
           if (i_idx + 2 > cbMultiByte ||
-              !internal::u8_is_trail(lpMultiByteStr[i_idx + 1])) {
+              !i::u8_is_trail(lpMultiByteStr[i_idx + 1])) {
             INVALID_RETURN();
             i_idx += 1;
-            WRITE(internal::u16_rep);
+            WRITE(g::u16_rep);
             break;
           }
           if (i_idx + 3 > cbMultiByte ||
-              !internal::u8_is_trail(lpMultiByteStr[i_idx + 2])) {
+              !i::u8_is_trail(lpMultiByteStr[i_idx + 2])) {
             INVALID_RETURN();
             i_idx += 2;
-            WRITE(internal::u16_rep);
+            WRITE(g::u16_rep);
             break;
           }
           if (i_idx + 4 > cbMultiByte ||
-              !internal::u8_is_trail(lpMultiByteStr[i_idx + 3])) {
+              !i::u8_is_trail(lpMultiByteStr[i_idx + 3])) {
             INVALID_RETURN();
             i_idx += 3;
-            WRITE(internal::u16_rep);
+            WRITE(g::u16_rep);
             break;
           }
           {
@@ -137,14 +136,14 @@ namespace mingw_thunk
             uint8_t b1 = READ();
             uint8_t b2 = READ();
             uint8_t b3 = READ();
-            char32_t ch = internal::u8_dec_4({b0, b1, b2, b3});
-            switch (internal::u16_enc_len(ch)) {
+            char32_t ch = i::u8_dec_4({b0, b1, b2, b3});
+            switch (i::u16_enc_len(ch)) {
             case 1: {
               WRITE(ch);
               break;
             }
             case 2: {
-              auto s = internal::u16_enc_2(ch);
+              auto s = i::u16_enc_2(ch);
               WRITE(s.high);
               WRITE(s.low);
               break;

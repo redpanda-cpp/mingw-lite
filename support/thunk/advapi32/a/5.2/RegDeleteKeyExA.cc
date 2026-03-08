@@ -18,7 +18,15 @@ namespace mingw_thunk
     if (auto const pfn = try_get_RegDeleteKeyExA())
       return pfn(hKey, lpSubKey, samDesired, Reserved);
 
-    stl::wstring w_sub_key = internal::a2w(lpSubKey);
+    // If the function fails, the return value is a nonzero error code defined
+    // in Winerror.h.
+    if (!lpSubKey)
+      return ERROR_INVALID_PARAMETER;
+
+    d::w_str w_sub_key;
+    if (!w_sub_key.from_a(lpSubKey))
+      return ERROR_OUTOFMEMORY;
+
     return RegDeleteKeyExW(hKey, w_sub_key.c_str(), samDesired, Reserved);
   }
 } // namespace mingw_thunk

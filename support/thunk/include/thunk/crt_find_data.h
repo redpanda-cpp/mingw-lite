@@ -1,3 +1,5 @@
+#include "_common.h"
+
 #include "string.h"
 
 #include <io.h>
@@ -48,15 +50,8 @@ namespace mingw_thunk
       u_file_info.time_access = w_file_info.time_access;
       u_file_info.time_write = w_file_info.time_write;
       u_file_info.size = w_file_info.size;
-
-      stl::string u_name = w2u(w_file_info.name);
-      if (u_name.size() >= MAX_PATH) {
-        memcpy(u_file_info.name, u_name.c_str(), MAX_PATH - 1);
-        u_file_info.name[MAX_PATH - 1] = 0;
-      } else {
-        memcpy(u_file_info.name, u_name.c_str(), u_name.size());
-        u_file_info.name[u_name.size()] = 0;
-      }
+      d::u_str::best_effort_from_w(
+          u_file_info.name, MAX_PATH, w_file_info.name);
 
       return u_file_info;
     }

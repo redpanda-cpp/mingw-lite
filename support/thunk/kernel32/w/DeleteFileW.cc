@@ -15,7 +15,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_DeleteFileW(lpFileName);
 
-    auto aname = internal::w2a(lpFileName);
+    if (!lpFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::a_str aname;
+    if (!aname.from_w(lpFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return __ms_DeleteFileA(aname.c_str());
   }
 } // namespace mingw_thunk

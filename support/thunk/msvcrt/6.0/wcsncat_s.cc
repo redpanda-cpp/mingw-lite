@@ -5,8 +5,6 @@
 #include <errno.h>
 #include <stdint.h>
 
-#include <nocrt/wchar.h>
-
 namespace mingw_thunk
 {
   __DEFINE_THUNK(msvcrt,
@@ -50,7 +48,7 @@ namespace mingw_thunk
         return EINVAL;
       }
 
-      size_t dest_len = libc::wcsnlen(strDest, numberOfElements);
+      size_t dest_len = wcsnlen(strDest, numberOfElements);
       if (dest_len >= numberOfElements) {
         *strDest = 0;
         _set_errno(EINVAL);

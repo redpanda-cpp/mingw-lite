@@ -1,6 +1,5 @@
 #include <thunk/_common.h>
-
-#include <nocrt/ctype.h>
+#include <thunk/ctype.h>
 
 #include <windows.h>
 
@@ -26,7 +25,7 @@ namespace mingw_thunk
     // If you specify a relative directory or file name without a volume
     // qualifier, GetVolumePathName returns the drive letter of the boot volume.
     wchar_t system_directory[MAX_PATH];
-    if (!libc::isalpha(lpszFileName[0]) || lpszFileName[1] != L':' ||
+    if (!c::isalpha(lpszFileName[0]) || lpszFileName[1] != L':' ||
         lpszFileName[2] != L'\\') {
       GetSystemDirectoryW(system_directory, MAX_PATH);
       lpszFileName = system_directory;

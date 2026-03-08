@@ -18,19 +18,11 @@ namespace mingw_thunk::internal
     res.nFileSizeLow = narrow.nFileSizeLow;
     res.dwReserved0 = narrow.dwReserved0;
     res.dwReserved1 = narrow.dwReserved1;
-
-    stl::wstring w_name = a2w(narrow.cFileName);
-    if (w_name.size() >= MAX_PATH)
-      w_name.resize(MAX_PATH - 1);
-    wmemcpy(res.cFileName, w_name.data(), w_name.size());
-    res.cFileName[w_name.size()] = '\0';
+    d::w_str::best_effort_from_a(res.cFileName, MAX_PATH, narrow.cFileName);
 
     static_assert(sizeof(narrow.cAlternateFileName) == 14);
-    stl::wstring w_alt_name = a2w(narrow.cAlternateFileName);
-    if (w_alt_name.size() >= 14)
-      w_alt_name.resize(14 - 1);
-    wmemcpy(res.cAlternateFileName, w_alt_name.data(), w_alt_name.size());
-    res.cAlternateFileName[w_alt_name.size()] = '\0';
+    d::w_str::best_effort_from_a(
+        res.cAlternateFileName, 14, narrow.cAlternateFileName);
 
     return res;
   }
@@ -47,19 +39,11 @@ namespace mingw_thunk::internal
     res.nFileSizeLow = wide.nFileSizeLow;
     res.dwReserved0 = wide.dwReserved0;
     res.dwReserved1 = wide.dwReserved1;
-
-    stl::string a_name = w2u(wide.cFileName);
-    if (a_name.size() >= MAX_PATH)
-      a_name.resize(MAX_PATH - 1);
-    memcpy(res.cFileName, a_name.data(), a_name.size());
-    res.cFileName[a_name.size()] = '\0';
+    d::u_str::best_effort_from_w(res.cFileName, MAX_PATH, wide.cFileName);
 
     static_assert(sizeof(res.cAlternateFileName) == 14);
-    stl::string a_alt_name = w2u(wide.cAlternateFileName);
-    if (a_alt_name.size() >= 14)
-      a_alt_name.resize(14 - 1);
-    memcpy(res.cAlternateFileName, a_alt_name.data(), a_alt_name.size());
-    res.cAlternateFileName[a_alt_name.size()] = '\0';
+    d::u_str::best_effort_from_w(
+        res.cAlternateFileName, 14, wide.cAlternateFileName);
 
     return res;
   }

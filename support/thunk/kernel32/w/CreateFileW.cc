@@ -53,11 +53,21 @@ namespace mingw_thunk
                       _In_ DWORD dwFlagsAndAttributes,
                       _In_opt_ HANDLE hTemplateFile)
     {
+      if (!lpFileName) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return INVALID_HANDLE_VALUE;
+      }
+
       // Windows 9x: flags not supported
       DWORD access = dwDesiredAccess & ~FILE_READ_ATTRIBUTES;
       DWORD mode = dwShareMode & ~FILE_SHARE_DELETE;
 
-      auto a_name = internal::w2a(lpFileName);
+      d::a_str a_name;
+      if (!a_name.from_w(lpFileName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return INVALID_HANDLE_VALUE;
+      }
+
       return __ms_CreateFileA(a_name.c_str(),
                               access,
                               mode,

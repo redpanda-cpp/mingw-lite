@@ -14,7 +14,17 @@ namespace mingw_thunk
                  _In_ LPCSTR lpFileName,
                  _Out_ LPWIN32_FIND_DATAA lpFindFileData)
   {
-    auto w_name = internal::u2w(lpFileName);
+    if (!lpFileName || !lpFindFileData) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return INVALID_HANDLE_VALUE;
+    }
+
+    d::w_str w_name;
+    if (!w_name.from_u(lpFileName)) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return INVALID_HANDLE_VALUE;
+    }
+
     WIN32_FIND_DATAW w_find_data;
     HANDLE h = FindFirstFileW(w_name.c_str(), &w_find_data);
     if (h == INVALID_HANDLE_VALUE)

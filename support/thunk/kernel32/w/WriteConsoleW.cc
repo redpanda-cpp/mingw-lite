@@ -42,18 +42,27 @@ namespace mingw_thunk
                              _Out_opt_ LPDWORD lpNumberOfCharsWritten,
                              _Reserved_ LPVOID lpReserved)
     {
-      auto abuf =
-          internal::w2a((const wchar_t *)lpBuffer, nNumberOfCharsToWrite);
-      DWORD awritten;
+      if (!lpBuffer) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+      }
+
+      d::a_str abuf;
+      if (!abuf.from_w((const wchar_t *)lpBuffer, nNumberOfCharsToWrite)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
+      DWORD a_written;
       int ok = __ms_WriteConsoleA(
-          hConsoleOutput, abuf.c_str(), abuf.length(), &awritten, lpReserved);
+          hConsoleOutput, abuf.c_str(), abuf.size(), &a_written, lpReserved);
       if (lpNumberOfCharsWritten) {
-        if (awritten == abuf.length())
+        if (a_written == abuf.size())
           // fast path
           *lpNumberOfCharsWritten = nNumberOfCharsToWrite;
         else {
-          auto wwritten = internal::a2w(abuf.c_str(), awritten);
-          *lpNumberOfCharsWritten = wwritten.length();
+          int w_written = d::w_str::size_from_a(abuf.c_str(), a_written);
+          *lpNumberOfCharsWritten = w_written;
         }
       }
       return ok;

@@ -128,6 +128,7 @@ function enable_thunk_options()
     'THUNK_LEVEL=' .. ntddi_version(),
     'WIN32_LEAN_AND_MEAN',
     '_WIN32_WINNT=0x0A00',
+    '__CRT__NO_INLINE',
     '__USE_MINGW_ANSI_STDIO=0')
   add_files('placeholder/placeholder.c')
   add_includedirs('include')

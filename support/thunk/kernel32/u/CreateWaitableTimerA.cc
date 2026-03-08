@@ -14,9 +14,12 @@ namespace mingw_thunk
                  _In_ BOOL bManualReset,
                  _In_opt_ LPCSTR lpTimerName)
   {
-    stl::wstring w_timer_name;
-    if (lpTimerName)
-      w_timer_name = internal::u2w(lpTimerName);
+    d::w_str w_timer_name;
+    if (lpTimerName && !w_timer_name.from_u(lpTimerName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return nullptr;
+    }
+
     return CreateWaitableTimerW(lpTimerAttributes,
                                 bManualReset,
                                 lpTimerName ? w_timer_name.c_str() : nullptr);

@@ -15,13 +15,29 @@ namespace mingw_thunk
                  const char *relPath,
                  size_t maxLength)
   {
-    stl::wstring w_relPath = internal::u2w(relPath);
-    wchar_t *w_res = _wfullpath(nullptr, w_relPath.c_str(), 0);
+    if (!relPath) {
+      _set_errno(EINVAL);
+      return nullptr;
+    }
+
+    d::w_str w_rel_path;
+    if (!w_rel_path.from_u(relPath)) {
+      _set_errno(ENOMEM);
+      return nullptr;
+    }
+
+    wchar_t *w_res = _wfullpath(nullptr, w_rel_path.c_str(), 0);
 
     if (w_res == nullptr)
       return nullptr;
 
-    stl::string res = internal::w2u(w_res);
+    d::u_str res;
+    if (!res.from_w(w_res)) {
+      free(w_res);
+      _set_errno(ENOMEM);
+      return nullptr;
+    }
+
     free(w_res);
 
     if (absPath && res.size() >= maxLength) {

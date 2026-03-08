@@ -30,7 +30,7 @@ namespace mingw_thunk
         (wchar_t *)HeapAlloc(GetProcessHeap(), 0, w_size * sizeof(wchar_t));
     if (!w_env) {
       __ms_FreeEnvironmentStringsA(a_env);
-      SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+      SetLastError(ERROR_OUTOFMEMORY);
       return nullptr;
     }
 

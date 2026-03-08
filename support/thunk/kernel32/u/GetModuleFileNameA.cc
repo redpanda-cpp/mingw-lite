@@ -14,7 +14,7 @@ namespace mingw_thunk
                  _Out_ LPSTR lpFilename,
                  _In_ DWORD nSize)
   {
-    stl::wstring w_buffer(MAX_PATH, 0);
+    d::w_str w_buffer{d::max_path_tag{}};
 
     DWORD ret = GetModuleFileNameW(hModule, w_buffer.data(), MAX_PATH);
     if (ret == 0)
@@ -27,23 +27,32 @@ namespace mingw_thunk
     //   the function returns nSize, and the function sets the last error to
     //   ERROR_INSUFFICIENT_BUFFER.
     if (ret >= nSize) {
-      constexpr int max_unc_path = 32767 + 1;
-      w_buffer.resize(max_unc_path);
-      ret = GetModuleFileNameW(hModule, w_buffer.data(), max_unc_path);
+      constexpr int max_unc_path = 32767;
+      if (!w_buffer.resize(max_unc_path)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return 0;
+      }
+      ret = GetModuleFileNameW(hModule, w_buffer.data(), max_unc_path + 1);
+      // GetModuleFileNameW can be thunk'ed and return 0 for ERROR_OUTOFMEMORY
       if (ret == 0)
         return 0;
     }
 
-    stl::string a_name = internal::w2u(w_buffer.data(), ret);
-    if (a_name.size() >= nSize) {
-      libc::memcpy(lpFilename, a_name.data(), nSize - 1);
+    d::u_str u_name;
+    if (!u_name.from_w(w_buffer.data(), ret)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return 0;
+    }
+
+    if (u_name.size() >= nSize) {
+      c::memcpy(lpFilename, u_name.data(), nSize - 1);
       lpFilename[nSize - 1] = 0;
       SetLastError(ERROR_INSUFFICIENT_BUFFER);
       return nSize;
     } else {
-      libc::memcpy(lpFilename, a_name.data(), a_name.size());
-      lpFilename[a_name.size()] = 0;
-      return a_name.size();
+      c::memcpy(lpFilename, u_name.data(), u_name.size());
+      lpFilename[u_name.size()] = 0;
+      return u_name.size();
     }
   }
 } // namespace mingw_thunk

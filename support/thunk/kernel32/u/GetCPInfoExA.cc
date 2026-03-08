@@ -1,8 +1,6 @@
 #include <thunk/_common.h>
 #include <thunk/string.h>
 
-#include <nostl/iterator.h>
-
 #include <windows.h>
 
 namespace mingw_thunk
@@ -16,24 +14,20 @@ namespace mingw_thunk
                  _In_ DWORD dwFlags,
                  _Out_ LPCPINFOEXA lpCPInfoEx)
   {
-    if (const auto pfn = try_get_GetCPInfoExA())
-      return pfn(CodePage, dwFlags, lpCPInfoEx);
+    if (!lpCPInfoEx) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
 
     CPINFOEXW w_info;
     if (!GetCPInfoExW(CodePage, dwFlags, &w_info))
       return FALSE;
 
-    libc::memcpy(lpCPInfoEx, &w_info, sizeof(CPINFO));
+    c::memcpy(lpCPInfoEx, &w_info, sizeof(CPINFO));
     lpCPInfoEx->UnicodeDefaultChar = w_info.UnicodeDefaultChar;
     lpCPInfoEx->CodePage = w_info.CodePage;
-    WideCharToMultiByte(CP_UTF8,
-                        0,
-                        w_info.CodePageName,
-                        -1,
-                        lpCPInfoEx->CodePageName,
-                        stl::size(lpCPInfoEx->CodePageName),
-                        NULL,
-                        NULL);
+    d::u_str::best_effort_from_w(
+        lpCPInfoEx->CodePageName, MAX_PATH, w_info.CodePageName);
 
     return TRUE;
   }

@@ -1,4 +1,3 @@
-#define __CRT__NO_INLINE
 #define _USE_32BIT_TIME_T
 
 #include <thunk/_common.h>
@@ -6,6 +5,7 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <sys/utime.h>
 
 namespace mingw_thunk
@@ -23,7 +23,15 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms__wutime32(filename, (__utimbuf32 *)times);
 
-    stl::string a_path = internal::w2a(filename);
+    if (!filename)
+      return -1;
+
+    d::a_str a_path;
+    if (!a_path.from_w(filename)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     return __ms__utime32(a_path.c_str(), (__utimbuf32 *)times);
   }
 } // namespace mingw_thunk

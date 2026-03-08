@@ -19,7 +19,12 @@ namespace mingw_thunk
     if (w_res == nullptr)
       return nullptr;
 
-    stl::string res = internal::w2u(w_res);
+    d::u_str res;
+    if (!res.from_w(w_res)) {
+      free(w_res);
+      _set_errno(ENOMEM);
+      return nullptr;
+    }
     free(w_res);
 
     if (buf && res.size() >= size) {

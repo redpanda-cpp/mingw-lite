@@ -44,8 +44,23 @@ namespace mingw_thunk
 
 #endif
 
-    stl::wstring w_exist = internal::a2w(lpExistingFileName);
-    stl::wstring w_new = internal::a2w(lpNewFileName);
+    if (!lpExistingFileName || !lpNewFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::w_str w_exist;
+    if (!w_exist.from_a(lpExistingFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
+    d::w_str w_new;
+    if (!w_new.from_a(lpNewFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return CopyFileExW(w_exist.c_str(),
                        w_new.c_str(),
                        lpProgressRoutine,

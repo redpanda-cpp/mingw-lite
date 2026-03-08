@@ -1,19 +1,17 @@
 #pragma once
 
+#include <thunk/buffer.h>
 #include <thunk/string.h>
 #include <thunk/unicode.h>
 
 #include <io.h>
 #include <stdio.h>
 
-#include <nostl/map.h>
-#include <nostl/string.h>
-
 #include <windows.h>
 
 namespace mingw_thunk
 {
-  namespace internal
+  namespace i
   {
     inline bool is_console(HANDLE fh) noexcept
     {
@@ -43,12 +41,18 @@ namespace mingw_thunk
     {
       return is_buffered(_fileno(fp));
     }
+  } // namespace i
 
+  namespace d
+  {
     struct io_buffer
     {
     private:
       bool lock;
-      stl::string buffer;
+      d::buffer<1280, char> buffer;
+
+    private:
+      static constexpr size_t buffer_flush_threshold = 1024;
 
     public:
       io_buffer() : lock(false)
@@ -56,6 +60,37 @@ namespace mingw_thunk
       }
 
     public:
+      size_t size() const noexcept
+      {
+        return buffer.size();
+      }
+
+      char *data() noexcept
+      {
+        return buffer.data();
+      }
+
+      const char *data() const noexcept
+      {
+        return buffer.data();
+      }
+
+      size_t rfind(char ch) const noexcept
+      {
+        for (size_t i = buffer.size(); i > 0; --i) {
+          if (buffer[i - 1] == ch)
+            return i - 1;
+        }
+        return size_t(-1);
+      }
+
+      bool resize(size_t new_size) noexcept
+      {
+        acquire();
+        return buffer.resize(new_size);
+        release();
+      }
+
       void append(const char *data, size_t size)
       {
         acquire();
@@ -75,11 +110,17 @@ namespace mingw_thunk
         flush_range(fd, buffer.size());
       }
 
+      void flush_if_reaching_threshold(int fd)
+      {
+        if (buffer.size() >= buffer_flush_threshold)
+          flush_complete_sequence(fd);
+      }
+
       void flush_complete_line(int fd)
       {
         acquire();
-        size_t pos = buffer.rfind('\n');
-        if (pos != stl::string::npos)
+        size_t pos = rfind('\n');
+        if (pos != size_t(-1))
           flush_range_no_lock(fd, pos + 1);
         release();
       }
@@ -89,7 +130,7 @@ namespace mingw_thunk
         acquire();
         size_t next_start = 0;
         while (next_start < buffer.size()) {
-          int seq_len = u8_dec_len(buffer[next_start]);
+          int seq_len = i::u8_dec_len(buffer[next_start]);
           if (seq_len <= 1) {
             // invalid or ASCII
             next_start += 1;
@@ -97,7 +138,7 @@ namespace mingw_thunk
             if (next_start + seq_len <= buffer.size()) {
               bool all_trails = true;
               for (int i = 1; i < seq_len; ++i) {
-                if (!u8_is_trail(buffer[next_start + i])) {
+                if (!i::u8_is_trail(buffer[next_start + i])) {
                   all_trails = false;
                   break;
                 }
@@ -137,13 +178,14 @@ namespace mingw_thunk
     private:
       void flush_range_no_lock(HANDLE console, size_t end)
       {
-        stl::wstring w_buffer = u2w(buffer.data(), end);
-        DWORD w_written;
-        WriteConsoleW(
-            console, w_buffer.data(), w_buffer.size(), &w_written, nullptr);
+        d::w_str w_buffer;
+        if (w_buffer.from_u(buffer.data(), end)) {
+          DWORD w_written;
+          WriteConsoleW(
+              console, w_buffer.data(), w_buffer.size(), &w_written, nullptr);
+        }
         if (end < buffer.size()) {
-          libc::memmove(
-              buffer.data(), buffer.data() + end, buffer.size() - end);
+          memmove(buffer.data(), buffer.data() + end, buffer.size() - end);
           buffer.resize(buffer.size() - end);
         } else
           buffer.clear();
@@ -167,7 +209,10 @@ namespace mingw_thunk
         __atomic_clear(&lock, __ATOMIC_RELEASE);
       }
     };
+  } // namespace d
 
-    extern io_buffer stdio_buffer[3];
-  } // namespace internal
+  namespace g
+  {
+    extern d::io_buffer stdio_buffer[3];
+  }
 } // namespace mingw_thunk

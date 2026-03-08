@@ -3,6 +3,7 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <sys/utime.h>
 
 namespace mingw_thunk
@@ -18,7 +19,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms__wutime32(filename, times);
 
-    stl::string a_path = internal::w2a(filename);
+    if (!filename) {
+      _set_errno(EINVAL);
+      return -1;
+    }
+
+    d::a_str a_path;
+    if (!a_path.from_w(filename)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     return __ms__utime32(a_path.c_str(), times);
   }
 } // namespace mingw_thunk

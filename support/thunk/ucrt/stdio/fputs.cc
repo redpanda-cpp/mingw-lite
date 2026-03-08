@@ -16,14 +16,16 @@ namespace mingw_thunk
                  FILE *stream)
   {
     int fd = _fileno(stream);
-    if (!internal::is_console(fd))
+    if (!i::is_console(fd))
       return __ms_fputs(s, stream);
 
     size_t len = strlen(s);
-    auto &buffer = internal::stdio_buffer[fd];
+    auto &buffer = g::stdio_buffer[fd];
     buffer.append(s, len);
 
-    if (internal::is_buffered(fd)) {
+    buffer.flush_if_reaching_threshold(fd);
+
+    if (i::is_buffered(fd)) {
       buffer.flush_complete_line(fd);
     } else {
       buffer.flush_complete_sequence(fd);

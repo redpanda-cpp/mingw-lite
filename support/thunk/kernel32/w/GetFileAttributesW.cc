@@ -3,7 +3,6 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
-#include <errhandlingapi.h>
 #include <windows.h>
 
 namespace mingw_thunk
@@ -16,7 +15,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_GetFileAttributesW(lpFileName);
 
-    auto aname = internal::w2a(lpFileName);
+    if (!lpFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return INVALID_FILE_ATTRIBUTES;
+    }
+
+    d::a_str aname;
+    if (!aname.from_w(lpFileName)) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return INVALID_FILE_ATTRIBUTES;
+    }
+
     return __ms_GetFileAttributesA(aname.c_str());
   }
 } // namespace mingw_thunk

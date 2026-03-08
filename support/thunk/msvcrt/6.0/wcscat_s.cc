@@ -1,11 +1,10 @@
 #include "wcscat_s.h"
 
 #include <thunk/_common.h>
+#include <thunk/string.h>
 
 #include <errno.h>
 #include <stdint.h>
-
-#include <nocrt/wchar.h>
 
 namespace mingw_thunk
 {
@@ -26,7 +25,9 @@ namespace mingw_thunk
 
   namespace impl
   {
-    errno_t fallback_wcscat_s(wchar_t *strDestination, size_t numberOfElements, const wchar_t *strSource)
+    errno_t fallback_wcscat_s(wchar_t *strDestination,
+                              size_t numberOfElements,
+                              const wchar_t *strSource)
     {
       constexpr size_t rsize_max = SIZE_MAX >> 1;
       constexpr size_t max_len = rsize_max / sizeof(wchar_t);
@@ -42,7 +43,7 @@ namespace mingw_thunk
         return EINVAL;
       }
 
-      size_t dest_len = libc::wcsnlen(strDestination, numberOfElements);
+      size_t dest_len = c::wcsnlen(strDestination, numberOfElements);
       if (dest_len >= numberOfElements) {
         *strDestination = 0;
         _set_errno(EINVAL);

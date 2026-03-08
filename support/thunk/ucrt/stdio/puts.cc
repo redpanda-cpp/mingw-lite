@@ -13,11 +13,11 @@ namespace mingw_thunk
       api_ms_win_crt_stdio_l1_1_0, 0, int, __cdecl, puts, const char *s)
   {
     int fd = _fileno(stdout);
-    if (!internal::is_console(fd))
+    if (!i::is_console(fd))
       return __ms_puts(s);
 
     size_t len = strlen(s);
-    auto &buffer = internal::stdio_buffer[fd];
+    auto &buffer = g::stdio_buffer[fd];
     buffer.append(s, len);
     buffer.push('\n');
     buffer.flush_all(fd);

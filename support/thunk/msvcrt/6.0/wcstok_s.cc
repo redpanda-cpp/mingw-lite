@@ -19,11 +19,11 @@ namespace mingw_thunk
       return pfn(s, sep, p);
 
     if (!p || !sep) {
-      errno = EINVAL;
+      _set_errno(EINVAL);
       return NULL;
     } /* added for wcstok_s */
     if (!s && !(s = *p)) {
-      errno = EINVAL;
+      _set_errno(EINVAL);
       return NULL;
     }
     s += wcsspn(s, sep);

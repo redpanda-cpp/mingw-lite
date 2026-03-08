@@ -25,18 +25,32 @@ namespace mingw_thunk
                             lpNumberOfBytesWritten,
                             lpOverlapped);
 
-    stl::wstring w_buffer =
-        internal::u2w((const char *)lpBuffer, nNumberOfBytesToWrite);
+    if (!lpBuffer) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::w_str w_buffer;
+    if (!w_buffer.from_a(static_cast<const char *>(lpBuffer),
+                         nNumberOfBytesToWrite)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     DWORD w_written = 0;
     int ok = WriteConsoleW(
-        hFile, w_buffer.c_str(), w_buffer.size(), &w_written, NULL);
+        hFile, w_buffer.c_str(), w_buffer.size(), &w_written, nullptr);
     if (lpNumberOfBytesWritten) {
       if (w_written == w_buffer.size())
         // fast path
         *lpNumberOfBytesWritten = nNumberOfBytesToWrite;
       else {
-        stl::string a_written = internal::w2u(w_buffer.c_str(), w_written);
-        *lpNumberOfBytesWritten = a_written.size();
+        d::u_str u_written;
+        if (!u_written.from_w(w_buffer.c_str())) {
+          SetLastError(ERROR_OUTOFMEMORY);
+          return FALSE;
+        }
+        *lpNumberOfBytesWritten = u_written.size();
       }
     }
     return ok;

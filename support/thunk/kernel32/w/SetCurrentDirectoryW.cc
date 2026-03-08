@@ -15,7 +15,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_SetCurrentDirectoryW(lpPathName);
 
-    stl::string a_path_name = internal::w2a(lpPathName);
+    if (!lpPathName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::a_str a_path_name;
+    if (!a_path_name.from_w(lpPathName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return __ms_SetCurrentDirectoryA(a_path_name.c_str());
   }
 } // namespace mingw_thunk

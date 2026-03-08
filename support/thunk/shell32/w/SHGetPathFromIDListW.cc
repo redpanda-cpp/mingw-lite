@@ -19,17 +19,27 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_SHGetPathFromIDListW(pidl, pszPath);
 
+    if (!pszPath) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
     char a_path[MAX_PATH];
     if (!__ms_SHGetPathFromIDListA(pidl, a_path))
       return FALSE;
 
-    auto w_res = internal::a2w(a_path);
+    d::w_str w_res;
+    if (!w_res.from_a(a_path)){
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     if (w_res.size() >= MAX_PATH) {
       SetLastError(ERROR_FILENAME_EXCED_RANGE);
       return FALSE;
     }
 
-    libc::wmemcpy(pszPath, w_res.data(), w_res.size());
+    c::wmemcpy(pszPath, w_res.c_str(), w_res.size());
     pszPath[w_res.size()] = 0;
     return TRUE;
   }

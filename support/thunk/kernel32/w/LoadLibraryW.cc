@@ -13,7 +13,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_LoadLibraryW(lpLibFileName);
 
-    stl::string a_name = internal::w2a(lpLibFileName);
+    if (!lpLibFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return nullptr;
+    }
+
+    d::a_str a_name;
+    if (!a_name.from_w(lpLibFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return nullptr;
+    }
+
     return __ms_LoadLibraryA(a_name.c_str());
   }
 } // namespace mingw_thunk

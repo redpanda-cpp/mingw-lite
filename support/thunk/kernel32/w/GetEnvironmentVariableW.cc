@@ -33,30 +33,44 @@ namespace mingw_thunk
                                   _Out_opt_ LPWSTR lpBuffer,
                                   _In_ DWORD nSize)
     {
-      stl::string a_name;
-      if (lpName)
-        a_name = internal::w2a(lpName);
+      d::a_str a_name;
+      if (lpName && !a_name.from_w(lpName)) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return 0;
+      }
 
-      constexpr size_t max_env_size = 32767;
-      char a_buffer[max_env_size + 1] = {0};
+      d::a_str a_buffer{d::max_path_tag{}};
       DWORD ret = __ms_GetEnvironmentVariableA(
-          lpName ? a_name.c_str() : nullptr, a_buffer, max_env_size + 1);
+          lpName ? a_name.c_str() : nullptr, a_buffer.data(), MAX_PATH);
       if (ret == 0) {
         return 0;
       }
-      if (ret > max_env_size) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+
+      while (ret > a_buffer.size()) {
+        if (!a_buffer.resize(ret)) {
+          SetLastError(ERROR_OUTOFMEMORY);
+          return 0;
+        }
+        ret = __ms_GetEnvironmentVariableA(
+            lpName ? a_name.c_str() : nullptr, a_buffer.data(), ret);
+        if (ret == 0)
+          return 0;
+      }
+
+      d::w_str w_buffer;
+      if (!w_buffer.from_a(a_buffer.c_str(), ret)) {
+        SetLastError(ERROR_OUTOFMEMORY);
         return 0;
       }
 
-      stl::wstring w_buffer = internal::a2w(a_buffer, ret);
-      if (w_buffer.size() + 1 > nSize) {
-        return w_buffer.size() + 1;
+      size_t w_size = w_buffer.size();
+      if (w_size + 1 > static_cast<size_t>(nSize)) {
+        return w_size + 1;
       }
 
-      libc::wmemcpy(lpBuffer, w_buffer.c_str(), w_buffer.size());
-      lpBuffer[w_buffer.size()] = L'\0';
-      return w_buffer.size();
+      c::wmemcpy(lpBuffer, w_buffer.c_str(), w_size);
+      lpBuffer[w_size] = 0;
+      return w_size;
     }
   } // namespace impl
 } // namespace mingw_thunk

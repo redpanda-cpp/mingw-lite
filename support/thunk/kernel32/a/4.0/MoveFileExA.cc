@@ -31,10 +31,23 @@ namespace mingw_thunk
 
 #endif
 
-    stl::wstring w_exist = internal::a2w(lpExistingFileName);
-    stl::wstring w_new;
-    if (lpNewFileName)
-      w_new = internal::a2w(lpNewFileName);
+    if (!lpExistingFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::w_str w_exist;
+    if (!w_exist.from_a(lpExistingFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
+    d::w_str w_new;
+    if (lpNewFileName && !w_new.from_a(lpNewFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return MoveFileExW(
         w_exist.c_str(), lpNewFileName ? w_new.c_str() : nullptr, dwFlags);
   }

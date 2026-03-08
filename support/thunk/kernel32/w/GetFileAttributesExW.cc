@@ -40,16 +40,26 @@ namespace mingw_thunk
                                     _In_ GET_FILEEX_INFO_LEVELS fInfoLevelId,
                                     _Out_ LPVOID lpFileInformation)
     {
+      if (!lpFileName) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+      }
+
 #if THUNK_LEVEL >= NTDDI_WIN98
-      stl::string a_file_name = internal::w2a(lpFileName);
+      d::a_str a_file_name;
+      if (!a_file_name.from_w(lpFileName))
+        return FALSE;
       return __ms_GetFileAttributesExA(
           a_file_name.c_str(), fInfoLevelId, lpFileInformation);
 #else
       if (internal::os_geq(VER_PLATFORM_WIN32_WINDOWS, 4, 10)) {
-        stl::string a_file_name = internal::w2a(lpFileName);
+        d::a_str a_file_name;
+        if (!a_file_name.from_w(lpFileName))
+          return FALSE;
         return kernel32_GetFileAttributesExA()(
             a_file_name.c_str(), fInfoLevelId, lpFileInformation);
       }
+
       return win95_GetFileAttributesExW(
           lpFileName, fInfoLevelId, lpFileInformation);
 #endif
@@ -59,6 +69,11 @@ namespace mingw_thunk
                                     _In_ GET_FILEEX_INFO_LEVELS fInfoLevelId,
                                     _Out_ LPVOID lpFileInformation)
     {
+      if (!lpFileName || !lpFileInformation) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+      }
+
       if (fInfoLevelId != GetFileExInfoStandard) {
         SetLastError(ERROR_NOT_SUPPORTED);
         return FALSE;
@@ -73,7 +88,7 @@ namespace mingw_thunk
         // even if `FILE_FLAG_BACKUP_SEMANTICS` is specified.
 
         auto *info =
-            reinterpret_cast<WIN32_FILE_ATTRIBUTE_DATA *>(lpFileInformation);
+            static_cast<WIN32_FILE_ATTRIBUTE_DATA *>(lpFileInformation);
         info->dwFileAttributes = attr;
         info->ftCreationTime = {};
         info->ftLastAccessTime = {};

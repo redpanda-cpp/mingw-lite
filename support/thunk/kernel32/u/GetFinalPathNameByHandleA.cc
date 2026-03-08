@@ -15,7 +15,13 @@ namespace mingw_thunk
                  _In_ DWORD cchFilePath,
                  _In_ DWORD dwFlags)
   {
-    stl::wstring w_buffer(MAX_PATH, 0);
+    // dry run for buffer size
+    if (cchFilePath && !lpszFilePath) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return 0;
+    }
+
+    d::w_str w_buffer{d::max_path_tag{}};
 
     DWORD ret =
         GetFinalPathNameByHandleW(hFile, w_buffer.data(), MAX_PATH, dwFlags);
@@ -23,15 +29,28 @@ namespace mingw_thunk
       return 0;
 
     if (ret > MAX_PATH) {
-      w_buffer.resize(ret - 1);
+      if (!w_buffer.resize(ret - 1)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return 0;
+      }
       GetFinalPathNameByHandleW(hFile, w_buffer.data(), ret, dwFlags);
     } else {
+      // Windows Server 2008 and Windows Vista: For the ANSI version of this
+      // function, GetFinalPathNameByHandleA, the return value includes the size
+      // of the terminating null character.
+      if (w_buffer[ret - 1] == 0)
+        ret = ret - 1;
       w_buffer.resize(ret);
     }
 
-    stl::string u_buffer = internal::w2u(w_buffer.data(), w_buffer.size());
+    d::u_str u_buffer;
+    if (!u_buffer.from_w(w_buffer.data(), w_buffer.size())) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return 0;
+    }
+
     if (cchFilePath >= u_buffer.size() + 1) {
-      libc::memcpy(lpszFilePath, u_buffer.data(), u_buffer.size());
+      c::memcpy(lpszFilePath, u_buffer.data(), u_buffer.size());
       lpszFilePath[u_buffer.size()] = 0;
       return u_buffer.size();
     } else {

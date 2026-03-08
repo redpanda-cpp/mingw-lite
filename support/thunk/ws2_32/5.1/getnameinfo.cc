@@ -2,8 +2,7 @@
 
 #include <thunk/_common.h>
 #include <thunk/addrinfo.h>
-
-#include <nocrt/string.h>
+#include <thunk/string.h>
 
 namespace mingw_thunk
 {
@@ -78,7 +77,7 @@ namespace mingw_thunk
         }
 
         if (host && pNodeBuffer && NodeBufferLength > 0) {
-          libc::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
+          c::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
           pNodeBuffer[NodeBufferLength - 1] = '\0';
         }
         return 0;
@@ -92,7 +91,7 @@ namespace mingw_thunk
         }
 
         if (host && pNodeBuffer && NodeBufferLength > 0) {
-          libc::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
+          c::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
           pNodeBuffer[NodeBufferLength - 1] = '\0';
         }
         return 0;

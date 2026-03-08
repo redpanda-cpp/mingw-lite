@@ -3,8 +3,6 @@
 
 #include <windows.h>
 
-#include <nocrt/stdlib.h>
-
 namespace mingw_thunk
 {
   __DEFINE_THUNK(
@@ -13,7 +11,7 @@ namespace mingw_thunk
     if (const auto pfn = try_get_FindVolumeClose())
       return pfn(hFindVolume);
 
-    libc::free(hFindVolume);
+    HeapFree(GetProcessHeap(), 0, hFindVolume);
     return TRUE;
   }
 } // namespace mingw_thunk

@@ -2,8 +2,6 @@
 #include <thunk/misc.h>
 #include <thunk/yy/strsafe.h>
 
-#include <nostl/__algorithm/min.h>
-
 #include <windows.h>
 
 namespace mingw_thunk
@@ -102,7 +100,8 @@ namespace mingw_thunk
           return 0;
         }
 
-        size_t cchLength = stl::min(__cchCount1, __cchCount2);
+        size_t cchLength =
+            __cchCount1 < __cchCount2 ? __cchCount1 : __cchCount2;
 
         if (bIgnoreCase) {
           for (size_t Index = 0; Index != cchLength; ++Index) {

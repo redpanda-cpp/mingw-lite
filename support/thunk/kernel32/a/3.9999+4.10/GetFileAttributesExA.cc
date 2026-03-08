@@ -17,7 +17,17 @@ namespace mingw_thunk
     if (const auto pfn = try_get_GetFileAttributesExA())
       return pfn(lpFileName, fInfoLevelId, lpFileInformation);
 
-    stl::wstring w_file_name = internal::a2w(lpFileName);
+    if (!lpFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::w_str w_file_name;
+    if (!w_file_name.from_a(lpFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return GetFileAttributesExW(
         w_file_name.c_str(), fInfoLevelId, lpFileInformation);
   }

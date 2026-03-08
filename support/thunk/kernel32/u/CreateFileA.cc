@@ -18,7 +18,16 @@ namespace mingw_thunk
                  _In_ DWORD dwFlagsAndAttributes,
                  _In_opt_ HANDLE hTemplateFile)
   {
-    stl::wstring w_name = internal::u2w(lpFileName);
+    if (!lpFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return INVALID_HANDLE_VALUE;
+    }
+
+    d::w_str w_name;
+    if (!w_name.from_u(lpFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return INVALID_HANDLE_VALUE;
+    }
 
     return CreateFileW(w_name.c_str(),
                        dwDesiredAccess,

@@ -5,8 +5,6 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
-#include <nostl/string.h>
-
 #include <windows.h>
 
 namespace mingw_thunk
@@ -32,21 +30,42 @@ namespace mingw_thunk
     DWORD
     win9x_GetTempPathW(_In_ DWORD nBufferLength, _Out_ LPWSTR lpBuffer)
     {
-      // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-gettemppathw
-      // The maximum possible return value is MAX_PATH+1 (261).
-      char a_buffer[MAX_PATH + 1];
-      DWORD size = __ms_GetTempPathA(MAX_PATH + 1, a_buffer);
-      if (size == 0)
+      // dry run for buffer size
+      if (nBufferLength && !lpBuffer) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return 0;
+      }
+
+      d::a_str a_buffer{d::max_path_tag{}};
+      DWORD ret = __ms_GetTempPathA(MAX_PATH, a_buffer.data());
+      if (ret == 0)
         return 0;
 
-      stl::wstring w_str = internal::a2w(a_buffer, size);
-      if (nBufferLength >= w_str.size() + 1) {
-        libc::wmemcpy(lpBuffer, w_str.c_str(), w_str.size());
-        lpBuffer[w_str.size()] = L'\0';
-        return w_str.size();
-      } else {
-        return w_str.size() + 1;
+      while (ret > a_buffer.size()) {
+        if (!a_buffer.resize(ret)) {
+          SetLastError(ERROR_OUTOFMEMORY);
+          return 0;
+        }
+        ret = __ms_GetTempPathA(ret, a_buffer.data());
+        if (ret == 0)
+          return 0;
       }
+
+      d::w_str w_buffer;
+      if (!w_buffer.from_a(a_buffer.data(), ret)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return 0;
+      }
+
+      size_t w_size = w_buffer.size();
+      if (w_size + 1 > nBufferLength) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return w_size + 1;
+      }
+
+      c::wmemcpy(lpBuffer, w_buffer.c_str(), w_size);
+      lpBuffer[w_size] = 0;
+      return w_size;
     }
   } // namespace impl
 } // namespace mingw_thunk

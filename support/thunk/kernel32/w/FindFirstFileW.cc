@@ -21,7 +21,12 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_FindFirstFileW(lpFileName, lpFindFileData);
 
-    auto a_name = internal::w2a(lpFileName);
+    d::a_str a_name;
+    if (!a_name.from_w(lpFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return INVALID_HANDLE_VALUE;
+    }
+
     WIN32_FIND_DATAA a_find_data;
     HANDLE h = __ms_FindFirstFileA(a_name.c_str(), &a_find_data);
     if (h == INVALID_HANDLE_VALUE)

@@ -3,6 +3,7 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <io.h>
 
 namespace mingw_thunk
@@ -13,7 +14,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms__wchmod(filename, pmode);
 
-    stl::string a_name = internal::w2a(filename);
+    if (!filename) {
+      _set_errno(EINVAL);
+      return -1;
+    }
+
+    d::a_str a_name;
+    if (!a_name.from_w(filename)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     return __ms__chmod(a_name.c_str(), pmode);
   }
 } // namespace mingw_thunk

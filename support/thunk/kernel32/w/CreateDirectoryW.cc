@@ -20,7 +20,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_CreateDirectoryW(lpPathName, lpSecurityAttributes);
 
-    auto a_path_name = internal::w2a(lpPathName);
+    if (!lpPathName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::a_str a_path_name;
+    if (!a_path_name.from_w(lpPathName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return __ms_CreateDirectoryA(a_path_name.c_str(), lpSecurityAttributes);
   }
 } // namespace mingw_thunk

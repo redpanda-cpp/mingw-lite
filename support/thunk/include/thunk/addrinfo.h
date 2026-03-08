@@ -1,5 +1,4 @@
-#include <nocrt/stdlib.h>
-
+#include <heapapi.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -21,7 +20,7 @@ namespace mingw_thunk::internal
     addrinfo *head = nullptr;
     addrinfo *next = nullptr;
     for (int i = n_addr - 1; i >= 0; i--) {
-      head = (addrinfo *)libc::malloc(sizeof(addrinfo));
+      head = (addrinfo *)HeapAlloc(GetProcessHeap(), 0, sizeof(addrinfo));
       if (!head) {
         freeaddrinfo(next);
         wsa_error = WSA_NOT_ENOUGH_MEMORY;
@@ -33,9 +32,10 @@ namespace mingw_thunk::internal
       head->ai_protocol = protocol;
       head->ai_canonname = nullptr;
       head->ai_addrlen = sizeof(sockaddr_in);
-      sockaddr_in *addr = (sockaddr_in *)libc::malloc(sizeof(sockaddr_in));
+      sockaddr_in *addr =
+          (sockaddr_in *)HeapAlloc(GetProcessHeap(), 0, sizeof(sockaddr_in));
       if (!addr) {
-        libc::free(head);
+        HeapFree(GetProcessHeap(), 0, head);
         freeaddrinfo(next);
         wsa_error = WSA_NOT_ENOUGH_MEMORY;
         return nullptr;

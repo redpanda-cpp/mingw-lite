@@ -1,11 +1,6 @@
 #pragma once
 
-#include <nostl/__algorithm/lower_bound.h>
-#include <nostl/__iterator/begin.h>
-#include <nostl/__iterator/end.h>
-
 #include <errno.h>
-#include <stdlib.h>
 
 #include <windows.h>
 
@@ -93,18 +88,14 @@ namespace mingw_thunk::internal
 
   inline int dosmaperr(unsigned long oserror)
   {
-    auto b = stl::cbegin(doserrmap);
-    auto e = stl::cend(doserrmap);
-    doserrmap_t v = {oserror, 0};
-    auto c = [](doserrmap_t a, doserrmap_t b) { return a.dos < b.dos; };
-    auto it = stl::lower_bound(b, e, v, c);
-
-    int err = EINVAL;
-    if (it != e && it->dos == oserror) {
-      err = it->c;
+    for (auto &d : doserrmap) {
+      if (d.dos == oserror) {
+        _set_errno(d.c);
+        return d.c;
+      }
     }
-    _set_errno(err);
-    return err;
+    _set_errno(EINVAL);
+    return EINVAL;
   }
 
   inline int dosmaperr()

@@ -3,6 +3,7 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <io.h>
 
 namespace mingw_thunk
@@ -18,8 +19,23 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms__wrename(oldpath, newpath);
 
-    stl::string a_old = internal::w2a(oldpath);
-    stl::string a_new = internal::w2a(newpath);
+    if (!oldpath || !newpath) {
+      _set_errno(EINVAL);
+      return -1;
+    }
+
+    d::a_str a_old;
+    if (!a_old.from_w(oldpath)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
+    d::a_str a_new;
+    if (!a_new.from_w(newpath)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     return __ms_rename(a_old.c_str(), a_new.c_str());
   }
 } // namespace mingw_thunk

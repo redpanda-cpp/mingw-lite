@@ -23,9 +23,12 @@ namespace mingw_thunk
       return __ms_CreateSemaphoreW(
           lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName);
 
-    stl::string a_name;
-    if (lpName)
-      a_name = internal::w2a(lpName);
+    d::a_str a_name;
+    if (lpName && !a_name.from_w(lpName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return NULL;
+    }
+
     return __ms_CreateSemaphoreA(lpSemaphoreAttributes,
                                  lInitialCount,
                                  lMaximumCount,

@@ -420,6 +420,13 @@ target('thunk-kernel32-u')
       'kernel32/a/3.9999+4.10/WideCharToMultiByte.impl.cc')
   end
 
+target('test-kernel32-u')
+  add_tests('default')
+  add_deps('thunk-kernel32-u')
+  add_files('kernel32/u/GetFullPathNameA.test.cc')
+  enable_test_options()
+  skip_install()
+
 target('thunk-kernel32-w')
   add_files(
     'kernel32/w/CopyFileExW.cc',

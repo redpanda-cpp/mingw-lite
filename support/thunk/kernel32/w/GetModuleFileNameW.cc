@@ -8,8 +8,6 @@
 #include <errhandlingapi.h>
 #include <libloaderapi.h>
 
-#include <nocrt/__wchar/wmemcpy.h>
-
 namespace mingw_thunk
 {
   // Windows 95 (stub)
@@ -36,18 +34,41 @@ namespace mingw_thunk
                              _Out_ LPWSTR lpFilename,
                              _In_ DWORD nSize)
     {
-      char a_filename[MAX_PATH];
-      DWORD a_size = __ms_GetModuleFileNameA(hModule, a_filename, MAX_PATH);
-      if (a_size == 0)
+      // dry run for buffer size
+      if (nSize && !lpFilename) {
+        SetLastError(ERROR_INVALID_PARAMETER);
         return 0;
-      stl::wstring w_filename = internal::a2w(a_filename);
-      if (nSize >= w_filename.size() + 1) {
-        libc::wmemcpy(lpFilename, w_filename.c_str(), w_filename.size());
-        lpFilename[w_filename.size()] = L'\0';
-        return w_filename.size();
+      }
+
+      d::a_str a_name{d::max_path_tag{}};
+      DWORD ret = __ms_GetModuleFileNameA(hModule, a_name.data(), MAX_PATH);
+      if (ret == 0)
+        return 0;
+
+      while (ret > a_name.size()) {
+        if (!a_name.resize(ret)) {
+          SetLastError(ERROR_OUTOFMEMORY);
+          return 0;
+        }
+        ret = __ms_GetModuleFileNameA(hModule, a_name.data(), ret);
+        if (ret == 0)
+          return 0;
+      }
+
+      d::w_str w_name;
+      if (!w_name.from_a(a_name.c_str(), ret)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return 0;
+      }
+
+      size_t w_size = w_name.size();
+      if (nSize >= w_size + 1) {
+        c::wmemcpy(lpFilename, w_name.c_str(), w_size);
+        lpFilename[w_size] = 0;
+        return w_size;
       } else {
-        libc::wmemcpy(lpFilename, w_filename.c_str(), nSize - 1);
-        lpFilename[nSize - 1] = L'\0';
+        c::wmemcpy(lpFilename, w_name.c_str(), nSize - 1);
+        lpFilename[nSize - 1] = 0;
         SetLastError(ERROR_INSUFFICIENT_BUFFER);
         return nSize;
       }

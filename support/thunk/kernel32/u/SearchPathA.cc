@@ -18,17 +18,36 @@ namespace mingw_thunk
                  _Out_opt_ LPSTR *lpFilePart)
 
   {
-    stl::wstring w_path;
-    if (lpPath)
-      w_path = internal::u2w(lpPath);
+    if (!lpFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return 0;
+    }
 
-    stl::wstring w_name = internal::u2w(lpFileName);
+    // dry run for buffer size
+    if (nBufferLength && !lpBuffer) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return 0;
+    }
 
-    stl::wstring w_extension;
-    if (lpExtension)
-      w_extension = internal::u2w(lpExtension);
+    d::w_str w_path;
+    if (lpPath && !w_path.from_u(lpPath)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return 0;
+    }
 
-    stl::wstring w_buffer(MAX_PATH, 0);
+    d::w_str w_name;
+    if (!w_name.from_u(lpFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return 0;
+    }
+
+    d::w_str w_extension;
+    if (lpExtension && !w_extension.from_u(lpExtension)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return 0;
+    }
+
+    d::w_str w_buffer{d::max_path_tag{}};
     wchar_t *w_file_part;
 
     DWORD ret = SearchPathW(lpPath ? w_path.c_str() : nullptr,
@@ -42,7 +61,10 @@ namespace mingw_thunk
     size_t file_part_idx = w_file_part - w_buffer.data();
 
     if (ret > MAX_PATH) {
-      w_buffer.resize(ret - 1);
+      if (!w_buffer.resize(ret - 1)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return 0;
+      }
       SearchPathW(lpPath ? w_path.c_str() : nullptr,
                   w_name.c_str(),
                   lpExtension ? w_extension.c_str() : nullptr,
@@ -54,17 +76,24 @@ namespace mingw_thunk
       w_buffer.resize(ret);
     }
 
-    stl::string u_buffer = internal::w2u(w_buffer.data(), w_buffer.size());
-    if (nBufferLength >= u_buffer.size() + 1) {
-      libc::memcpy(lpBuffer, u_buffer.data(), u_buffer.size());
-      lpBuffer[u_buffer.size()] = 0;
-      if (lpFilePart) {
-        stl::string u_prefix = internal::w2u(w_buffer.data(), file_part_idx);
-        *lpFilePart = lpBuffer + u_prefix.size();
-      }
-      return u_buffer.size();
-    } else {
-      return u_buffer.size() + 1;
+    d::u_str u_buffer;
+    if (!u_buffer.from_w(w_buffer.data(), w_buffer.size())) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return 0;
     }
+
+    size_t u_size = u_buffer.size();
+    if (u_size + 1 > nBufferLength) {
+      SetLastError(ERROR_INSUFFICIENT_BUFFER);
+      return u_size + 1;
+    }
+
+    c::memcpy(lpBuffer, u_buffer.data(), u_size);
+    lpBuffer[u_size] = 0;
+    if (lpFilePart) {
+      int u_prefix = d::u_str::size_from_w(w_buffer.data(), file_part_idx);
+      *lpFilePart = lpBuffer + u_prefix;
+    }
+    return u_size;
   }
 } // namespace mingw_thunk

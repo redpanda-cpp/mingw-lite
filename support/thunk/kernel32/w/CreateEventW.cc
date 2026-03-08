@@ -23,9 +23,12 @@ namespace mingw_thunk
       return __ms_CreateEventW(
           lpEventAttributes, bManualReset, bInitialState, lpName);
 
-    stl::string a_name;
-    if (lpName)
-      a_name = internal::w2a(lpName);
+    d::a_str a_name;
+    if (lpName && !a_name.from_w(lpName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return nullptr;
+    }
+
     return __ms_CreateEventA(lpEventAttributes,
                              bManualReset,
                              bInitialState,

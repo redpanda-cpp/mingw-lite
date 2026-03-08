@@ -2,8 +2,8 @@
 
 namespace mingw_thunk
 {
-  namespace internal
+  namespace g
   {
-    io_buffer stdio_buffer[3];
+    d::io_buffer stdio_buffer[3];
   }
 } // namespace mingw_thunk

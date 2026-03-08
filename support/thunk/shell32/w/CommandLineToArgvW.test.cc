@@ -68,7 +68,10 @@ TEST_CASE("CommandLineToArgvW")
       // Fortunately, the standard way won't generate such a case.
       //   _Everyone quotes command line arguments the wrong way_
       //   https://learn.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
-      // So it's safe to ignore it.
+      {
+          LR"(test a"b"" c d)",
+          {L"test", LR"(ab")", L"c", L"d"},
+      },
 
       // https://devblogs.microsoft.com/oldnewthing/20100917-00/?p=12833
       {

@@ -3,6 +3,7 @@
 #include <thunk/_common.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -13,7 +14,12 @@ namespace mingw_thunk
     using internal::u8_environ;
     using internal::u8_environ_size;
 
-    stl::wstring w_string = internal::u2w(string);
+    d::w_str w_string;
+    if (!w_string.from_u(string)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     int result = _wputenv(w_string.c_str());
     if (result != 0)
       return result;

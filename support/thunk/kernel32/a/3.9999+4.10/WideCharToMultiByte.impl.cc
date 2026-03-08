@@ -2,9 +2,8 @@
 
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
+#include <thunk/string.h>
 #include <thunk/unicode.h>
-
-#include <nocrt/wchar.h>
 
 #include <windows.h>
 
@@ -60,33 +59,33 @@ namespace mingw_thunk
       }
 
       if (cchWideChar == -1)
-        cchWideChar = libc::wcslen(lpWideCharStr) + 1;
+        cchWideChar = c::wcslen(lpWideCharStr) + 1;
 
       int i_idx = 0;
       int o_idx = 0;
       while (i_idx < cchWideChar) {
-        if (internal::u16_is_low(lpWideCharStr[i_idx])) {
+        if (i::u16_is_low(lpWideCharStr[i_idx])) {
           INVALID_RETURN();
           i_idx += 1;
-          WRITE(internal::u8_rep.b0);
-          WRITE(internal::u8_rep.b1);
-          WRITE(internal::u8_rep.b2);
+          WRITE(g::u8_rep.b0);
+          WRITE(g::u8_rep.b1);
+          WRITE(g::u8_rep.b2);
           continue;
         }
-        if (internal::u16_is_high(lpWideCharStr[i_idx])) {
+        if (i::u16_is_high(lpWideCharStr[i_idx])) {
           if (i_idx + 2 > cchWideChar ||
-              !internal::u16_is_low(lpWideCharStr[i_idx + 1])) {
+              !i::u16_is_low(lpWideCharStr[i_idx + 1])) {
             INVALID_RETURN();
             i_idx += 1;
-            WRITE(internal::u8_rep.b0);
-            WRITE(internal::u8_rep.b1);
-            WRITE(internal::u8_rep.b2);
+            WRITE(g::u8_rep.b0);
+            WRITE(g::u8_rep.b1);
+            WRITE(g::u8_rep.b2);
             continue;
           }
           char16_t high = READ();
           char16_t low = READ();
-          char32_t ch = internal::u16_dec_2({high, low});
-          auto s = internal::u8_enc_4(ch);
+          char32_t ch = i::u16_dec_2({high, low});
+          auto s = i::u8_enc_4(ch);
           WRITE(s.b0);
           WRITE(s.b1);
           WRITE(s.b2);
@@ -94,19 +93,19 @@ namespace mingw_thunk
           continue;
         }
         char16_t ch = READ();
-        switch (internal::u8_enc_len(ch)) {
+        switch (i::u8_enc_len(ch)) {
         case 1: {
           WRITE(ch);
           break;
         }
         case 2: {
-          auto s = internal::u8_enc_2(ch);
+          auto s = i::u8_enc_2(ch);
           WRITE(s.b0);
           WRITE(s.b1);
           break;
         }
         case 3: {
-          auto s = internal::u8_enc_3(ch);
+          auto s = i::u8_enc_3(ch);
           WRITE(s.b0);
           WRITE(s.b1);
           WRITE(s.b2);

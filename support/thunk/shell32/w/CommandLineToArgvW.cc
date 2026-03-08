@@ -4,9 +4,6 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
-#include <nostl/string.h>
-#include <nostl/vector.h>
-
 namespace mingw_thunk
 {
   __DEFINE_THUNK(shell32,
@@ -25,17 +22,131 @@ namespace mingw_thunk
 
   namespace impl
   {
+    namespace
+    {
+      void parse_arguments(const wchar_t *lpCmdLine,
+                           wchar_t **argv,
+                           wchar_t *payload,
+                           int *arg_count,
+                           size_t *payload_size)
+      {
+        const wchar_t *src = lpCmdLine;
+        wchar_t *dst = payload;
+        int argc = 1;
+        size_t size = 0;
+        int in_quotes = 0;
+
+        if (argv)
+          argv[0] = payload;
+
+        // special handling argv[0], assuming there's no quotes in filename.
+        // that's not true, WSL interop may yield such case.
+        if (*src == L'"') {
+          src++;
+          while (*src != L'"') {
+            if (!*src)
+              break;
+            size++;
+            if (dst)
+              *dst++ = *src;
+            src++;
+          }
+          size++;
+          if (dst)
+            *dst++ = L'\0';
+          if (*src == L'"')
+            src++;
+        } else {
+          wchar_t ch;
+          do {
+            ch = *src;
+            size++;
+            if (dst)
+              *dst++ = ch;
+            src++;
+          } while (ch > L' ' && ch != L'\0');
+          if (ch) {
+            if (dst)
+              *(dst - 1) = L'\0';
+          } else {
+            src--;
+          }
+        }
+
+        // remaining arguments
+        while (*src) {
+          while (*src == L' ' || *src == L'\t')
+            src++;
+
+          if (!*src)
+            break;
+
+          if (argv)
+            argv[argc] = dst;
+          argc++;
+
+          while (*src) {
+            int backslash_count = 0;
+            while (*src == L'\\') {
+              backslash_count++;
+              src++;
+            }
+
+            bool copy_char = true;
+            if (*src == L'"') {
+              if (backslash_count % 2 == 0) {
+                if (in_quotes && src[1] == L'"')
+                  src++;
+                else
+                  copy_char = false;
+                in_quotes = !in_quotes;
+              }
+              backslash_count /= 2;
+            }
+
+            while (backslash_count > 0) {
+              size++;
+              if (dst)
+                *dst++ = L'\\';
+              backslash_count--;
+            }
+
+            if (!*src || (!in_quotes && (*src == L' ' || *src == L'\t')))
+              break;
+
+            if (copy_char) {
+              size++;
+              if (dst)
+                *dst++ = *src;
+            }
+            src++;
+          }
+
+          size++;
+          if (dst)
+            *dst++ = L'\0';
+        }
+
+        *arg_count = argc;
+        *payload_size = size;
+      }
+    } // namespace
+
     LPWSTR *win9x_CommandLineToArgvW(_In_ LPCWSTR lpCmdLine,
                                      _Out_ int *pNumArgs)
     {
+      if (!pNumArgs) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return nullptr;
+      }
+
       if (*lpCmdLine == 0) {
         *pNumArgs = 1;
 
-        // argv[0], nullptr, path to the executable
         DWORD size = sizeof(LPWSTR) * 2 + sizeof(wchar_t) * MAX_PATH;
         LPWSTR *argv = (LPWSTR *)LocalAlloc(LMEM_FIXED, size);
         if (!argv) {
-          SetLastError(ERROR_OUTOFMEMORY);
+          SetLastError(ERROR_NOT_ENOUGH_MEMORY);
           return nullptr;
         }
         wchar_t *payload = (wchar_t *)(argv + 2);
@@ -51,69 +162,23 @@ namespace mingw_thunk
         return argv;
       }
 
-      stl::vector<stl::wstring> args;
-      stl::wstring current;
-      int backslash_count = 0;
-      bool in_quotes = false;
-      const wchar_t *p = lpCmdLine;
-      while (true) {
-        if (*p == 0) {
-          args.push_back(stl::move(current));
-          break;
-        } else if (!in_quotes && (*p == ' ' || *p == '\t')) {
-          args.push_back(stl::move(current));
-          current.clear();
-          // eat following spaces
-          while (*p == ' ' || *p == '\t')
-            p++;
-          // special case: no more args
-          if (*p == 0)
-            break;
-
-          backslash_count = 0;
-          continue;
-        } else if (*p == '\\') {
-          backslash_count++;
-        } else if (*p == '"') {
-          if (backslash_count / 2 > 0)
-            // 2n backslashes and...
-            current.append(backslash_count / 2, '\\');
-          if (backslash_count % 2 == 0)
-            // a quote that toggles in quotes mode
-            in_quotes = !in_quotes;
-          else
-            // an escaped quote
-            current.push_back('"');
-          backslash_count = 0;
-        } else {
-          if (backslash_count > 0) {
-            // backslashes aren't special here
-            current.append(backslash_count, '\\');
-            backslash_count = 0;
-          }
-          current.push_back(*p);
-        }
-        p++;
-      }
-
+      int argc = 0;
       size_t payload_size = 0;
-      for (auto &arg : args)
-        payload_size += sizeof(wchar_t) * (arg.size() + 1);
-      DWORD size = sizeof(LPWSTR) * (args.size() + 1) + payload_size;
-      LPWSTR *argv = (LPWSTR *)LocalAlloc(LMEM_FIXED, size);
+      parse_arguments(lpCmdLine, nullptr, nullptr, &argc, &payload_size);
+
+      size_t buffer_size =
+          sizeof(LPWSTR) * (argc + 1) + payload_size * sizeof(wchar_t);
+      LPWSTR *argv = (LPWSTR *)LocalAlloc(LMEM_FIXED, buffer_size);
       if (!argv) {
-        SetLastError(ERROR_OUTOFMEMORY);
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return nullptr;
       }
-      wchar_t *payload = (wchar_t *)(argv + args.size() + 1);
-      for (size_t i = 0; i < args.size(); i++) {
-        argv[i] = payload;
-        libc::wmemcpy(payload, args[i].c_str(), args[i].size());
-        payload[args[i].size()] = 0;
-        payload += args[i].size() + 1;
-      }
-      argv[args.size()] = nullptr;
-      *pNumArgs = args.size();
+      wchar_t *payload = (wchar_t *)(argv + argc + 1);
+
+      parse_arguments(lpCmdLine, argv, payload, &argc, &payload_size);
+
+      argv[argc] = nullptr;
+      *pNumArgs = argc;
       return argv;
     }
   } // namespace impl

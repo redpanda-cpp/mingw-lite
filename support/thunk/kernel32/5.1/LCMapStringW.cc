@@ -3,8 +3,7 @@
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
-
-#include <nocrt/wchar.h>
+#include <thunk/string.h>
 
 #include <windows.h>
 
@@ -70,7 +69,7 @@ namespace mingw_thunk
       }
 
       if (cchSrc == -1)
-        cchSrc = libc::wcslen(lpSrcStr) + 1;
+        cchSrc = c::wcslen(lpSrcStr) + 1;
       if (cchDest == 0)
         return cchSrc;
       if (lpDestStr == nullptr) {

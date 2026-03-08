@@ -1,6 +1,7 @@
 #include <thunk/_common.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <stdio.h>
 
 namespace mingw_thunk
@@ -8,8 +9,18 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       msvcrt, 0, FILE *, __cdecl, fopen, const char *path, const char *mode)
   {
-    stl::wstring w_path = internal::u2w(path);
-    stl::wstring w_mode;
+    if (!path || !mode) {
+      _set_errno(EINVAL);
+      return nullptr;
+    }
+
+    d::w_str w_path;
+    if (!w_path.from_u(path)) {
+      _set_errno(ENOMEM);
+      return nullptr;
+    }
+
+    d::w_str w_mode;
     while (*mode) {
       switch (*mode) {
       case 'r':
@@ -26,7 +37,10 @@ namespace mingw_thunk
       case 'R':
       case 'T':
       case 'D':
-        w_mode.push_back(*mode);
+        if (!w_mode.push_back(*mode)) {
+          _set_errno(ENOMEM);
+          return nullptr;
+        }
         break;
       case ',':
         // ,ccs=UTF-8
@@ -35,7 +49,10 @@ namespace mingw_thunk
       ++mode;
     }
   stop:
-    w_mode.push_back('b');
+    if (!w_mode.push_back(L'b')) {
+      _set_errno(ENOMEM);
+      return nullptr;
+    }
     return _wfopen(w_path.c_str(), w_mode.c_str());
   }
 } // namespace mingw_thunk

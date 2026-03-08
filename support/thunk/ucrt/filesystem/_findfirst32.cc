@@ -2,6 +2,7 @@
 #include <thunk/crt_find_data.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <io.h>
 
 namespace mingw_thunk
@@ -14,9 +15,19 @@ namespace mingw_thunk
                  const char *filespec,
                  struct _finddata32_t *fileinfo)
   {
+    if (!filespec || !fileinfo) {
+      _set_errno(EINVAL);
+      return -1;
+    }
+
     _wfinddata32_t w_file_info;
 
-    stl::wstring w_file_spec = internal::u2w(filespec);
+    d::w_str w_file_spec;
+    if (!w_file_spec.from_u(filespec)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     intptr_t res = _wfindfirst32(w_file_spec.c_str(), &w_file_info);
 
     if (res == intptr_t(-1))

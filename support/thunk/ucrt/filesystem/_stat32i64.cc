@@ -1,6 +1,7 @@
 #include <thunk/_common.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -14,7 +15,17 @@ namespace mingw_thunk
                  const char *path,
                  struct _stat32i64 *buffer)
   {
-    stl::wstring w_path = internal::u2w(path);
+    if (!path) {
+      _set_errno(EINVAL);
+      return -1;
+    }
+
+    d::w_str w_path;
+    if (!w_path.from_u(path)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     return _wstat32i64(w_path.c_str(), buffer);
   }
 } // namespace mingw_thunk

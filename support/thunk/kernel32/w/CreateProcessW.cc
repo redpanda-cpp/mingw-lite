@@ -63,35 +63,57 @@ namespace mingw_thunk
                          _In_ LPSTARTUPINFOW lpStartupInfo,
                          _Out_ LPPROCESS_INFORMATION lpProcessInformation)
     {
-      stl::string a_app_name;
-      if (lpApplicationName)
-        a_app_name = internal::w2a(lpApplicationName);
-      stl::string a_cmd_line;
-      if (lpCommandLine)
-        a_cmd_line = internal::w2a(lpCommandLine);
+      if (!lpStartupInfo) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+      }
 
-      stl::string a_env;
+      d::a_str a_app_name;
+      if (lpApplicationName && !a_app_name.from_w(lpApplicationName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
+      d::a_str a_cmd_line;
+      if (lpCommandLine && !a_cmd_line.from_w(lpCommandLine)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
+      d::a_str a_env;
       if (lpEnvironment && (dwCreationFlags & CREATE_UNICODE_ENVIRONMENT)) {
         size_t block_size = 0;
         const wchar_t *w_env = (const wchar_t *)lpEnvironment;
         while (w_env[block_size]) {
-          size_t l = wcslen(w_env + block_size);
+          size_t l = c::wcslen(w_env + block_size);
           block_size += l + 1;
         }
         // block terminator is implicitly added
-        a_env = internal::w2a(w_env, block_size);
+        if (!a_env.from_w(w_env, block_size)) {
+          SetLastError(ERROR_OUTOFMEMORY);
+          return FALSE;
+        }
       }
 
-      stl::string a_cwd;
-      if (lpCurrentDirectory)
-        a_cwd = internal::w2a(lpCurrentDirectory);
+      d::a_str a_cwd;
+      if (lpCurrentDirectory && !a_cwd.from_w(lpCurrentDirectory)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
 
-      stl::string a_desktop;
-      if (lpStartupInfo->lpDesktop)
-        a_desktop = internal::w2a(lpStartupInfo->lpDesktop);
-      stl::string a_title;
-      if (lpStartupInfo->lpTitle)
-        a_title = internal::w2a(lpStartupInfo->lpTitle);
+      d::a_str a_desktop;
+      if (lpStartupInfo->lpDesktop &&
+          !a_desktop.from_w(lpStartupInfo->lpDesktop)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
+      d::a_str a_title;
+      if (lpStartupInfo->lpTitle && !a_title.from_w(lpStartupInfo->lpTitle)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
       STARTUPINFOA a_startup_info{
           .cb = sizeof(STARTUPINFOA),
           .lpReserved = nullptr,

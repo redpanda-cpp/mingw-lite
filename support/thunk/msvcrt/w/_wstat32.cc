@@ -3,6 +3,7 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <sys/stat.h>
 
 namespace mingw_thunk
@@ -18,7 +19,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms__wstat32(path, buffer);
 
-    stl::string a_path = internal::w2a(path);
+    if (!path) {
+      _set_errno(EINVAL);
+      return -1;
+    }
+
+    d::a_str a_path;
+    if (!a_path.from_w(path)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
     return __ms__stat32(a_path.c_str(), buffer);
   }
 } // namespace mingw_thunk

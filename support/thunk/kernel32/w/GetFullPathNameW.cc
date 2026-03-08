@@ -5,10 +5,6 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
-#include <nostl/string.h>
-
-#include <nocrt/string.h>
-
 #include <windows.h>
 
 namespace mingw_thunk
@@ -41,36 +37,56 @@ namespace mingw_thunk
                            _Out_ LPWSTR lpBuffer,
                            _Out_opt_ LPWSTR *lpFilePart)
     {
-      auto a_name = internal::w2a(lpFileName);
-      size_t a_buf_len = nBufferLength > MAX_PATH ? nBufferLength : MAX_PATH;
-      stl::string a_buf(a_buf_len, 0);
+      // dry run for buffer size
+      if (nBufferLength && !lpBuffer) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return 0;
+      }
+
+      d::a_str a_name;
+      if (!a_name.from_w(lpFileName))
+        return 0;
+
+      d::a_str a_buf{d::max_path_tag{}};
       char *a_file_part = nullptr;
-      DWORD alen = __ms_GetFullPathNameA(
-          a_name.c_str(), a_buf_len, a_buf.data(), &a_file_part);
-      if (alen == 0) {
-        return FALSE;
+      DWORD ret = __ms_GetFullPathNameA(
+          a_name.c_str(), MAX_PATH, a_buf.data(), &a_file_part);
+      if (ret == 0)
+        return 0;
+
+      while (ret > a_buf.size()) {
+        if (!a_buf.resize(ret)) {
+          SetLastError(ERROR_OUTOFMEMORY);
+          return 0;
+        }
+
+        ret = __ms_GetFullPathNameA(
+            a_name.c_str(), ret, a_buf.data(), &a_file_part);
+        if (ret == 0)
+          return 0;
       }
-      if (alen > a_buf_len) {
-        a_buf.resize(alen);
-        alen = __ms_GetFullPathNameA(
-            a_name.c_str(), a_buf_len, a_buf.data(), &a_file_part);
-      }
+
       size_t a_prefix_len = a_file_part - a_buf.data();
-      a_buf.resize(alen); // shrink
 
-      auto w_res = internal::a2w(a_buf.data(), alen);
-
-      size_t len = w_res.length() + 1;
-      if (len > nBufferLength)
-        return len;
-
-      if (lpFilePart) {
-        auto w_prefix = internal::a2w(a_buf.data(), a_prefix_len);
-        *lpFilePart = lpBuffer + w_prefix.length();
+      d::w_str w_res;
+      if (!w_res.from_a(a_buf.c_str(), ret)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return 0;
       }
 
-      libc::wmemcpy(lpBuffer, w_res.data(), len);
-      return w_res.length();
+      size_t w_size = w_res.size();
+      if (w_size + 1 > nBufferLength) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return w_size + 1;
+      }
+
+      c::wmemcpy(lpBuffer, w_res.c_str(), w_size);
+      lpBuffer[w_size] = 0;
+      if (lpFilePart) {
+        int w_prefix = d::w_str::size_from_a(a_buf.c_str(), a_prefix_len);
+        *lpFilePart = lpBuffer + w_prefix;
+      }
+      return w_size;
     }
   } // namespace impl
 } // namespace mingw_thunk

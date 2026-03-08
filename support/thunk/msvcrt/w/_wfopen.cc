@@ -3,6 +3,7 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <stdio.h>
 
 namespace mingw_thunk
@@ -25,9 +26,24 @@ namespace mingw_thunk
   {
     FILE *win9x__wfopen(const wchar_t *filename, const wchar_t *mode)
     {
-      auto aname = internal::w2a(filename);
-      auto amode = internal::w2a(mode);
-      return __ms_fopen(aname.c_str(), amode.c_str());
+      if (!filename || !mode) {
+        _set_errno(EINVAL);
+        return nullptr;
+      }
+
+      d::a_str a_name;
+      if (!a_name.from_w(filename)) {
+        _set_errno(ENOMEM);
+        return nullptr;
+      }
+
+      d::a_str a_mode;
+      if (!a_mode.from_w(mode)) {
+        _set_errno(ENOMEM);
+        return nullptr;
+      }
+
+      return __ms_fopen(a_name.c_str(), a_mode.c_str());
     }
   } // namespace impl
 } // namespace mingw_thunk

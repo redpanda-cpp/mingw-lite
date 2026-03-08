@@ -3,8 +3,6 @@
 
 #include <windows.h>
 
-#include <nocrt/stdlib.h>
-
 namespace mingw_thunk
 {
   __DEFINE_THUNK(kernel32,
@@ -36,10 +34,10 @@ namespace mingw_thunk
     }
 
     auto *data = static_cast<internal::find_volume_data *>(
-        libc::malloc(sizeof(internal::find_volume_data)));
+        HeapAlloc(GetProcessHeap(), 0, sizeof(internal::find_volume_data)));
 
     if (!data) {
-      SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+      SetLastError(ERROR_OUTOFMEMORY);
       return INVALID_HANDLE_VALUE;
     }
 

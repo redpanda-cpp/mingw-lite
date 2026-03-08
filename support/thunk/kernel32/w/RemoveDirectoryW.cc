@@ -15,7 +15,17 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_RemoveDirectoryW(lpPathName);
 
-    auto aname = internal::w2a(lpPathName);
+    if (!lpPathName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::a_str aname;
+    if (!aname.from_w(lpPathName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return __ms_RemoveDirectoryA(aname.c_str());
   }
 } // namespace mingw_thunk

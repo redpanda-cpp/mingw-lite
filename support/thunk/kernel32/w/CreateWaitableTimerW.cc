@@ -5,8 +5,6 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
-#include <nostl/string.h>
-
 #include <windows.h>
 
 namespace mingw_thunk
@@ -44,17 +42,21 @@ namespace mingw_thunk
                                _In_opt_ LPCWSTR lpTimerName)
     {
 #if THUNK_LEVEL >= NTDDI_WIN98
-      stl::string a_name;
-      if (lpTimerName)
-        a_name = internal::w2a(lpTimerName);
+      d::a_str a_name;
+      if (lpTimerName && !a_name.from_w(lpTimerName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return nullptr;
+      }
       return __ms_CreateWaitableTimerA(lpTimerAttributes,
                                        bManualReset,
                                        lpTimerName ? a_name.c_str() : nullptr);
 #else
       if (internal::os_geq(VER_PLATFORM_WIN32_WINDOWS, 4, 10)) {
-        stl::string a_name;
-        if (lpTimerName)
-          a_name = internal::w2a(lpTimerName);
+        d::a_str a_name;
+        if (lpTimerName && !a_name.from_w(lpTimerName)) {
+          SetLastError(ERROR_OUTOFMEMORY);
+          return nullptr;
+        }
         return kernel32_CreateWaitableTimerA()(lpTimerAttributes,
                                                bManualReset,
                                                lpTimerName ? a_name.c_str()

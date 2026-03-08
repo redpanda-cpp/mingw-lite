@@ -14,8 +14,23 @@ namespace mingw_thunk
                  _In_ LPCSTR lpTargetFileName,
                  _In_ DWORD dwFlags)
   {
-    stl::wstring w_symlink = internal::u2w(lpSymlinkFileName);
-    stl::wstring w_target = internal::u2w(lpTargetFileName);
+    if (!lpSymlinkFileName || !lpTargetFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::w_str w_symlink;
+    if (!w_symlink.from_u(lpSymlinkFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
+    d::w_str w_target;
+    if (!w_target.from_u(lpTargetFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
     return CreateSymbolicLinkW(w_symlink.c_str(), w_target.c_str(), dwFlags);
   }
 } // namespace mingw_thunk

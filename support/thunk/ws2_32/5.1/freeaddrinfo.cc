@@ -2,8 +2,6 @@
 
 #include <thunk/_common.h>
 
-#include <nocrt/stdlib.h>
-
 namespace mingw_thunk
 {
   __DEFINE_THUNK(
@@ -21,8 +19,8 @@ namespace mingw_thunk
     {
       while (pAddrInfo) {
         auto *next = pAddrInfo->ai_next;
-        libc::free(pAddrInfo->ai_addr);
-        libc::free(pAddrInfo);
+        HeapFree(GetProcessHeap(), 0, pAddrInfo->ai_addr);
+        HeapFree(GetProcessHeap(), 0, pAddrInfo);
         pAddrInfo = next;
       }
     }

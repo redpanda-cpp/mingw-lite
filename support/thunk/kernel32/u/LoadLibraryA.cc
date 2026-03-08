@@ -8,7 +8,17 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       kernel32, 4, HMODULE, WINAPI, LoadLibraryA, _In_ LPCSTR lpLibFileName)
   {
-    stl::wstring w_name = internal::u2w(lpLibFileName);
-    return LoadLibraryW(w_name.c_str());
+    if (!lpLibFileName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return nullptr;
+    }
+
+    d::w_str w_name;
+    if (!w_name.from_u(lpLibFileName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return nullptr;
+    }
+
+    return LoadLibraryW(w_name.data());
   }
 } // namespace mingw_thunk

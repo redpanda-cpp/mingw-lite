@@ -17,10 +17,22 @@ namespace mingw_thunk
     if (internal::is_nt())
       return __ms_SetEnvironmentVariableW(lpName, lpValue);
 
-    stl::string a_name = internal::w2a(lpName);
-    stl::string a_value;
-    if (lpValue)
-      a_value = internal::w2a(lpValue);
+    if (!lpName) {
+      SetLastError(ERROR_INVALID_PARAMETER);
+      return FALSE;
+    }
+
+    d::a_str a_name;
+    if (!a_name.from_w(lpName)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
+
+    d::a_str a_value;
+    if (lpValue && !a_value.from_w(lpValue)) {
+      SetLastError(ERROR_OUTOFMEMORY);
+      return FALSE;
+    }
 
     return __ms_SetEnvironmentVariableA(a_name.c_str(),
                                         lpValue ? a_value.c_str() : nullptr);

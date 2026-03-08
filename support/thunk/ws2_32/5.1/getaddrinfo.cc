@@ -3,8 +3,6 @@
 #include <thunk/_common.h>
 #include <thunk/addrinfo.h>
 
-#include <nocrt/stdlib.h>
-
 namespace mingw_thunk
 {
   __DEFINE_THUNK(ws2_32,
@@ -30,8 +28,13 @@ namespace mingw_thunk
                          _In_opt_ const ADDRINFOA *pHints,
                          _Out_ PADDRINFOA *ppResult)
     {
+      if (!pNodeName && !pServiceName)
+        return WSAHOST_NOT_FOUND;
+
+      // pServiceName-only is not yet implemented.
       if (!pNodeName)
         return WSAHOST_NOT_FOUND;
+
       if (pHints &&
           (pHints->ai_family != AF_UNSPEC && pHints->ai_family != AF_INET))
         return WSAEAFNOSUPPORT;
@@ -51,8 +54,13 @@ namespace mingw_thunk
         protocol = IPPROTO_UDP;
 
       int port = 0;
-      if (pServiceName)
-        port = libc::atoi(pServiceName);
+      if (pServiceName) {
+        const char *pnum = pServiceName;
+        while (*pnum && *pnum >= '0' && *pnum <= '9') {
+          port = port * 10 + (*pnum - '0');
+          pnum++;
+        }
+      }
 
       struct hostent *host = gethostbyname(pNodeName);
       if (!host)

@@ -2,50 +2,32 @@
 #include <thunk/os.h>
 #include <thunk/string.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <io.h>
 #include <stdarg.h>
 
 namespace mingw_thunk
 {
-  namespace internal
-  {
-    int _wopen(const wchar_t *filename, int oflag);
-    int _wopen(const wchar_t *filename, int oflag, int pmode);
-  } // namespace internal
-
   __DEFINE_THUNK(
-      msvcrt, 0, int, __cdecl, _wopen, const wchar_t *filename, int oflag, ...)
+      msvcrt, 0, int, __cdecl, _wopen, const wchar_t *path, int flags, ...)
   {
-    if (oflag & _O_CREAT) {
-      va_list args;
-      va_start(args, oflag);
-      int res = internal::_wopen(filename, oflag, va_arg(args, int));
-      va_end(args);
-      return res;
-    } else {
-      return internal::_wopen(filename, oflag);
+    if (!path) {
+      _set_errno(EINVAL);
+      return -1;
     }
+
+    va_list args;
+    va_start(args, flags);
+    int mode = va_arg(args, int);
+    va_end(args);
+
+    d::a_str a_path;
+    if (!a_path.from_w(path)) {
+      _set_errno(ENOMEM);
+      return -1;
+    }
+
+    return __ms__open(a_path.c_str(), flags, mode);
   }
-
-  namespace internal
-  {
-    int _wopen(const wchar_t *filename, int oflag)
-    {
-      if (is_nt())
-        return __ms__wopen(filename, oflag);
-
-      stl::string a_name = w2a(filename);
-      return __ms__open(a_name.c_str(), oflag);
-    }
-
-    int _wopen(const wchar_t *filename, int oflag, int pmode)
-    {
-      if (is_nt())
-        return __ms__wopen(filename, oflag, pmode);
-
-      stl::string a_name = w2a(filename);
-      return __ms__open(a_name.c_str(), oflag, pmode);
-    }
-  } // namespace internal
 } // namespace mingw_thunk
