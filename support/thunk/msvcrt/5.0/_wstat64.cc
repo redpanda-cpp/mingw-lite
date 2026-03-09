@@ -3,9 +3,8 @@
 #include <thunk/_common.h>
 #include <thunk/os.h>
 #include <thunk/wntcrt/errno.h>
+#include <thunk/wntcrt/stat.h>
 #include <thunk/wntcrt/time.h>
-
-#include <sys/stat.h>
 
 #include <windows.h>
 
@@ -19,13 +18,15 @@ namespace mingw_thunk
                  const wchar_t *path,
                  struct _stat64 *buffer)
   {
-    if (const auto pfn = try_get__wstat64(); pfn && internal::is_nt())
-      return pfn(path, buffer);
+    __DISPATCH_THUNK_2(_wstat64,
+                       const auto pfn = try_get__wstat64(),
+                       pfn,
+                       &f::time32__wstat64);
 
-    return impl::time32__wstat64(path, buffer);
+    return dllimport__wstat64(path, buffer);
   }
 
-  namespace impl
+  namespace f
   {
     int time32__wstat64(const wchar_t *path, struct _stat64 *buffer)
     {
@@ -56,5 +57,5 @@ namespace mingw_thunk
 
       return 0;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

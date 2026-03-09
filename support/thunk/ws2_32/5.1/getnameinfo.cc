@@ -1,6 +1,7 @@
 #include "getnameinfo.h"
 
 #include <thunk/_common.h>
+#include <thunk/_no_thunk.h>
 #include <thunk/addrinfo.h>
 #include <thunk/string.h>
 
@@ -19,33 +20,29 @@ namespace mingw_thunk
                  _In_ DWORD ServiceBufferLength,
                  _In_ INT Flags)
   {
-    if (const auto pfn = try_get_getnameinfo())
-      return pfn(pSockaddr,
-                 SockaddrLength,
-                 pNodeBuffer,
-                 NodeBufferLength,
-                 pServiceBuffer,
-                 ServiceBufferLength,
-                 Flags);
+    __DISPATCH_THUNK_2(getnameinfo,
+                       const auto pfn = try_get_getnameinfo(),
+                       pfn,
+                       &f::ipv4_getnameinfo);
 
-    return impl::ipv4_getnameinfo(pSockaddr,
-                                  SockaddrLength,
-                                  pNodeBuffer,
-                                  NodeBufferLength,
-                                  pServiceBuffer,
-                                  ServiceBufferLength,
-                                  Flags);
+    return dllimport_getnameinfo(pSockaddr,
+                                 SockaddrLength,
+                                 pNodeBuffer,
+                                 NodeBufferLength,
+                                 pServiceBuffer,
+                                 ServiceBufferLength,
+                                 Flags);
   }
 
-  namespace impl
+  namespace f
   {
-    INT ipv4_getnameinfo(_In_ const SOCKADDR *pSockaddr,
-                         _In_ socklen_t SockaddrLength,
-                         _Out_ PCHAR pNodeBuffer,
-                         _In_ DWORD NodeBufferLength,
-                         _Out_ PCHAR pServiceBuffer,
-                         _In_ DWORD ServiceBufferLength,
-                         _In_ INT Flags)
+    INT WSAAPI ipv4_getnameinfo(_In_ const SOCKADDR *pSockaddr,
+                                _In_ socklen_t SockaddrLength,
+                                _Out_ PCHAR pNodeBuffer,
+                                _In_ DWORD NodeBufferLength,
+                                _Out_ PCHAR pServiceBuffer,
+                                _In_ DWORD ServiceBufferLength,
+                                _In_ INT Flags)
     {
       if (pServiceBuffer && ServiceBufferLength > 0) {
         int port = ntohs(((sockaddr_in *)pSockaddr)->sin_port);
@@ -99,5 +96,5 @@ namespace mingw_thunk
         return WSAEFAULT;
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

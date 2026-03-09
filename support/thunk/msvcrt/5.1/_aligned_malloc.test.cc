@@ -10,11 +10,11 @@ TEST_CASE("_aligned_malloc and _aligned_free")
 {
   size_t alignment = 64;
   for (size_t size = 1; size < (1 << 20); size <<= 1) {
-    void *ptr = mingw_thunk::impl::fallback__aligned_malloc(size, alignment);
+    void *ptr = mingw_thunk::f::fallback__aligned_malloc(size, alignment);
 
     REQUIRE(ptr != nullptr);
     REQUIRE((reinterpret_cast<uintptr_t>(ptr) & (alignment - 1)) == 0);
 
-    mingw_thunk::impl::fallback__aligned_free(ptr);
+    mingw_thunk::f::fallback__aligned_free(ptr);
   }
 }

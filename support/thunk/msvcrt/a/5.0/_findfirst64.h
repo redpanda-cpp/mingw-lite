@@ -4,9 +4,9 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     intptr_t time32__findfirst64(const char *filespec,
-                                 struct __finddata64_t *fileinfo);
-  } // namespace impl
+                                   struct __finddata64_t *fileinfo);
+  } // namespace f
 } // namespace mingw_thunk

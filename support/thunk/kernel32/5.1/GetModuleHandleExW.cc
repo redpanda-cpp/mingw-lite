@@ -1,3 +1,5 @@
+#include "GetModuleHandleExW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -15,59 +17,71 @@ namespace mingw_thunk
                  _In_opt_ LPCWSTR lpModuleName,
                  _Out_ HMODULE *phModule)
   {
-    if (const auto pfn = try_get_GetModuleHandleExW())
-      return pfn(dwFlags, lpModuleName, phModule);
+    __DISPATCH_THUNK_2(GetModuleHandleExW,
+                       const auto pfn = try_get_GetModuleHandleExW(),
+                       pfn,
+                       &f::fallback_GetModuleHandleExW);
 
-    DWORD known_flags = GET_MODULE_HANDLE_EX_FLAG_PIN |
-                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
-                        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;
+    return dllimport_GetModuleHandleExW(dwFlags, lpModuleName, phModule);
+  }
 
-    bool pin = dwFlags & GET_MODULE_HANDLE_EX_FLAG_PIN;
-    bool unchanged_refcount =
-        dwFlags & GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
-    bool from_address = dwFlags & GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;
+  namespace f
+  {
+    BOOL __stdcall fallback_GetModuleHandleExW(_In_ DWORD dwFlags,
+                                               _In_opt_ LPCWSTR lpModuleName,
+                                               _Out_ HMODULE *phModule)
+    {
+      DWORD known_flags = GET_MODULE_HANDLE_EX_FLAG_PIN |
+                          GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+                          GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;
 
-    if ((dwFlags & ~known_flags) || pin ||
-        (unchanged_refcount && from_address)) {
-      SetLastError(ERROR_NOT_SUPPORTED);
-      return FALSE;
-    }
+      bool pin = dwFlags & GET_MODULE_HANDLE_EX_FLAG_PIN;
+      bool unchanged_refcount =
+          dwFlags & GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
+      bool from_address = dwFlags & GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;
 
-    HMODULE h;
-    if (from_address) {
-
-#if THUNK_LEVEL >= NTDDI_WIN4
-
-      h = (HMODULE)__ms_RtlPcToFileHeader((PVOID)lpModuleName, (PVOID *)&h);
-      if (!h)
-        SetLastError(ERROR_DLL_NOT_FOUND);
-
-#else
-
-      if (internal::is_nt()) {
-        h = (HMODULE)ntdll_RtlPcToFileHeader()((PVOID)lpModuleName,
-                                               (PVOID *)&h);
-        if (!h)
-          SetLastError(ERROR_DLL_NOT_FOUND);
-      } else {
+      if ((dwFlags & ~known_flags) || pin ||
+          (unchanged_refcount && from_address)) {
         SetLastError(ERROR_NOT_SUPPORTED);
         return FALSE;
       }
 
+      HMODULE h;
+      if (from_address) {
+
+#if THUNK_LEVEL >= NTDDI_WIN4
+
+        h = (HMODULE)__ms_RtlPcToFileHeader((PVOID)lpModuleName, (PVOID *)&h);
+        if (!h)
+          SetLastError(ERROR_DLL_NOT_FOUND);
+
+#else
+
+        if (i::is_nt()) {
+          h = (HMODULE)ntdll_RtlPcToFileHeader()((PVOID)lpModuleName,
+                                                 (PVOID *)&h);
+          if (!h)
+            SetLastError(ERROR_DLL_NOT_FOUND);
+        } else {
+          SetLastError(ERROR_NOT_SUPPORTED);
+          return FALSE;
+        }
+
 #endif
 
-    } else {
-      if (unchanged_refcount)
-        h = GetModuleHandleW(lpModuleName);
-      else
-        h = LoadLibraryW(lpModuleName);
-    }
+      } else {
+        if (unchanged_refcount)
+          h = GetModuleHandleW(lpModuleName);
+        else
+          h = LoadLibraryW(lpModuleName);
+      }
 
-    if (h) {
-      *phModule = h;
-      return TRUE;
-    } else {
-      return FALSE;
+      if (h) {
+        *phModule = h;
+        return TRUE;
+      } else {
+        return FALSE;
+      }
     }
-  }
+  } // namespace f
 } // namespace mingw_thunk

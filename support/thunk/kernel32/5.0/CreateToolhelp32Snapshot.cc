@@ -1,3 +1,5 @@
+#include "CreateToolhelp32Snapshot.h"
+
 #include <thunk/_common.h>
 
 #include <tlhelp32.h>
@@ -14,10 +16,21 @@ namespace mingw_thunk
                  _In_ DWORD dwFlags,
                  _In_ DWORD th32ProcessID)
   {
-    if (const auto pfn = try_get_CreateToolhelp32Snapshot())
-      return pfn(dwFlags, th32ProcessID);
+    __DISPATCH_THUNK_2(CreateToolhelp32Snapshot,
+                       const auto pfn = try_get_CreateToolhelp32Snapshot(),
+                       pfn,
+                       &f::fallback_CreateToolhelp32Snapshot);
 
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return INVALID_HANDLE_VALUE;
+    return dllimport_CreateToolhelp32Snapshot(dwFlags, th32ProcessID);
   }
+
+  namespace f
+  {
+    HANDLE __stdcall fallback_CreateToolhelp32Snapshot(_In_ DWORD dwFlags,
+                                                       _In_ DWORD th32ProcessID)
+    {
+      SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+      return INVALID_HANDLE_VALUE;
+    }
+  } // namespace f
 } // namespace mingw_thunk

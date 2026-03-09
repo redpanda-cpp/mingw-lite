@@ -4,9 +4,9 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    HANDLE
+    HANDLE __stdcall
     win9x_CreateFileW(_In_ LPCWSTR lpFileName,
                       _In_ DWORD dwDesiredAccess,
                       _In_ DWORD dwShareMode,
@@ -14,5 +14,5 @@ namespace mingw_thunk
                       _In_ DWORD dwCreationDisposition,
                       _In_ DWORD dwFlagsAndAttributes,
                       _In_opt_ HANDLE hTemplateFile);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

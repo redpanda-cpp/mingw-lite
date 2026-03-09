@@ -25,33 +25,26 @@ namespace mingw_thunk
                  _In_ LPSTARTUPINFOW lpStartupInfo,
                  _Out_ LPPROCESS_INFORMATION lpProcessInformation)
   {
-    if (internal::is_nt())
-      return __ms_CreateProcessW(lpApplicationName,
-                                 lpCommandLine,
-                                 lpProcessAttributes,
-                                 lpThreadAttributes,
-                                 bInheritHandles,
-                                 dwCreationFlags,
-                                 lpEnvironment,
-                                 lpCurrentDirectory,
-                                 lpStartupInfo,
-                                 lpProcessInformation);
+    __DISPATCH_THUNK_2(CreateProcessW,
+                       i::is_nt(),
+                       &__ms_CreateProcessW,
+                       &f::win9x_CreateProcessW);
 
-    return impl::win9x_CreateProcessW(lpApplicationName,
-                                      lpCommandLine,
-                                      lpProcessAttributes,
-                                      lpThreadAttributes,
-                                      bInheritHandles,
-                                      dwCreationFlags,
-                                      lpEnvironment,
-                                      lpCurrentDirectory,
-                                      lpStartupInfo,
-                                      lpProcessInformation);
+    return dllimport_CreateProcessW(lpApplicationName,
+                                    lpCommandLine,
+                                    lpProcessAttributes,
+                                    lpThreadAttributes,
+                                    bInheritHandles,
+                                    dwCreationFlags,
+                                    lpEnvironment,
+                                    lpCurrentDirectory,
+                                    lpStartupInfo,
+                                    lpProcessInformation);
   }
 
-  namespace impl
+  namespace f
   {
-    BOOL
+    BOOL __stdcall
     win9x_CreateProcessW(_In_opt_ LPCWSTR lpApplicationName,
                          _Inout_opt_ LPWSTR lpCommandLine,
                          _In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
@@ -150,5 +143,5 @@ namespace mingw_thunk
           &a_startup_info,
           lpProcessInformation);
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

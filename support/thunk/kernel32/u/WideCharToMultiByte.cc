@@ -42,7 +42,7 @@ namespace mingw_thunk
                                     lpDefaultChar,
                                     lpUsedDefaultChar);
 #else
-    if (internal::os_geq(VER_PLATFORM_WIN32_WINDOWS, 4, 10))
+    if (i::os_version() >= g::win32_win98)
       return __ms_WideCharToMultiByte(CodePage,
                                       dwFlags,
                                       lpWideCharStr,
@@ -51,14 +51,14 @@ namespace mingw_thunk
                                       cbMultiByte,
                                       lpDefaultChar,
                                       lpUsedDefaultChar);
-    return impl::win95_WideCharToMultiByte(CodePage,
-                                           dwFlags,
-                                           lpWideCharStr,
-                                           cchWideChar,
-                                           lpMultiByteStr,
-                                           cbMultiByte,
-                                           lpDefaultChar,
-                                           lpUsedDefaultChar);
+    return f::win95_WideCharToMultiByte(CodePage,
+                                        dwFlags,
+                                        lpWideCharStr,
+                                        cchWideChar,
+                                        lpMultiByteStr,
+                                        cbMultiByte,
+                                        lpDefaultChar,
+                                        lpUsedDefaultChar);
 #endif
   }
 } // namespace mingw_thunk

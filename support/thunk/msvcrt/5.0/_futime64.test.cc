@@ -19,13 +19,13 @@ TEST_CASE("_futime64 and _fstat64")
 
   struct __utimbuf64 times = {0x1'0000'0000, 0x1'0000'0000};
 
-  int ret = mingw_thunk::impl::time32__futime64(fd, &times);
+  int ret = mingw_thunk::f::time32__futime64(fd, &times);
 
   REQUIRE(ret == 0);
 
   struct __stat64 stats;
 
-  ret = mingw_thunk::impl::time32__fstat64(fd, &stats);
+  ret = mingw_thunk::f::time32__fstat64(fd, &stats);
 
   REQUIRE(ret == 0);
   REQUIRE(stats.st_mtime == times.modtime);

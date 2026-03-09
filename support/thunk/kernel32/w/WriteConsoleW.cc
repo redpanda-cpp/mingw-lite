@@ -20,27 +20,25 @@ namespace mingw_thunk
                  _Out_opt_ LPDWORD lpNumberOfCharsWritten,
                  _Reserved_ LPVOID lpReserved)
   {
-    if (internal::is_nt())
-      return __ms_WriteConsoleW(hConsoleOutput,
-                                lpBuffer,
-                                nNumberOfCharsToWrite,
-                                lpNumberOfCharsWritten,
-                                lpReserved);
+    __DISPATCH_THUNK_2(WriteConsoleW,
+                       i::is_nt(),
+                       &__ms_WriteConsoleW,
+                       &f::win9x_WriteConsoleW);
 
-    return impl::win9x_WriteConsoleW(hConsoleOutput,
-                                     lpBuffer,
-                                     nNumberOfCharsToWrite,
-                                     lpNumberOfCharsWritten,
-                                     lpReserved);
+    return dllimport_WriteConsoleW(hConsoleOutput,
+                                   lpBuffer,
+                                   nNumberOfCharsToWrite,
+                                   lpNumberOfCharsWritten,
+                                   lpReserved);
   }
 
-  namespace impl
+  namespace f
   {
-    BOOL win9x_WriteConsoleW(_In_ HANDLE hConsoleOutput,
-                             _In_ const VOID *lpBuffer,
-                             _In_ DWORD nNumberOfCharsToWrite,
-                             _Out_opt_ LPDWORD lpNumberOfCharsWritten,
-                             _Reserved_ LPVOID lpReserved)
+    BOOL __stdcall win9x_WriteConsoleW(_In_ HANDLE hConsoleOutput,
+                                       _In_ const VOID *lpBuffer,
+                                       _In_ DWORD nNumberOfCharsToWrite,
+                                       _Out_opt_ LPDWORD lpNumberOfCharsWritten,
+                                       _Reserved_ LPVOID lpReserved)
     {
       if (!lpBuffer) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -67,5 +65,5 @@ namespace mingw_thunk
       }
       return ok;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

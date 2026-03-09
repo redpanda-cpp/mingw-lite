@@ -1,6 +1,7 @@
 #include "CommandLineToArgvW.h"
 
 #include <thunk/_common.h>
+#include <thunk/_no_thunk.h>
 #include <thunk/os.h>
 #include <thunk/string.h>
 
@@ -14,13 +15,15 @@ namespace mingw_thunk
                  _In_ LPCWSTR lpCmdLine,
                  _Out_ int *pNumArgs)
   {
-    if (internal::is_nt())
-      return __ms_CommandLineToArgvW(lpCmdLine, pNumArgs);
+    __DISPATCH_THUNK_2(CommandLineToArgvW,
+                       i::is_nt(),
+                       &__ms_CommandLineToArgvW,
+                       &f::win9x_CommandLineToArgvW);
 
-    return impl::win9x_CommandLineToArgvW(lpCmdLine, pNumArgs);
+    return dllimport_CommandLineToArgvW(lpCmdLine, pNumArgs);
   }
 
-  namespace impl
+  namespace f
   {
     namespace
     {
@@ -132,8 +135,8 @@ namespace mingw_thunk
       }
     } // namespace
 
-    LPWSTR *win9x_CommandLineToArgvW(_In_ LPCWSTR lpCmdLine,
-                                     _Out_ int *pNumArgs)
+    LPWSTR *__stdcall win9x_CommandLineToArgvW(_In_ LPCWSTR lpCmdLine,
+                                               _Out_ int *pNumArgs)
     {
       if (!pNumArgs) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -181,5 +184,5 @@ namespace mingw_thunk
       *pNumArgs = argc;
       return argv;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

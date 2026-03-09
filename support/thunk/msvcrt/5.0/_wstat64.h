@@ -1,11 +1,11 @@
 #pragma once
 
-#include <sys/stat.h>
+#include <thunk/wntcrt/stat.h>
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     int time32__wstat64(const wchar_t *path, struct _stat64 *buffer);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

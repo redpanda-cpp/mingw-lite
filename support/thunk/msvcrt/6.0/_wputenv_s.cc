@@ -18,13 +18,15 @@ namespace mingw_thunk
                  const wchar_t *varname,
                  const wchar_t *value_string)
   {
-    if (const auto pfn = try_get__wputenv_s())
-      return pfn(varname, value_string);
+    __DISPATCH_THUNK_2(_wputenv_s,
+                       const auto pfn = try_get__wputenv_s(),
+                       pfn,
+                       &f::fallback__wputenv_s);
 
-    return impl::fallback__wputenv_s(varname, value_string);
+    return dllimport__wputenv_s(varname, value_string);
   }
 
-  namespace impl
+  namespace f
   {
     errno_t fallback__wputenv_s(const wchar_t *varname,
                                 const wchar_t *value_string)
@@ -39,5 +41,5 @@ namespace mingw_thunk
 
       return 0;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

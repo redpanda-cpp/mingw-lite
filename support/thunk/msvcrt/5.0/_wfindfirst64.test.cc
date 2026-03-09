@@ -23,14 +23,14 @@ TEST_CASE("_wfindfirst64 and _wfindnext64")
   _wfinddata64_t data;
   bool found = false;
 
-  intptr_t handle = mingw_thunk::impl::time32__wfindfirst64(pattern, &data);
+  intptr_t handle = mingw_thunk::f::time32__wfindfirst64(pattern, &data);
 
   REQUIRE(handle != -1);
 
   do {
     if (wcsncmp(data.name, filename, MAX_PATH) == 0)
       found = true;
-  } while (mingw_thunk::impl::time32__wfindnext64(handle, &data) == 0);
+  } while (mingw_thunk::f::time32__wfindnext64(handle, &data) == 0);
 
   REQUIRE(errno == ENOENT);
 

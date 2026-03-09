@@ -4,9 +4,9 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     errno_t
     fallback_wcscpy_s(wchar_t *dest, rsize_t dest_size, const wchar_t *src);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

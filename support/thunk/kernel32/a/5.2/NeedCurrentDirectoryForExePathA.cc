@@ -1,3 +1,5 @@
+#include "NeedCurrentDirectoryForExePathA.h"
+
 #include <thunk/_common.h>
 #include <thunk/string.h>
 
@@ -12,20 +14,31 @@ namespace mingw_thunk
                  NeedCurrentDirectoryForExePathA,
                  _In_ LPCSTR ExeName)
   {
-    if (const auto pfn = try_get_NeedCurrentDirectoryForExePathA())
-      return pfn(ExeName);
+    __DISPATCH_THUNK_2(NeedCurrentDirectoryForExePathA,
+                       const auto pfn =
+                           try_get_NeedCurrentDirectoryForExePathA(),
+                       pfn,
+                       &f::fallback_NeedCurrentDirectoryForExePathA);
 
-    if (!ExeName) {
-      SetLastError(ERROR_INVALID_PARAMETER);
-      return FALSE;
-    }
-
-    d::w_str w_exe_name;
-    if (!w_exe_name.from_a(ExeName)) {
-      SetLastError(ERROR_OUTOFMEMORY);
-      return FALSE;
-    }
-
-    return NeedCurrentDirectoryForExePathW(w_exe_name.c_str());
+    return dllimport_NeedCurrentDirectoryForExePathA(ExeName);
   }
+
+  namespace f
+  {
+    BOOL __stdcall fallback_NeedCurrentDirectoryForExePathA(_In_ LPCSTR ExeName)
+    {
+      if (!ExeName) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+      }
+
+      d::w_str w_exe_name;
+      if (!w_exe_name.from_a(ExeName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
+      return NeedCurrentDirectoryForExePathW(w_exe_name.c_str());
+    }
+  } // namespace f
 } // namespace mingw_thunk

@@ -23,13 +23,13 @@ TEST_CASE("getnameinfo")
     char service[NI_MAXSERV];
 
     int ret =
-        mingw_thunk::impl::ipv4_getnameinfo(reinterpret_cast<sockaddr *>(&addr),
-                                            sizeof(addr),
-                                            host,
-                                            sizeof(host),
-                                            service,
-                                            sizeof(service),
-                                            0);
+        mingw_thunk::f::ipv4_getnameinfo(reinterpret_cast<sockaddr *>(&addr),
+                                         sizeof(addr),
+                                         host,
+                                         sizeof(host),
+                                         service,
+                                         sizeof(service),
+                                         0);
     REQUIRE(ret == 0);
   }
 
@@ -44,24 +44,23 @@ TEST_CASE("getnameinfo")
 
     // no flags, invalid address is okay
     int ret =
-        mingw_thunk::impl::ipv4_getnameinfo(reinterpret_cast<sockaddr *>(&addr),
-                                            sizeof(addr),
-                                            host,
-                                            sizeof(host),
-                                            service,
-                                            sizeof(service),
-                                            0);
+        mingw_thunk::f::ipv4_getnameinfo(reinterpret_cast<sockaddr *>(&addr),
+                                         sizeof(addr),
+                                         host,
+                                         sizeof(host),
+                                         service,
+                                         sizeof(service),
+                                         0);
     REQUIRE(ret == 0);
 
     // NI_NAMEREQD specified, invalid address raises error
-    ret =
-        mingw_thunk::impl::ipv4_getnameinfo(reinterpret_cast<sockaddr *>(&addr),
-                                            sizeof(addr),
-                                            host,
-                                            sizeof(host),
-                                            service,
-                                            sizeof(service),
-                                            NI_NAMEREQD);
+    ret = mingw_thunk::f::ipv4_getnameinfo(reinterpret_cast<sockaddr *>(&addr),
+                                           sizeof(addr),
+                                           host,
+                                           sizeof(host),
+                                           service,
+                                           sizeof(service),
+                                           NI_NAMEREQD);
     REQUIRE(ret == EAI_NONAME);
   }
 }

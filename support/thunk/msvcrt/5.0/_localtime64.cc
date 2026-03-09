@@ -14,13 +14,15 @@ namespace mingw_thunk
                  _localtime64,
                  const __time64_t *sourceTime)
   {
-    if (const auto pfn = try_get__localtime64())
-      return pfn(sourceTime);
+    __DISPATCH_THUNK_2(_localtime64,
+                       const auto pfn = try_get__localtime64(),
+                       pfn,
+                       &f::time32__localtime64);
 
-    return impl::time32__localtime64(sourceTime);
+    return dllimport__localtime64(sourceTime);
   }
 
-  namespace impl
+  namespace f
   {
     struct tm *time32__localtime64(const __time64_t *sourceTime)
     {
@@ -59,5 +61,5 @@ namespace mingw_thunk
         return &tm;
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

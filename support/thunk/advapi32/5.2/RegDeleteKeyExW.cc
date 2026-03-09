@@ -1,3 +1,5 @@
+#include "RegDeleteKeyExW.h"
+
 #include <thunk/_common.h>
 
 #include <windows.h>
@@ -16,10 +18,22 @@ namespace mingw_thunk
                  _In_ REGSAM samDesired,
                  _Reserved_ DWORD Reserved)
   {
-    if (auto const pRegDeleteKeyExW = try_get_RegDeleteKeyExW()) {
-      return pRegDeleteKeyExW(hKey, lpSubKey, samDesired, Reserved);
-    }
+    __DISPATCH_THUNK_2(RegDeleteKeyExW,
+                       const auto pfn = try_get_RegDeleteKeyExW(),
+                       pfn,
+                       &f::fallback_RegDeleteKeyExW);
 
-    return RegDeleteKeyW(hKey, lpSubKey);
+    return dllimport_RegDeleteKeyExW(hKey, lpSubKey, samDesired, Reserved);
   }
+
+  namespace f
+  {
+    LSTATUS __stdcall fallback_RegDeleteKeyExW(_In_ HKEY hKey,
+                                               _In_ LPCWSTR lpSubKey,
+                                               _In_ REGSAM samDesired,
+                                               _Reserved_ DWORD Reserved)
+    {
+      return RegDeleteKeyW(hKey, lpSubKey);
+    }
+  } // namespace f
 } // namespace mingw_thunk

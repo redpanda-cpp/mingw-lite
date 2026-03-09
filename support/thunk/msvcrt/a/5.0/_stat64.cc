@@ -2,9 +2,8 @@
 
 #include <thunk/_common.h>
 #include <thunk/wntcrt/errno.h>
+#include <thunk/wntcrt/stat.h>
 #include <thunk/wntcrt/time.h>
-
-#include <sys/stat.h>
 
 #include <windows.h>
 
@@ -16,15 +15,15 @@ namespace mingw_thunk
                  __cdecl,
                  _stat64,
                  const char *path,
-                 struct __stat64 *buffer)
+                 struct _stat64 *buffer)
   {
-    if (const auto pfn = try_get__stat64())
-      return pfn(path, buffer);
+    __DISPATCH_THUNK_2(
+        _stat64, const auto pfn = try_get__stat64(), pfn, &f::time32__stat64);
 
-    return impl::time32__stat64(path, buffer);
+    return dllimport__stat64(path, buffer);
   }
 
-  namespace impl
+  namespace f
   {
     int time32__stat64(const char *path, struct __stat64 *buffer)
     {
@@ -55,5 +54,5 @@ namespace mingw_thunk
 
       return 0;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

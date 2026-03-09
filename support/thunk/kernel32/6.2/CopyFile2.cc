@@ -18,29 +18,30 @@ namespace mingw_thunk
                  _In_ PCWSTR pwszNewFileName,
                  _In_opt_ COPYFILE2_EXTENDED_PARAMETERS *pExtendedParameters)
   {
-    if (const auto pfn = try_get_CopyFile2())
-      return pfn(pwszExistingFileName, pwszNewFileName, pExtendedParameters);
-
 #if THUNK_LEVEL >= NTDDI_VISTA
-    return impl::winnt6_CopyFile2(
-        pwszExistingFileName, pwszNewFileName, pExtendedParameters);
+    __DISPATCH_THUNK_2(CopyFile2,
+                       const auto pfn = try_get_CopyFile2(),
+                       pfn,
+                       &f::vista_CopyFile2);
 #else
-    if (internal::os_geq(6, 0))
-      return impl::winnt6_CopyFile2(
-          pwszExistingFileName, pwszNewFileName, pExtendedParameters);
-    else
-      return impl::prent6_CopyFile2(
-          pwszExistingFileName, pwszNewFileName, pExtendedParameters);
+    __DISPATCH_THUNK_3(CopyFile2,
+                       const auto pfn = try_get_CopyFile2(),
+                       pfn,
+                       i::os_version() >= g::win32_vista,
+                       &f::vista_CopyFile2,
+                       &f::prevista_CopyFile2);
 #endif
+
+    return dllimport_CopyFile2(
+        pwszExistingFileName, pwszNewFileName, pExtendedParameters);
   }
 
-  namespace impl
+  namespace f
   {
-    HRESULT
-    winnt6_CopyFile2(
-        _In_ PCWSTR pwszExistingFileName,
-        _In_ PCWSTR pwszNewFileName,
-        _In_opt_ COPYFILE2_EXTENDED_PARAMETERS *pExtendedParameters)
+    HRESULT __stdcall
+    vista_CopyFile2(_In_ PCWSTR pwszExistingFileName,
+                    _In_ PCWSTR pwszNewFileName,
+                    _In_opt_ COPYFILE2_EXTENDED_PARAMETERS *pExtendedParameters)
     {
       DWORD copy_flags = 0;
       if (pExtendedParameters) {
@@ -71,8 +72,7 @@ namespace mingw_thunk
         return HRESULT_FROM_WIN32(GetLastError());
     }
 
-    HRESULT
-    prent6_CopyFile2(
+    HRESULT __stdcall prevista_CopyFile2(
         _In_ PCWSTR pwszExistingFileName,
         _In_ PCWSTR pwszNewFileName,
         _In_opt_ COPYFILE2_EXTENDED_PARAMETERS *pExtendedParameters)
@@ -87,9 +87,9 @@ namespace mingw_thunk
         params.pvCallbackContext = pExtendedParameters->pvCallbackContext;
       }
 
-      return winnt6_CopyFile2(pwszExistingFileName,
-                              pwszNewFileName,
-                              pExtendedParameters ? &params : nullptr);
+      return vista_CopyFile2(pwszExistingFileName,
+                             pwszNewFileName,
+                             pExtendedParameters ? &params : nullptr);
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

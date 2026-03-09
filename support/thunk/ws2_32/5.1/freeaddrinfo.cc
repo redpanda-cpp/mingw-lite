@@ -1,21 +1,24 @@
 #include "freeaddrinfo.h"
 
 #include <thunk/_common.h>
+#include <thunk/_no_thunk.h>
 
 namespace mingw_thunk
 {
   __DEFINE_THUNK(
       ws2_32, 4, VOID, WSAAPI, freeaddrinfo, _In_ PADDRINFOA pAddrInfo)
   {
-    if (auto pfreeaddrinfo = try_get_freeaddrinfo())
-      return pfreeaddrinfo(pAddrInfo);
+    __DISPATCH_THUNK_2(freeaddrinfo,
+                       const auto pfn = try_get_freeaddrinfo(),
+                       pfn,
+                       &f::ipv4_freeaddrinfo);
 
-    return impl::ipv4_freeaddrinfo(pAddrInfo);
+    return dllimport_freeaddrinfo(pAddrInfo);
   }
 
-  namespace impl
+  namespace f
   {
-    VOID ipv4_freeaddrinfo(_In_ PADDRINFOA pAddrInfo)
+    VOID WSAAPI ipv4_freeaddrinfo(_In_ PADDRINFOA pAddrInfo)
     {
       while (pAddrInfo) {
         auto *next = pAddrInfo->ai_next;
@@ -24,5 +27,5 @@ namespace mingw_thunk
         pAddrInfo = next;
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

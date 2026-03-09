@@ -1,3 +1,5 @@
+#include "GetVolumePathNamesForVolumeNameW.h"
+
 #include <thunk/_common.h>
 
 #include <windows.h>
@@ -15,13 +17,28 @@ namespace mingw_thunk
                  _In_ DWORD cchBufferLength,
                  _Out_ PDWORD lpcchReturnLength)
   {
-    if (const auto pfn = try_get_GetVolumePathNamesForVolumeNameW())
-      return pfn(lpszVolumeName,
-                 lpszVolumePathNames,
-                 cchBufferLength,
-                 lpcchReturnLength);
+    __DISPATCH_THUNK_2(GetVolumePathNamesForVolumeNameW,
+                       const auto pfn =
+                           try_get_GetVolumePathNamesForVolumeNameW(),
+                       pfn,
+                       &f::fallback_GetVolumePathNamesForVolumeNameW);
 
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return FALSE;
+    return dllimport_GetVolumePathNamesForVolumeNameW(lpszVolumeName,
+                                                      lpszVolumePathNames,
+                                                      cchBufferLength,
+                                                      lpcchReturnLength);
   }
+
+  namespace f
+  {
+    BOOL __stdcall
+    fallback_GetVolumePathNamesForVolumeNameW(_In_ LPCWSTR lpszVolumeName,
+                                              _Out_ LPWCH lpszVolumePathNames,
+                                              _In_ DWORD cchBufferLength,
+                                              _Out_ PDWORD lpcchReturnLength)
+    {
+      SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+      return FALSE;
+    }
+  } // namespace f
 } // namespace mingw_thunk

@@ -4,10 +4,10 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    BOOL fallback_GetCPInfoExW(_In_ UINT CodePage,
-                               _In_ DWORD dwFlags,
-                               _Out_ LPCPINFOEXW lpCPInfoEx);
-  }
+    BOOL WINAPI fallback_GetCPInfoExW(_In_ UINT CodePage,
+                                      _In_ DWORD dwFlags,
+                                      _Out_ LPCPINFOEXW lpCPInfoEx);
+  } // namespace f
 } // namespace mingw_thunk

@@ -10,7 +10,7 @@ TEST_CASE("_gmtime64")
     __time32_t time32 = time64;
     struct tm tm32 = *_gmtime32(&time32);
 
-    struct tm tm64 = *mingw_thunk::impl::time32__gmtime64(&time64);
+    struct tm tm64 = *mingw_thunk::f::time32__gmtime64(&time64);
 
     REQUIRE(tm32.tm_year == tm64.tm_year);
     REQUIRE(tm32.tm_mon == tm64.tm_mon);

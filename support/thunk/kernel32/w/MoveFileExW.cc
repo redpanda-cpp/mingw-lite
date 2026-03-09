@@ -18,18 +18,17 @@ namespace mingw_thunk
                  _In_opt_ LPCWSTR lpNewFileName,
                  _In_ DWORD dwFlags)
   {
-    if (internal::is_nt())
-      return get_MoveFileExW()(lpExistingFileName, lpNewFileName, dwFlags);
+    __DISPATCH_THUNK_2(
+        MoveFileExW, i::is_nt(), &__ms_MoveFileExW, &f::win9x_MoveFileExW);
 
-    // Windows 9x: `MoveFileExW(-A)` is a stub
-    return impl::win9x_MoveFileExW(lpExistingFileName, lpNewFileName, dwFlags);
+    return dllimport_MoveFileExW(lpExistingFileName, lpNewFileName, dwFlags);
   }
 
-  namespace impl
+  namespace f
   {
-    BOOL win9x_MoveFileExW(_In_ LPCWSTR lpExistingFileName,
-                           _In_opt_ LPCWSTR lpNewFileName,
-                           _In_ DWORD dwFlags)
+    BOOL __stdcall win9x_MoveFileExW(_In_ LPCWSTR lpExistingFileName,
+                                     _In_opt_ LPCWSTR lpNewFileName,
+                                     _In_ DWORD dwFlags)
     {
       if (dwFlags & MOVEFILE_DELAY_UNTIL_REBOOT) {
         SetLastError(ERROR_NOT_SUPPORTED);
@@ -46,6 +45,6 @@ namespace mingw_thunk
       }
       return ok;
     }
-  } // namespace impl
+  } // namespace f
 
 } // namespace mingw_thunk

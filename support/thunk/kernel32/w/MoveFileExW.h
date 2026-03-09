@@ -4,10 +4,10 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    BOOL win9x_MoveFileExW(_In_ LPCWSTR lpExistingFileName,
-                           _In_opt_ LPCWSTR lpNewFileName,
-                           _In_ DWORD dwFlags);
-  }
+    BOOL __stdcall win9x_MoveFileExW(_In_ LPCWSTR lpExistingFileName,
+                                     _In_opt_ LPCWSTR lpNewFileName,
+                                     _In_ DWORD dwFlags);
+  } // namespace f
 } // namespace mingw_thunk

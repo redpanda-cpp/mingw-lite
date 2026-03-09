@@ -4,9 +4,9 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    LPWSTR *win9x_CommandLineToArgvW(_In_ LPCWSTR lpCmdLine,
-                                     _Out_ int *pNumArgs);
+    LPWSTR *__stdcall win9x_CommandLineToArgvW(_In_ LPCWSTR lpCmdLine,
+                                               _Out_ int *pNumArgs);
   }
 } // namespace mingw_thunk

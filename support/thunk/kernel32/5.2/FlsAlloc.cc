@@ -1,3 +1,5 @@
+#include "FlsAlloc.h"
+
 #include <thunk/_common.h>
 
 #include <windows.h>
@@ -11,10 +13,21 @@ namespace mingw_thunk
                  FlsAlloc,
                  _In_opt_ PFLS_CALLBACK_FUNCTION lpCallback)
   {
-    if (const auto pfn = try_get_FlsAlloc())
-      return pfn(lpCallback);
+    __DISPATCH_THUNK_2(FlsAlloc,
+                       const auto pfn = try_get_FlsAlloc(),
+                       pfn,
+                       &f::fallback_FlsAlloc);
 
-    // UCRT ignores the callback function, so do we.
-    return TlsAlloc();
+    return dllimport_FlsAlloc(lpCallback);
   }
+
+  namespace f
+  {
+    DWORD __stdcall
+    fallback_FlsAlloc(_In_opt_ PFLS_CALLBACK_FUNCTION lpCallback)
+    {
+      // UCRT ignores the callback function, so do we.
+      return TlsAlloc();
+    }
+  } // namespace f
 } // namespace mingw_thunk

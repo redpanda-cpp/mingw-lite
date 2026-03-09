@@ -18,13 +18,15 @@ namespace mingw_thunk
                  intptr_t handle,
                  struct __finddata64_t *fileinfo)
   {
-    if (const auto pfn = try_get__findnext64())
-      return pfn(handle, fileinfo);
+    __DISPATCH_THUNK_2(_findnext64,
+                       const auto pfn = try_get__findnext64(),
+                       pfn,
+                       &f::time32__findnext64);
 
-    return impl::time32__findnext64(handle, fileinfo);
+    return dllimport__findnext64(handle, fileinfo);
   }
 
-  namespace impl
+  namespace f
   {
     int time32__findnext64(intptr_t handle, struct __finddata64_t *fileinfo)
     {
@@ -53,5 +55,5 @@ namespace mingw_thunk
 
       return 0;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

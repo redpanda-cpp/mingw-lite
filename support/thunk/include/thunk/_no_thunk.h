@@ -1,7 +1,7 @@
 #pragma once
 
 #include "_dll.h"
-#include "ddk/ntifs.h"
+#include "ddk.h"
 
 #include <ntdef.h>
 #include <shlobj.h>
@@ -33,12 +33,14 @@ namespace mingw_thunk
   {
     __DECLARE_NON_THUNK_FUNCTION(kernel32, CreateWaitableTimerA)
     __DECLARE_NON_THUNK_FUNCTION(kernel32, GetFileAttributesExA)
+    __DECLARE_NON_THUNK_FUNCTION(kernel32, GetLongPathNameA)
 
     __DECLARE_NON_THUNK_FUNCTION(ntdll, NtQueryDirectoryFile)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, NtQueryInformationFile)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, NtSetInformationFile)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlDosPathNameToNtPathName_U)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlFreeUnicodeString)
+    __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlGetNtVersionNumbers)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlPcToFileHeader)
   } // namespace
 
@@ -50,6 +52,7 @@ namespace mingw_thunk
   // kernel32
   __DECLARE_MS_IMPORT(CopyFileA)
   __DECLARE_MS_IMPORT(CopyFileExA)
+  __DECLARE_MS_IMPORT(CopyFileExW)
   __DECLARE_MS_IMPORT(CopyFileW)
   __DECLARE_MS_IMPORT(CreateDirectoryA)
   __DECLARE_MS_IMPORT(CreateDirectoryW)
@@ -92,7 +95,10 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(LCMapStringW)
   __DECLARE_MS_IMPORT(LoadLibraryW)
   __DECLARE_MS_IMPORT(LockFileEx)
+  __DECLARE_MS_IMPORT(MoveFileA)
   __DECLARE_MS_IMPORT(MoveFileExA)
+  __DECLARE_MS_IMPORT(MoveFileExW)
+  __DECLARE_MS_IMPORT(MoveFileW)
   __DECLARE_MS_IMPORT(MultiByteToWideChar)
   __DECLARE_MS_IMPORT(RemoveDirectoryA)
   __DECLARE_MS_IMPORT(RemoveDirectoryW)
@@ -116,6 +122,7 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(NtSetInformationFile)
   __DECLARE_MS_IMPORT(RtlDosPathNameToNtPathName_U)
   __DECLARE_MS_IMPORT(RtlFreeUnicodeString)
+  __DECLARE_MS_IMPORT(RtlGetNtVersionNumbers)
   __DECLARE_MS_IMPORT(RtlNtStatusToDosError)
   __DECLARE_MS_IMPORT(RtlPcToFileHeader)
 
@@ -130,15 +137,19 @@ namespace mingw_thunk
   // crt: filesystem
   __DECLARE_MS_IMPORT(_chdir)
   __DECLARE_MS_IMPORT(_chmod)
+#if !defined(_UCRT) && !defined(_WIN64)
+  __DECLARE_MS_IMPORT(_fstat32)
+  __DECLARE_MS_IMPORT(_fstat32i64)
+#endif
   __DECLARE_MS_IMPORT(_mkdir)
-#ifndef _WIN64
+#if !defined(_UCRT) && !defined(_WIN64)
   __DECLARE_MS_IMPORT(_stat32)
   __DECLARE_MS_IMPORT(_stat32i64)
 #endif
   __DECLARE_MS_IMPORT(_unlink)
   __DECLARE_MS_IMPORT(_wchdir)
   __DECLARE_MS_IMPORT(_wchmod)
-#ifndef _WIN64
+#if !defined(_UCRT) && !defined(_WIN64)
   __DECLARE_MS_IMPORT(_wfindfirst32)
   __DECLARE_MS_IMPORT(_wfindfirst32i64)
   __DECLARE_MS_IMPORT(_wfindnext32)
@@ -148,7 +159,7 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(_wmkdir)
   __DECLARE_MS_IMPORT(_wremove)
   __DECLARE_MS_IMPORT(_wrename)
-#ifndef _WIN64
+#if !defined(_UCRT) && !defined(_WIN64)
   __DECLARE_MS_IMPORT(_wstat32)
   __DECLARE_MS_IMPORT(_wstat32i64)
 #endif

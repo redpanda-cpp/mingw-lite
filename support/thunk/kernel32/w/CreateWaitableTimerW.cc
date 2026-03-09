@@ -20,52 +20,53 @@ namespace mingw_thunk
                  _In_ BOOL bManualReset,
                  _In_opt_ LPCWSTR lpTimerName)
   {
-    if (internal::is_nt()) {
 #if THUNK_LEVEL >= NTDDI_WIN98
-      return __ms_CreateWaitableTimerW(
-          lpTimerAttributes, bManualReset, lpTimerName);
+    __DISPATCH_THUNK_2(CreateWaitableTimerW,
+                       i::is_nt(),
+                       &__ms_CreateWaitableTimerW,
+                       &f::win98_CreateWaitableTimerW);
 #else
-      return get_CreateWaitableTimerW()(
-          lpTimerAttributes, bManualReset, lpTimerName);
+    __DISPATCH_THUNK_3(CreateWaitableTimerW,
+                       i::is_nt(),
+                       get_CreateWaitableTimerW(),
+                       i::os_version() >= g::win32_win98,
+                       &f::win98_CreateWaitableTimerW,
+                       &f::win95_CreateWaitableTimerW);
 #endif
-    }
 
-    return impl::win9x_CreateWaitableTimerW(
+    return dllimport_CreateWaitableTimerW(
         lpTimerAttributes, bManualReset, lpTimerName);
   }
 
-  namespace impl
+  namespace f
   {
-    HANDLE
-    win9x_CreateWaitableTimerW(_In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+    HANDLE __stdcall
+    win98_CreateWaitableTimerW(_In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
                                _In_ BOOL bManualReset,
                                _In_opt_ LPCWSTR lpTimerName)
     {
-#if THUNK_LEVEL >= NTDDI_WIN98
       d::a_str a_name;
       if (lpTimerName && !a_name.from_w(lpTimerName)) {
         SetLastError(ERROR_OUTOFMEMORY);
         return nullptr;
       }
-      return __ms_CreateWaitableTimerA(lpTimerAttributes,
-                                       bManualReset,
-                                       lpTimerName ? a_name.c_str() : nullptr);
+#if THUNK_LEVEL >= NTDDI_WIN98
+      const auto CreateWaitableTimerA = __ms_CreateWaitableTimerA;
 #else
-      if (internal::os_geq(VER_PLATFORM_WIN32_WINDOWS, 4, 10)) {
-        d::a_str a_name;
-        if (lpTimerName && !a_name.from_w(lpTimerName)) {
-          SetLastError(ERROR_OUTOFMEMORY);
-          return nullptr;
-        }
-        return kernel32_CreateWaitableTimerA()(lpTimerAttributes,
-                                               bManualReset,
-                                               lpTimerName ? a_name.c_str()
-                                                           : nullptr);
-      } else {
-        SetLastError(ERROR_NOT_SUPPORTED);
-        return nullptr;
-      }
+      const auto CreateWaitableTimerA = kernel32_CreateWaitableTimerA();
 #endif
+      return CreateWaitableTimerA(lpTimerAttributes,
+                                  bManualReset,
+                                  lpTimerName ? a_name.c_str() : nullptr);
     }
-  } // namespace impl
+
+    HANDLE __stdcall
+    win95_CreateWaitableTimerW(_In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+                               _In_ BOOL bManualReset,
+                               _In_opt_ LPCWSTR lpTimerName)
+    {
+      SetLastError(ERROR_NOT_SUPPORTED);
+      return nullptr;
+    }
+  } // namespace f
 } // namespace mingw_thunk

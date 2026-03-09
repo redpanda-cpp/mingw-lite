@@ -1,3 +1,5 @@
+#include "_wfindfirst.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -20,24 +22,35 @@ namespace mingw_thunk
                  const wchar_t *filespec,
                  struct _wfinddata32_t *fileinfo)
   {
-    if (internal::is_nt())
-      return __ms__wfindfirst32(filespec, fileinfo);
+    __DISPATCH_THUNK_2(
+        _wfindfirst, i::is_nt(), &__ms__wfindfirst32, &f::win9x__wfindfirst);
 
-    WIN32_FIND_DATAW fd;
-    HANDLE h = FindFirstFileW(filespec, &fd);
-    if (h == INVALID_HANDLE_VALUE) {
-      internal::dosmaperr(GetLastError());
-      return -1;
-    }
-
-    fileinfo->attrib = fd.dwFileAttributes;
-    fileinfo->time_create = internal::c_time64_from_filetime(fd.ftCreationTime);
-    fileinfo->time_access =
-        internal::c_time64_from_filetime(fd.ftLastAccessTime);
-    fileinfo->time_write = internal::c_time64_from_filetime(fd.ftLastWriteTime);
-    fileinfo->size = fd.nFileSizeLow;
-    wcsncpy(fileinfo->name, fd.cFileName, MAX_PATH);
-
-    return reinterpret_cast<intptr_t>(h);
+    return dllimport__wfindfirst(filespec, fileinfo);
   }
+
+  namespace f
+  {
+    intptr_t win9x__wfindfirst(const wchar_t *filespec,
+                               struct _wfinddata32_t *fileinfo)
+    {
+      WIN32_FIND_DATAW fd;
+      HANDLE h = FindFirstFileW(filespec, &fd);
+      if (h == INVALID_HANDLE_VALUE) {
+        internal::dosmaperr(GetLastError());
+        return -1;
+      }
+
+      fileinfo->attrib = fd.dwFileAttributes;
+      fileinfo->time_create =
+          internal::c_time64_from_filetime(fd.ftCreationTime);
+      fileinfo->time_access =
+          internal::c_time64_from_filetime(fd.ftLastAccessTime);
+      fileinfo->time_write =
+          internal::c_time64_from_filetime(fd.ftLastWriteTime);
+      fileinfo->size = fd.nFileSizeLow;
+      wcsncpy(fileinfo->name, fd.cFileName, MAX_PATH);
+
+      return reinterpret_cast<intptr_t>(h);
+    }
+  } // namespace f
 } // namespace mingw_thunk

@@ -1,3 +1,5 @@
+#include "K32GetModuleFileNameExW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 
@@ -20,23 +22,37 @@ namespace mingw_thunk
                  _Out_ LPWSTR lpFilename,
                  _In_ DWORD nSize)
   {
-    if (const auto pfn = try_get_K32GetModuleFileNameExW())
-      return pfn(hProcess, hModule, lpFilename, nSize);
-
 #if THUNK_LEVEL >= NTDDI_WINXP
-
-    return __ms_GetModuleFileNameExW(hProcess, hModule, lpFilename, nSize);
-
+    __DISPATCH_THUNK_2(K32GetModuleFileNameExW,
+                       const auto pfn = try_get_K32GetModuleFileNameExW(),
+                       pfn,
+                       &__ms_GetModuleFileNameExW);
 #else
-
-    if (const auto pfn = internal::module_psapi()
-                             .get_function<decltype(::K32GetModuleFileNameExW)>(
-                                 "GetModuleFileNameExW"))
-      return pfn(hProcess, hModule, lpFilename, nSize);
-
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return 0;
-
+    __DISPATCH_THUNK_3(
+        K32GetModuleFileNameExW,
+        const auto pfn = try_get_K32GetModuleFileNameExW(),
+        pfn,
+        const auto psapi_fn =
+            internal::module_psapi()
+                .get_function<decltype(::K32GetModuleFileNameExW)>(
+                    "GetModuleFileNameExW"),
+        psapi_fn,
+        &f::prexp_K32GetModuleFileNameExW);
 #endif
+
+    return dllimport_K32GetModuleFileNameExW(
+        hProcess, hModule, lpFilename, nSize);
   }
+
+  namespace f
+  {
+    DWORD __stdcall prexp_K32GetModuleFileNameExW(_In_ HANDLE hProcess,
+                                                  _In_opt_ HMODULE hModule,
+                                                  _Out_ LPWSTR lpFilename,
+                                                  _In_ DWORD nSize)
+    {
+      SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+      return 0;
+    }
+  } // namespace f
 } // namespace mingw_thunk

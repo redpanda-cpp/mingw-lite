@@ -7,7 +7,7 @@
 TEST_CASE("GetSystemTimePreciseAsFileTime")
 {
   FILETIME ft1;
-  mingw_thunk::impl::fallback_GetSystemTimePreciseAsFileTime(&ft1);
+  mingw_thunk::f::fallback_GetSystemTimePreciseAsFileTime(&ft1);
 
   FILETIME ft2;
   GetSystemTimeAsFileTime(&ft2);

@@ -1,3 +1,5 @@
+#include "ConvertStringSecurityDescriptorToSecurityDescriptorW.h"
+
 #include <thunk/_common.h>
 
 #include <sddl.h>
@@ -5,7 +7,7 @@
 
 namespace mingw_thunk
 {
-  __DEFINE_THUNK(kernel32,
+  __DEFINE_THUNK(advapi32,
                  16,
                  BOOL,
                  WINAPI,
@@ -15,15 +17,32 @@ namespace mingw_thunk
                  _Out_ PSECURITY_DESCRIPTOR *SecurityDescriptor,
                  _Out_ PULONG SecurityDescriptorSize)
   {
-    if (const auto pfn =
-            try_get_ConvertStringSecurityDescriptorToSecurityDescriptorW())
-      return pfn(StringSecurityDescriptor,
-                 StringSDRevision,
-                 SecurityDescriptor,
-                 SecurityDescriptorSize);
+    __DISPATCH_THUNK_2(
+        ConvertStringSecurityDescriptorToSecurityDescriptorW,
+        const auto pfn =
+            try_get_ConvertStringSecurityDescriptorToSecurityDescriptorW(),
+        pfn,
+        &f::fallback_ConvertStringSecurityDescriptorToSecurityDescriptorW);
 
-    *SecurityDescriptor = nullptr;
-    *SecurityDescriptorSize = 0;
-    return TRUE;
+    return dllimport_ConvertStringSecurityDescriptorToSecurityDescriptorW(
+        StringSecurityDescriptor,
+        StringSDRevision,
+        SecurityDescriptor,
+        SecurityDescriptorSize);
   }
+
+  namespace f
+  {
+    BOOL __stdcall
+    fallback_ConvertStringSecurityDescriptorToSecurityDescriptorW(
+        _In_ LPCWSTR StringSecurityDescriptor,
+        _In_ DWORD StringSDRevision,
+        _Out_ PSECURITY_DESCRIPTOR *SecurityDescriptor,
+        _Out_ PULONG SecurityDescriptorSize)
+    {
+      *SecurityDescriptor = nullptr;
+      *SecurityDescriptorSize = 0;
+      return TRUE;
+    }
+  } // namespace f
 } // namespace mingw_thunk

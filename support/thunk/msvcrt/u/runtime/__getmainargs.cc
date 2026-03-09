@@ -69,7 +69,7 @@ namespace mingw_thunk
 
 #elif THUNK_LEVEL >= NTDDI_WIN4
 
-    if (internal::os_geq(6, 0)) {
+    if (i::os_version() >= g::win32_vista) {
       auto ret = internal::u8_envp_from_wenvp(wenvp);
       envc = ret.envc;
       envp = ret.envp;
@@ -82,11 +82,11 @@ namespace mingw_thunk
 
 #else
 
-    if (internal::os_geq(6, 0)) {
+    if (i::os_version() >= g::win32_vista) {
       auto ret = internal::u8_envp_from_wenvp(wenvp);
       envc = ret.envc;
       envp = ret.envp;
-    } else if (internal::is_nt()) {
+    } else if (i::is_nt()) {
       // Fake wenvp (converted from envp)
       auto ret = internal::u8_envp_from_win32_env_strings();
       envc = ret.envc;
@@ -128,8 +128,7 @@ namespace mingw_thunk
       while (wenvp[envc])
         envc++;
 
-      char **envp =
-          (char **)malloc(sizeof(char *) * (envc + 1));
+      char **envp = (char **)malloc(sizeof(char *) * (envc + 1));
       for (int i = 0; i < envc; i++) {
         int len = WideCharToMultiByte(
             CP_UTF8, 0, wenvp[i], -1, nullptr, 0, nullptr, nullptr);
@@ -155,8 +154,7 @@ namespace mingw_thunk
         p += wcslen(p) + 1;
       }
 
-      char **envp =
-          (char **)malloc(sizeof(char *) * (envc + 1));
+      char **envp = (char **)malloc(sizeof(char *) * (envc + 1));
       p = env_strings;
       for (int i = 0; i < envc; i++) {
         size_t w_len = wcslen(p);

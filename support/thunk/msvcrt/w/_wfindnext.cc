@@ -1,3 +1,5 @@
+#include "_wfindnext.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -20,25 +22,35 @@ namespace mingw_thunk
                  intptr_t handle,
                  struct _wfinddata32_t *fileinfo)
   {
-    if (internal::is_nt())
-      return __ms__wfindnext32(handle, fileinfo);
+    __DISPATCH_THUNK_2(
+        _wfindnext, i::is_nt(), &__ms__wfindnext32, &f::win9x__wfindnext);
 
-    HANDLE h = reinterpret_cast<HANDLE>(handle);
-
-    WIN32_FIND_DATAW fd;
-    if (!FindNextFileW(h, &fd)) {
-      internal::dosmaperr(GetLastError());
-      return -1;
-    }
-
-    fileinfo->attrib = fd.dwFileAttributes;
-    fileinfo->time_create = internal::c_time64_from_filetime(fd.ftCreationTime);
-    fileinfo->time_access =
-        internal::c_time64_from_filetime(fd.ftLastAccessTime);
-    fileinfo->time_write = internal::c_time64_from_filetime(fd.ftLastWriteTime);
-    fileinfo->size = fd.nFileSizeLow;
-    wcsncpy(fileinfo->name, fd.cFileName, MAX_PATH);
-
-    return 0;
+    return dllimport__wfindnext(handle, fileinfo);
   }
+
+  namespace f
+  {
+    int win9x__wfindnext(intptr_t handle, struct _wfinddata32_t *fileinfo)
+    {
+      HANDLE h = reinterpret_cast<HANDLE>(handle);
+
+      WIN32_FIND_DATAW fd;
+      if (!FindNextFileW(h, &fd)) {
+        internal::dosmaperr(GetLastError());
+        return -1;
+      }
+
+      fileinfo->attrib = fd.dwFileAttributes;
+      fileinfo->time_create =
+          internal::c_time64_from_filetime(fd.ftCreationTime);
+      fileinfo->time_access =
+          internal::c_time64_from_filetime(fd.ftLastAccessTime);
+      fileinfo->time_write =
+          internal::c_time64_from_filetime(fd.ftLastWriteTime);
+      fileinfo->size = fd.nFileSizeLow;
+      wcsncpy(fileinfo->name, fd.cFileName, MAX_PATH);
+
+      return 0;
+    }
+  } // namespace f
 } // namespace mingw_thunk

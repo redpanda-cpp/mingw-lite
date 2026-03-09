@@ -1,3 +1,5 @@
+#include "DeleteFileW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -12,20 +14,28 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       kernel32, 4, BOOL, WINAPI, DeleteFileW, _In_ LPCWSTR lpFileName)
   {
-    if (internal::is_nt())
-      return __ms_DeleteFileW(lpFileName);
+    __DISPATCH_THUNK_2(
+        DeleteFileW, i::is_nt(), &__ms_DeleteFileW, &f::win9x_DeleteFileW);
 
-    if (!lpFileName) {
-      SetLastError(ERROR_INVALID_PARAMETER);
-      return FALSE;
-    }
-
-    d::a_str aname;
-    if (!aname.from_w(lpFileName)) {
-      SetLastError(ERROR_OUTOFMEMORY);
-      return FALSE;
-    }
-
-    return __ms_DeleteFileA(aname.c_str());
+    return dllimport_DeleteFileW(lpFileName);
   }
+
+  namespace f
+  {
+    BOOL __stdcall win9x_DeleteFileW(_In_ LPCWSTR lpFileName)
+    {
+      if (!lpFileName) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+      }
+
+      d::a_str aname;
+      if (!aname.from_w(lpFileName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
+      return __ms_DeleteFileA(aname.c_str());
+    }
+  } // namespace f
 } // namespace mingw_thunk

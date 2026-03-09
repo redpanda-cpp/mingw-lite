@@ -1,6 +1,7 @@
 #include "getaddrinfo.h"
 
 #include <thunk/_common.h>
+#include <thunk/_no_thunk.h>
 #include <thunk/addrinfo.h>
 
 namespace mingw_thunk
@@ -15,18 +16,20 @@ namespace mingw_thunk
                  _In_opt_ const ADDRINFOA *pHints,
                  _Out_ PADDRINFOA *ppResult)
   {
-    if (auto pfreeaddrinfo = try_get_getaddrinfo())
-      return pfreeaddrinfo(pNodeName, pServiceName, pHints, ppResult);
+    __DISPATCH_THUNK_2(getaddrinfo,
+                       const auto pfn = try_get_getaddrinfo(),
+                       pfn,
+                       &f::ipv4_getaddrinfo);
 
-    return impl::ipv4_getaddrinfo(pNodeName, pServiceName, pHints, ppResult);
+    return dllimport_getaddrinfo(pNodeName, pServiceName, pHints, ppResult);
   }
 
-  namespace impl
+  namespace f
   {
-    INT ipv4_getaddrinfo(_In_opt_ PCSTR pNodeName,
-                         _In_opt_ PCSTR pServiceName,
-                         _In_opt_ const ADDRINFOA *pHints,
-                         _Out_ PADDRINFOA *ppResult)
+    INT WSAAPI ipv4_getaddrinfo(_In_opt_ PCSTR pNodeName,
+                                _In_opt_ PCSTR pServiceName,
+                                _In_opt_ const ADDRINFOA *pHints,
+                                _Out_ PADDRINFOA *ppResult)
     {
       if (!pNodeName && !pServiceName)
         return WSAHOST_NOT_FOUND;
@@ -67,12 +70,12 @@ namespace mingw_thunk
         return WSAGetLastError();
 
       int wsa_error = 0;
-      addrinfo *result = internal::addrinfo_from_hostent(
+      addrinfo *result = i::addrinfo_from_hostent(
           host, flags, socktype, protocol, port, wsa_error);
       if (wsa_error)
         return wsa_error;
       *ppResult = result;
       return 0;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

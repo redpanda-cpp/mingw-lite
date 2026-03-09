@@ -4,9 +4,8 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    struct tm *
-    time32__localtime64(const __time64_t *sourceTime);
-  } // namespace impl
+    struct tm *time32__localtime64(const __time64_t *sourceTime);
+  } // namespace f
 } // namespace mingw_thunk

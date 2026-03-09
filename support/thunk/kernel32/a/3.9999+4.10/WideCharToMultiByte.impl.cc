@@ -32,16 +32,16 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    int win95_WideCharToMultiByte(_In_ UINT CodePage,
-                                  _In_ DWORD dwFlags,
-                                  _In_ LPCWCH lpWideCharStr,
-                                  _In_ int cchWideChar,
-                                  _Out_opt_ LPSTR lpMultiByteStr,
-                                  _In_ int cbMultiByte,
-                                  _In_opt_ LPCCH lpDefaultChar,
-                                  _In_opt_ LPBOOL lpUsedDefaultChar)
+    int __stdcall win95_WideCharToMultiByte(_In_ UINT CodePage,
+                                            _In_ DWORD dwFlags,
+                                            _In_ LPCWCH lpWideCharStr,
+                                            _In_ int cchWideChar,
+                                            _Out_opt_ LPSTR lpMultiByteStr,
+                                            _In_ int cbMultiByte,
+                                            _In_opt_ LPCCH lpDefaultChar,
+                                            _In_opt_ LPBOOL lpUsedDefaultChar)
     {
       if (CodePage != CP_UTF8)
         return __ms_WideCharToMultiByte(CodePage,
@@ -117,5 +117,5 @@ namespace mingw_thunk
       }
       return o_idx;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

@@ -1,3 +1,5 @@
+#include "FindFirstFileW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -18,21 +20,33 @@ namespace mingw_thunk
                  _In_ LPCWSTR lpFileName,
                  _Out_ LPWIN32_FIND_DATAW lpFindFileData)
   {
-    if (internal::is_nt())
-      return __ms_FindFirstFileW(lpFileName, lpFindFileData);
+    __DISPATCH_THUNK_2(FindFirstFileW,
+                       i::is_nt(),
+                       &__ms_FindFirstFileW,
+                       &f::win9x_FindFirstFileW);
 
-    d::a_str a_name;
-    if (!a_name.from_w(lpFileName)) {
-      SetLastError(ERROR_OUTOFMEMORY);
-      return INVALID_HANDLE_VALUE;
-    }
-
-    WIN32_FIND_DATAA a_find_data;
-    HANDLE h = __ms_FindFirstFileA(a_name.c_str(), &a_find_data);
-    if (h == INVALID_HANDLE_VALUE)
-      return h;
-
-    *lpFindFileData = internal::a2w(a_find_data);
-    return h;
+    return dllimport_FindFirstFileW(lpFileName, lpFindFileData);
   }
+
+  namespace f
+  {
+    HANDLE __stdcall
+    win9x_FindFirstFileW(_In_ LPCWSTR lpFileName,
+                         _Out_ LPWIN32_FIND_DATAW lpFindFileData)
+    {
+      d::a_str a_name;
+      if (!a_name.from_w(lpFileName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return INVALID_HANDLE_VALUE;
+      }
+
+      WIN32_FIND_DATAA a_find_data;
+      HANDLE h = __ms_FindFirstFileA(a_name.c_str(), &a_find_data);
+      if (h == INVALID_HANDLE_VALUE)
+        return h;
+
+      *lpFindFileData = internal::a2w(a_find_data);
+      return h;
+    }
+  } // namespace f
 } // namespace mingw_thunk

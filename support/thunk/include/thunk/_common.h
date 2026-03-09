@@ -54,9 +54,26 @@
                                                                                \
   extern "C" return_type calling_convention function(__VA_ARGS__)
 
-#define __DECLARE_CRT_IMP_ALIAS(symbol, function)                              \
-  auto *dllimport_##symbol __asm__(                                            \
-      __DLLIMPORT_SYMBOL_NAME___cdecl(symbol, 0)) = &function;
+#define __DISPATCH_THUNK_2(function, condition, target, fallback)              \
+  if (__builtin_expect(dllimport_##function == function, 0)) {                 \
+    if (condition) {                                                           \
+      dllimport_##function = target;                                           \
+    } else {                                                                   \
+      dllimport_##function = fallback;                                         \
+    }                                                                          \
+  }
+
+#define __DISPATCH_THUNK_3(                                                    \
+    function, condition_1, target_1, condition_2, target_2, fallback)          \
+  if (__builtin_expect(dllimport_##function == function, 0)) {                 \
+    if (condition_1) {                                                         \
+      dllimport_##function = target_1;                                         \
+    } else if (condition_2) {                                                  \
+      dllimport_##function = target_2;                                         \
+    } else {                                                                   \
+      dllimport_##function = fallback;                                         \
+    }                                                                          \
+  }
 
 #define __DECLARE_FORCE_OVERRIDE_MINGW_EMU(function)                           \
   int force_override_mingw_emu_##fuction __asm__(                              \

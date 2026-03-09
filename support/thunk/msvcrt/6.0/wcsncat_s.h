@@ -4,11 +4,11 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     errno_t fallback_wcsncat_s(wchar_t *strDest,
                                size_t numberOfElements,
                                const wchar_t *strSource,
                                size_t count);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

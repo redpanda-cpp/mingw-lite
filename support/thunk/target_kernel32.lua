@@ -21,6 +21,7 @@ target('overlay-kernel32')
       add_files(
         'kernel32/3.9999+4.10/CancelIo.cc',
         'kernel32/3.9999+4.10/IsDebuggerPresent.cc',
+        'kernel32/3.9999+4.10/ReadDirectoryChangesW.cc',
         'kernel32/3.9999+4.10/SetProcessAffinityMask.cc',
         'kernel32/3.9999+4.10/SetWaitableTimer.cc',
         'kernel32/3.9999+4.10/SwitchToThread.cc')
@@ -56,7 +57,6 @@ target('overlay-kernel32')
         'kernel32/w/GetTempPathW.cc',
         'kernel32/w/LoadLibraryW.cc',
         'kernel32/w/MoveFileExW.cc',
-        'kernel32/w/ReadDirectoryChangesW.cc',
         'kernel32/w/RemoveDirectoryW.cc',
         'kernel32/w/SearchPathW.cc',
         'kernel32/w/SetCurrentDirectoryW.cc',
@@ -301,6 +301,7 @@ target('thunk-kernel32')
     add_files(
       'kernel32/3.9999+4.10/CancelIo.cc',
       'kernel32/3.9999+4.10/IsDebuggerPresent.cc',
+      'kernel32/3.9999+4.10/ReadDirectoryChangesW.cc',
       'kernel32/3.9999+4.10/SetProcessAffinityMask.cc',
       'kernel32/3.9999+4.10/SetWaitableTimer.cc',
       'kernel32/3.9999+4.10/SwitchToThread.cc',
@@ -451,7 +452,6 @@ target('thunk-kernel32-w')
     'kernel32/w/GetTempPathW.cc',
     'kernel32/w/LoadLibraryW.cc',
     'kernel32/w/MoveFileExW.cc',
-    'kernel32/w/ReadDirectoryChangesW.cc',
     'kernel32/w/RemoveDirectoryW.cc',
     'kernel32/w/SearchPathW.cc',
     'kernel32/w/SetCurrentDirectoryW.cc',

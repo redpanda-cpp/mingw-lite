@@ -4,8 +4,8 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     int time32__findnext64(intptr_t handle, struct __finddata64_t *fileinfo);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

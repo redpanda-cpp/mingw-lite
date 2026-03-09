@@ -24,27 +24,21 @@ namespace mingw_thunk
                  _In_ DWORD dwFlagsAndAttributes,
                  _In_opt_ HANDLE hTemplateFile)
   {
-    if (internal::is_nt())
-      return __ms_CreateFileW(lpFileName,
-                              dwDesiredAccess,
-                              dwShareMode,
-                              lpSecurityAttributes,
-                              dwCreationDisposition,
-                              dwFlagsAndAttributes,
-                              hTemplateFile);
+    __DISPATCH_THUNK_2(
+        CreateFileW, i::is_nt(), &__ms_CreateFileW, &f::win9x_CreateFileW);
 
-    return impl::win9x_CreateFileW(lpFileName,
-                                   dwDesiredAccess,
-                                   dwShareMode,
-                                   lpSecurityAttributes,
-                                   dwCreationDisposition,
-                                   dwFlagsAndAttributes,
-                                   hTemplateFile);
+    return dllimport_CreateFileW(lpFileName,
+                                 dwDesiredAccess,
+                                 dwShareMode,
+                                 lpSecurityAttributes,
+                                 dwCreationDisposition,
+                                 dwFlagsAndAttributes,
+                                 hTemplateFile);
   }
 
-  namespace impl
+  namespace f
   {
-    HANDLE
+    HANDLE __stdcall
     win9x_CreateFileW(_In_ LPCWSTR lpFileName,
                       _In_ DWORD dwDesiredAccess,
                       _In_ DWORD dwShareMode,
@@ -76,5 +70,5 @@ namespace mingw_thunk
                               dwFlagsAndAttributes,
                               hTemplateFile);
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

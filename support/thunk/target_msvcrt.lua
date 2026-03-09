@@ -21,7 +21,9 @@ end
 
 function msvcrt_thunk_core_5_0()
   return {
+    {'_fstat32i64', v = until_mingw(12)},
     {'_fstat64', v = until_mingw(13)},
+    {'_wstat32i64', v = until_mingw(12)},
     {'_wstat64', v = until_mingw(13)},
   }
 end
@@ -41,6 +43,7 @@ end
 
 function msvcrt_thunk_toolchain_5_0()
   return {
+    {'_fstat32i64', v = until_mingw(12)},
     {'_fstat64', v = until_mingw(13)},
     {'_futime64'},
     {'_gmtime64', v = until_mingw(14)},
@@ -48,6 +51,7 @@ function msvcrt_thunk_toolchain_5_0()
     {'_time64', v = until_mingw(13)},
     {'_wfindfirst64'},
     {'_wfindnext64'},
+    {'_wstat32i64', v = until_mingw(12)},
     {'_wstat64', v = until_mingw(13)},
     {'_wutime64'},
   }
@@ -76,6 +80,7 @@ function msvcrt_thunk_toolchain_a_5_0()
     {'_ctime64'},
     {'_findfirst64'},
     {'_findnext64'},
+    {'_stat32i64', v = until_mingw(12)},
     {'_stat64', v = until_mingw(13)},
     {'_utime64'},
   }

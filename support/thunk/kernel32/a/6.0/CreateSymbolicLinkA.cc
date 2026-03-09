@@ -1,3 +1,5 @@
+#include "CreateSymbolicLinkA.h"
+
 #include <thunk/_common.h>
 
 #include <windows.h>
@@ -13,11 +15,24 @@ namespace mingw_thunk
                  _In_ LPCSTR lpTargetFileName,
                  _In_ DWORD dwFlags)
   {
-    if (const auto pfn = try_get_CreateSymbolicLinkA())
-      return pfn(lpSymlinkFileName, lpTargetFileName, dwFlags);
+    __DISPATCH_THUNK_2(CreateSymbolicLinkA,
+                       const auto pfn = try_get_CreateSymbolicLinkA(),
+                       pfn,
+                       &f::fallback_CreateSymbolicLinkA);
 
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-
-    return FALSE;
+    return dllimport_CreateSymbolicLinkA(
+        lpSymlinkFileName, lpTargetFileName, dwFlags);
   }
+
+  namespace f
+  {
+    BOOLEAN __stdcall
+    fallback_CreateSymbolicLinkA(_In_ LPCSTR lpSymlinkFileName,
+                                 _In_ LPCSTR lpTargetFileName,
+                                 _In_ DWORD dwFlags)
+    {
+      SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+      return FALSE;
+    }
+  } // namespace f
 } // namespace mingw_thunk

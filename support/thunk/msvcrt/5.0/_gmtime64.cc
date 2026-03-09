@@ -10,13 +10,15 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       msvcrt, 0, struct tm *, __cdecl, _gmtime64, const __time64_t *sourceTime)
   {
-    if (const auto pfn = try_get__gmtime64())
-      return pfn(sourceTime);
+    __DISPATCH_THUNK_2(_gmtime64,
+                       const auto pfn = try_get__gmtime64(),
+                       pfn,
+                       &f::time32__gmtime64);
 
-    return impl::time32__gmtime64(sourceTime);
+    return dllimport__gmtime64(sourceTime);
   }
 
-  namespace impl
+  namespace f
   {
     struct tm *time32__gmtime64(const __time64_t *sourceTime)
     {
@@ -25,5 +27,5 @@ namespace mingw_thunk
       tm.tm_isdst = 0;
       return &tm;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

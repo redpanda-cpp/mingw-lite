@@ -24,19 +24,18 @@ namespace mingw_thunk
                  _Out_opt_ LPWSTR lpDestStr,
                  _In_ int cchDest)
   {
-    if (internal::os_geq(5, 1))
-      return __ms_LCMapStringW(
-          Locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr, cchDest);
+    __DISPATCH_THUNK_3(LCMapStringW,
+                       i::os_version() >= g::win32_winxp,
+                       &__ms_LCMapStringW,
+                       i::is_nt(),
+                       &f::winnt_LCMapStringW,
+                       &f::win9x_LCMapStringW);
 
-    if (internal::is_nt())
-      return impl::winnt_LCMapStringW(
-          Locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr, cchDest);
-
-    return impl::win9x_LCMapStringW(
+    return dllimport_LCMapStringW(
         Locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr, cchDest);
   }
 
-  namespace impl
+  namespace f
   {
     int winnt_LCMapStringW(_In_ LCID Locale,
                            _In_ DWORD dwMapFlags,
@@ -98,5 +97,5 @@ namespace mingw_thunk
       }
       return cchSrc;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

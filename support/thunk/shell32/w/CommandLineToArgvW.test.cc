@@ -94,7 +94,7 @@ TEST_CASE("CommandLineToArgvW")
 
   for (auto &[cmdline, expected] : cases) {
     int argc = 0;
-    LPWSTR *argv = mingw_thunk::impl::win9x_CommandLineToArgvW(cmdline, &argc);
+    LPWSTR *argv = mingw_thunk::f::win9x_CommandLineToArgvW(cmdline, &argc);
     REQUIRE(argc == expected.size());
     for (int i = 0; i < argc; i++) {
       REQUIRE(wcscmp(argv[i], expected[i]) == 0);

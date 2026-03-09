@@ -6,8 +6,8 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     int time32__futime64(int fd, struct __utimbuf64 *filetime);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

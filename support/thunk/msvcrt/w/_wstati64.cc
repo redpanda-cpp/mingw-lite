@@ -1,4 +1,7 @@
+#include "_wstati64.h"
+
 #include <thunk/_common.h>
+#include <thunk/_no_thunk.h>
 #include <thunk/os.h>
 #include <thunk/string.h>
 
@@ -17,20 +20,28 @@ namespace mingw_thunk
                  const wchar_t *path,
                  struct _stat32i64 *buffer)
   {
-    if (internal::is_nt())
-      return __ms__wstat32i64(path, buffer);
+    __DISPATCH_THUNK_2(
+        _wstati64, i::is_nt(), &__ms__wstat32i64, &f::win9x__wstati64);
 
-    if (!path) {
-      _set_errno(EINVAL);
-      return -1;
-    }
-
-    d::a_str a_path;
-    if (!a_path.from_w(path)) {
-      _set_errno(ENOMEM);
-      return -1;
-    }
-
-    return __ms__stat32i64(a_path.c_str(), buffer);
+    return dllimport__wstati64(path, buffer);
   }
+
+  namespace f
+  {
+    int win9x__wstati64(const wchar_t *path, struct _stat32i64 *buffer)
+    {
+      if (!path) {
+        _set_errno(EINVAL);
+        return -1;
+      }
+
+      d::a_str a_path;
+      if (!a_path.from_w(path)) {
+        _set_errno(ENOMEM);
+        return -1;
+      }
+
+      return __ms__stat32i64(a_path.c_str(), buffer);
+    }
+  } // namespace f
 } // namespace mingw_thunk

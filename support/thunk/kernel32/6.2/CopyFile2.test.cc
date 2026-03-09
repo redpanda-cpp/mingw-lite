@@ -21,7 +21,7 @@ TEST_CASE("CopyFile2")
 
   COPYFILE2_EXTENDED_PARAMETERS params{sizeof(params)};
 
-  HRESULT hr = mingw_thunk::impl::winnt6_CopyFile2(source, dest, &params);
+  HRESULT hr = mingw_thunk::f::vista_CopyFile2(source, dest, &params);
 
   REQUIRE(SUCCEEDED(hr));
 }

@@ -17,7 +17,7 @@ TEST_CASE("getaddrinfo and freeaddrinfo")
     struct addrinfo *res = nullptr;
 
     int ret =
-        mingw_thunk::impl::ipv4_getaddrinfo("localhost", "8080", nullptr, &res);
+        mingw_thunk::f::ipv4_getaddrinfo("localhost", "8080", nullptr, &res);
 
     REQUIRE(ret == 0);
     REQUIRE(res != nullptr);
@@ -30,14 +30,14 @@ TEST_CASE("getaddrinfo and freeaddrinfo")
     REQUIRE(addr->sin_port == htons(8080));
     REQUIRE(addr->sin_addr.s_addr == htonl(INADDR_LOOPBACK));
 
-    mingw_thunk::impl::ipv4_freeaddrinfo(res);
+    mingw_thunk::f::ipv4_freeaddrinfo(res);
   }
 
   SECTION("getaddrinfo: invalid node")
   {
     struct addrinfo *res = nullptr;
 
-    int ret = mingw_thunk::impl::ipv4_getaddrinfo(
+    int ret = mingw_thunk::f::ipv4_getaddrinfo(
         "invalid-node.invalid-domain", nullptr, nullptr, &res);
 
     REQUIRE(ret == WSAHOST_NOT_FOUND);

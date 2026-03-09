@@ -4,9 +4,9 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    BOOL
+    BOOL __stdcall
     win9x_CreateProcessW(_In_opt_ LPCWSTR lpApplicationName,
                          _Inout_opt_ LPWSTR lpCommandLine,
                          _In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,

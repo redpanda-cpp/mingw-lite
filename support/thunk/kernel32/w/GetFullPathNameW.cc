@@ -21,21 +21,21 @@ namespace mingw_thunk
                  _Out_ LPWSTR lpBuffer,
                  _Out_opt_ LPWSTR *lpFilePart)
   {
-    if (internal::is_nt())
-      return __ms_GetFullPathNameW(
-          lpFileName, nBufferLength, lpBuffer, lpFilePart);
+    __DISPATCH_THUNK_2(GetFullPathNameW,
+                       i::is_nt(),
+                       &__ms_GetFullPathNameW,
+                       &f::win9x_GetFullPathNameW);
 
-    return impl::win9x_GetFullPathNameW(
+    return dllimport_GetFullPathNameW(
         lpFileName, nBufferLength, lpBuffer, lpFilePart);
   }
 
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetFullPathNameW(_In_ LPCWSTR lpFileName,
-                           _In_ DWORD nBufferLength,
-                           _Out_ LPWSTR lpBuffer,
-                           _Out_opt_ LPWSTR *lpFilePart)
+    DWORD __stdcall win9x_GetFullPathNameW(_In_ LPCWSTR lpFileName,
+                                           _In_ DWORD nBufferLength,
+                                           _Out_ LPWSTR lpBuffer,
+                                           _Out_opt_ LPWSTR *lpFilePart)
     {
       // dry run for buffer size
       if (nBufferLength && !lpBuffer) {
@@ -88,5 +88,5 @@ namespace mingw_thunk
       }
       return w_size;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

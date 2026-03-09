@@ -2,6 +2,7 @@ LIBRARY kernel32.dll
 EXPORTS
   __ms_CopyFileA@12 == CopyFileA
   __ms_CopyFileExA@24 == CopyFileExA
+  __ms_CopyFileExW@24 == CopyFileExW
   __ms_CopyFileW@12 == CopyFileW
   __ms_CreateDirectoryA@8 == CreateDirectoryA
   __ms_CreateDirectoryW@8 == CreateDirectoryW
@@ -45,7 +46,10 @@ EXPORTS
   __ms_LoadLibraryA@4 == LoadLibraryA
   __ms_LoadLibraryW@4 == LoadLibraryW
   __ms_LockFileEx@24 == LockFileEx
+  __ms_MoveFileA@8 == MoveFileA
   __ms_MoveFileExA@12 == MoveFileExA
+  __ms_MoveFileExW@12 == MoveFileExW
+  __ms_MoveFileW@8 == MoveFileW
   __ms_MultiByteToWideChar@24 == MultiByteToWideChar
   __ms_RemoveDirectoryA@4 == RemoveDirectoryA
   __ms_RemoveDirectoryW@4 == RemoveDirectoryW

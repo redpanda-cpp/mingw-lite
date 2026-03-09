@@ -1,9 +1,8 @@
 #include <thunk/_common.h>
 #include <thunk/string.h>
+#include <thunk/wntcrt/stat.h>
 
 #include <errno.h>
-
-#include "_stat.h"
 
 namespace mingw_thunk
 {

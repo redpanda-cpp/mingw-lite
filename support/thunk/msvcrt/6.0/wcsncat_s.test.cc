@@ -28,8 +28,7 @@ TEST_CASE("wcsncat_s")
   {
     fill_dest();
 
-    errno_t err =
-        mingw_thunk::impl::fallback_wcsncat_s(dest, N, str2, str2_len);
+    errno_t err = mingw_thunk::f::fallback_wcsncat_s(dest, N, str2, str2_len);
 
     REQUIRE(err == 0);
     REQUIRE(wcscmp(dest, result) == 0);
@@ -38,19 +37,19 @@ TEST_CASE("wcsncat_s")
   SECTION("boundary case")
   {
     fill_dest();
-    errno_t err = mingw_thunk::impl::fallback_wcsncat_s(
+    errno_t err = mingw_thunk::f::fallback_wcsncat_s(
         dest, str1_len + str2_len, str2, str2_len);
     REQUIRE(err == ERANGE);
     REQUIRE(wcscmp(dest, L"") == 0);
 
     fill_dest();
-    err = mingw_thunk::impl::fallback_wcsncat_s(
+    err = mingw_thunk::f::fallback_wcsncat_s(
         dest, str1_len + str2_len + 1, str2, str2_len);
     REQUIRE(err == 0);
     REQUIRE(wcscmp(dest, result) == 0);
 
     fill_dest();
-    err = mingw_thunk::impl::fallback_wcsncat_s(
+    err = mingw_thunk::f::fallback_wcsncat_s(
         dest, str1_len + str2_len + 1, str2, str2_len + 1);
     REQUIRE(err == 0);
     REQUIRE(wcscmp(dest, result) == 0);
@@ -60,7 +59,7 @@ TEST_CASE("wcsncat_s")
   {
     fill_dest();
     errno_t err =
-        mingw_thunk::impl::fallback_wcsncat_s(dest, N, nullptr, str2_len);
+        mingw_thunk::f::fallback_wcsncat_s(dest, N, nullptr, str2_len);
     REQUIRE(err == EINVAL);
     REQUIRE(wcscmp(dest, L"") == 0);
   }
@@ -68,15 +67,14 @@ TEST_CASE("wcsncat_s")
   SECTION("error: null dest")
   {
     errno_t err =
-        mingw_thunk::impl::fallback_wcsncat_s(nullptr, N, str2, str2_len);
+        mingw_thunk::f::fallback_wcsncat_s(nullptr, N, str2, str2_len);
     REQUIRE(err == EINVAL);
   }
 
   SECTION("error: dest size is 0")
   {
     dest[0] = 1;
-    errno_t err =
-        mingw_thunk::impl::fallback_wcsncat_s(dest, 0, str2, str2_len);
+    errno_t err = mingw_thunk::f::fallback_wcsncat_s(dest, 0, str2, str2_len);
     REQUIRE(err == EINVAL);
     REQUIRE(dest[0] == 1);
   }
@@ -86,7 +84,7 @@ TEST_CASE("wcsncat_s")
     dest[0] = 1;
     // ISO C semantic (Microsoft say OK)
     errno_t err =
-        mingw_thunk::impl::fallback_wcsncat_s(dest, rsize_max, str2, str2_len);
+        mingw_thunk::f::fallback_wcsncat_s(dest, rsize_max, str2, str2_len);
     REQUIRE(err == EINVAL);
     REQUIRE(dest[0] == 1);
   }
@@ -95,7 +93,7 @@ TEST_CASE("wcsncat_s")
   {
     fill_dest();
     // IOS C semantic (Microsoft say OK)
-    errno_t err = mingw_thunk::impl::fallback_wcsncat_s(dest, N, str2, 0);
+    errno_t err = mingw_thunk::f::fallback_wcsncat_s(dest, N, str2, 0);
     REQUIRE(err == EINVAL);
     REQUIRE(wcscmp(dest, L"") == 0);
   }
@@ -104,8 +102,7 @@ TEST_CASE("wcsncat_s")
   {
     fill_dest();
     // ISO C semantic (Microsoft say OK)
-    errno_t err =
-        mingw_thunk::impl::fallback_wcsncat_s(dest, N, str2, rsize_max);
+    errno_t err = mingw_thunk::f::fallback_wcsncat_s(dest, N, str2, rsize_max);
     REQUIRE(err == EINVAL);
     REQUIRE(wcscmp(dest, L"") == 0);
   }
@@ -114,8 +111,7 @@ TEST_CASE("wcsncat_s")
   {
     fill_dest();
     // ISO C semantic (Microsoft say undefined)
-    errno_t err =
-        mingw_thunk::impl::fallback_wcsncat_s(dest, N, dest, str2_len);
+    errno_t err = mingw_thunk::f::fallback_wcsncat_s(dest, N, dest, str2_len);
     REQUIRE(err == EINVAL);
     REQUIRE(wcscmp(dest, L"") == 0);
   }

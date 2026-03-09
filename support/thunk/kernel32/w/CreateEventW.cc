@@ -1,3 +1,5 @@
+#include "CreateEventW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -19,19 +21,31 @@ namespace mingw_thunk
                  _In_ BOOL bInitialState,
                  _In_opt_ LPCWSTR lpName)
   {
-    if (internal::is_nt())
-      return __ms_CreateEventW(
-          lpEventAttributes, bManualReset, bInitialState, lpName);
+    __DISPATCH_THUNK_2(
+        CreateEventW, i::is_nt(), &__ms_CreateEventW, &f::win9x_CreateEventW);
 
-    d::a_str a_name;
-    if (lpName && !a_name.from_w(lpName)) {
-      SetLastError(ERROR_OUTOFMEMORY);
-      return nullptr;
-    }
-
-    return __ms_CreateEventA(lpEventAttributes,
-                             bManualReset,
-                             bInitialState,
-                             lpName ? a_name.c_str() : nullptr);
+    return dllimport_CreateEventW(
+        lpEventAttributes, bManualReset, bInitialState, lpName);
   }
+
+  namespace f
+  {
+    HANDLE __stdcall
+    win9x_CreateEventW(_In_opt_ LPSECURITY_ATTRIBUTES lpEventAttributes,
+                       _In_ BOOL bManualReset,
+                       _In_ BOOL bInitialState,
+                       _In_opt_ LPCWSTR lpName)
+    {
+      d::a_str a_name;
+      if (lpName && !a_name.from_w(lpName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return nullptr;
+      }
+
+      return __ms_CreateEventA(lpEventAttributes,
+                               bManualReset,
+                               bInitialState,
+                               lpName ? a_name.c_str() : nullptr);
+    }
+  } // namespace f
 } // namespace mingw_thunk

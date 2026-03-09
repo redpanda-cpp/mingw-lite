@@ -1,48 +1,91 @@
 #pragma once
 
+#include "_no_thunk.h"
+
+#include <stdint.h>
+
 #include <sysinfoapi.h>
 
-namespace mingw_thunk::internal
+namespace mingw_thunk
 {
-  inline const OSVERSIONINFOA &os_version() noexcept
+  namespace d
   {
-    static OSVERSIONINFOA osvi = {sizeof(OSVERSIONINFOA)};
-    if (!osvi.dwMajorVersion)
-      GetVersionExA(&osvi);
-    return osvi;
-  }
+    struct win32_version
+    {
+      uint32_t platform;
+      uint32_t major;
+      uint32_t minor;
 
-  inline bool is_nt() noexcept
-  {
-    return os_version().dwPlatformId >= VER_PLATFORM_WIN32_NT;
-  }
+      bool operator==(const win32_version &rhs) const noexcept
+      {
+        return platform == rhs.platform && major == rhs.major &&
+               minor == rhs.minor;
+      }
 
-  inline bool os_lt(int epoch, int major, int minor) noexcept
-  {
-    auto &osvi = os_version();
-    if (osvi.dwPlatformId < epoch)
-      return true;
-    if (osvi.dwPlatformId > epoch)
-      return false;
-    if (osvi.dwMajorVersion < major)
-      return true;
-    if (osvi.dwMajorVersion > major)
-      return false;
-    return osvi.dwMinorVersion < minor;
-  }
+      bool operator!=(const win32_version &rhs) const noexcept
+      {
+        return !(*this == rhs);
+      }
 
-  inline bool os_lt(int major, int minor) noexcept
-  {
-    return os_lt(VER_PLATFORM_WIN32_NT, major, minor);
-  }
+      bool operator<(const win32_version &rhs) const noexcept
+      {
+        if (platform < rhs.platform)
+          return true;
+        if (platform > rhs.platform)
+          return false;
+        if (major < rhs.major)
+          return true;
+        if (major > rhs.major)
+          return false;
+        return minor < rhs.minor;
+      }
 
-  inline bool os_geq(int major, int minor) noexcept
-  {
-    return !os_lt(major, minor);
-  }
+      bool operator>=(const win32_version &rhs) const noexcept
+      {
+        return !(*this < rhs);
+      }
 
-  inline bool os_geq(int epoch, int major, int minor) noexcept
+      bool operator>(const win32_version &rhs) const noexcept
+      {
+        return rhs < *this;
+      }
+
+      bool operator<=(const win32_version &rhs) const noexcept
+      {
+        return !(rhs < *this);
+      }
+    };
+  } // namespace d
+
+  namespace g
   {
-    return !os_lt(epoch, major, minor);
-  }
-} // namespace mingw_thunk::internal
+    constexpr d::win32_version win32_win98 = {1, 4, 10};
+    constexpr d::win32_version win32_winxp = {2, 5, 1};
+    constexpr d::win32_version win32_vista = {2, 6, 0};
+  } // namespace g
+
+  namespace i
+  {
+    inline const d::win32_version os_version() noexcept
+    {
+      static OSVERSIONINFOA osvi = {sizeof(OSVERSIONINFOA)};
+      if (!osvi.dwMajorVersion) {
+        GetVersionExA(&osvi);
+#if THUNK_LEVEL >= NTDDI_WINXP
+        const auto RtlGetNtVersionNumbers = &__ms_RtlGetNtVersionNumbers;
+#else
+        const auto RtlGetNtVersionNumbers = ntdll_RtlGetNtVersionNumbers();
+#endif
+        if (RtlGetNtVersionNumbers)
+          RtlGetNtVersionNumbers(
+              &osvi.dwMajorVersion, &osvi.dwMinorVersion, &osvi.dwBuildNumber);
+      }
+      return {osvi.dwPlatformId, osvi.dwMajorVersion, osvi.dwMinorVersion};
+    }
+
+    inline bool is_nt() noexcept
+    {
+      return os_version().platform >= VER_PLATFORM_WIN32_NT;
+    }
+  } // namespace i
+} // namespace mingw_thunk

@@ -1,3 +1,5 @@
+#include "_ctime64.h"
+
 #include <thunk/_common.h>
 #include <thunk/wntcrt/time.h>
 
@@ -8,12 +10,22 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       msvcrt, 0, char *, __cdecl, _ctime64, const __time64_t *sourceTime)
   {
-    if (const auto pfn = try_get__ctime64())
-      return pfn(sourceTime);
+    __DISPATCH_THUNK_2(_ctime64,
+                       const auto pfn = try_get__ctime64(),
+                       pfn,
+                       &f::time32__ctime64);
 
-    struct tm *tm = _localtime64(sourceTime);
-    if (!tm)
-      return nullptr;
-    return asctime(tm);
-  };
+    return dllimport__ctime64(sourceTime);
+  }
+
+  namespace f
+  {
+    char *time32__ctime64(const __time64_t *sourceTime)
+    {
+      struct tm *tm = _localtime64(sourceTime);
+      if (!tm)
+        return nullptr;
+      return asctime(tm);
+    }
+  } // namespace f
 } // namespace mingw_thunk

@@ -18,16 +18,18 @@ namespace mingw_thunk
                  const char *filespec,
                  struct __finddata64_t *fileinfo)
   {
-    if (const auto pfn = try_get__findfirst64())
-      return pfn(filespec, fileinfo);
+    __DISPATCH_THUNK_2(_findfirst64,
+                       const auto pfn = try_get__findfirst64(),
+                       pfn,
+                       &f::time32__findfirst64);
 
-    return impl::time32__findfirst64(filespec, fileinfo);
+    return dllimport__findfirst64(filespec, fileinfo);
   }
 
-  namespace impl
+  namespace f
   {
     intptr_t time32__findfirst64(const char *filespec,
-                                 struct __finddata64_t *fileinfo)
+                                   struct __finddata64_t *fileinfo)
     {
       WIN32_FIND_DATAA fd;
       HANDLE h = FindFirstFileA(filespec, &fd);
@@ -53,5 +55,5 @@ namespace mingw_thunk
 
       return reinterpret_cast<intptr_t>(h);
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

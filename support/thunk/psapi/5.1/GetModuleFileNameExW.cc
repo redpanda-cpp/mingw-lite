@@ -1,6 +1,9 @@
-#include <thunk/_common.h>
-
 #define PSAPI_VERSION 1
+
+#include "GetModuleFileNameExW.h"
+
+#include <thunk/_common.h>
+#include <thunk/_no_thunk.h>
 
 #include <psapi.h>
 #include <windows.h>
@@ -17,10 +20,23 @@ namespace mingw_thunk
                  _Out_ LPWSTR lpFilename,
                  _In_ DWORD nSize)
   {
-    if (const auto pfn = try_get_GetModuleFileNameExW())
-      return pfn(hProcess, hModule, lpFilename, nSize);
+    __DISPATCH_THUNK_2(GetModuleFileNameExW,
+                       const auto pfn = try_get_GetModuleFileNameExW(),
+                       pfn,
+                       &f::fallback_GetModuleFileNameExW);
 
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return 0;
+    return dllimport_GetModuleFileNameExW(hProcess, hModule, lpFilename, nSize);
   }
+
+  namespace f
+  {
+    DWORD __stdcall fallback_GetModuleFileNameExW(_In_ HANDLE hProcess,
+                                                  _In_opt_ HMODULE hModule,
+                                                  _Out_ LPWSTR lpFilename,
+                                                  _In_ DWORD nSize)
+    {
+      SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+      return 0;
+    }
+  } // namespace f
 } // namespace mingw_thunk

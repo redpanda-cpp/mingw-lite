@@ -20,54 +20,54 @@ namespace mingw_thunk
                  _In_ GET_FILEEX_INFO_LEVELS fInfoLevelId,
                  _Out_ LPVOID lpFileInformation)
   {
-    if (internal::is_nt()) {
 #if THUNK_LEVEL >= NTDDI_WIN98
-      return __ms_GetFileAttributesExW(
-          lpFileName, fInfoLevelId, lpFileInformation);
+    __DISPATCH_THUNK_2(GetFileAttributesExW,
+                       i::is_nt(),
+                       &__ms_GetFileAttributesExW,
+                       &f::win98_GetFileAttributesExW);
 #else
-      return get_GetFileAttributesExW()(
-          lpFileName, fInfoLevelId, lpFileInformation);
+    __DISPATCH_THUNK_3(GetFileAttributesExW,
+                       i::is_nt(),
+                       get_GetFileAttributesExW(),
+                       i::os_version() >= g::win32_win98,
+                       &f::win98_GetFileAttributesExW,
+                       &f::win95_GetFileAttributesExW);
 #endif
-    }
 
-    return impl::win9x_GetFileAttributesExW(
+    return dllimport_GetFileAttributesExW(
         lpFileName, fInfoLevelId, lpFileInformation);
   }
 
-  namespace impl
+  namespace f
   {
-    BOOL win9x_GetFileAttributesExW(_In_ LPCWSTR lpFileName,
-                                    _In_ GET_FILEEX_INFO_LEVELS fInfoLevelId,
-                                    _Out_ LPVOID lpFileInformation)
+    BOOL __stdcall
+    win98_GetFileAttributesExW(_In_ LPCWSTR lpFileName,
+                               _In_ GET_FILEEX_INFO_LEVELS fInfoLevelId,
+                               _Out_ LPVOID lpFileInformation)
     {
       if (!lpFileName) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
       }
 
-#if THUNK_LEVEL >= NTDDI_WIN98
       d::a_str a_file_name;
       if (!a_file_name.from_w(lpFileName))
         return FALSE;
-      return __ms_GetFileAttributesExA(
-          a_file_name.c_str(), fInfoLevelId, lpFileInformation);
-#else
-      if (internal::os_geq(VER_PLATFORM_WIN32_WINDOWS, 4, 10)) {
-        d::a_str a_file_name;
-        if (!a_file_name.from_w(lpFileName))
-          return FALSE;
-        return kernel32_GetFileAttributesExA()(
-            a_file_name.c_str(), fInfoLevelId, lpFileInformation);
-      }
 
-      return win95_GetFileAttributesExW(
-          lpFileName, fInfoLevelId, lpFileInformation);
+#if THUNK_LEVEL >= NTDDI_WIN98
+      static const auto GetFileAttributesExA = __ms_GetFileAttributesExA;
+#else
+      static const auto GetFileAttributesExA = kernel32_GetFileAttributesExA();
 #endif
+
+      return GetFileAttributesExA(
+          a_file_name.c_str(), fInfoLevelId, lpFileInformation);
     }
 
-    BOOL win95_GetFileAttributesExW(_In_ LPCWSTR lpFileName,
-                                    _In_ GET_FILEEX_INFO_LEVELS fInfoLevelId,
-                                    _Out_ LPVOID lpFileInformation)
+    BOOL __stdcall
+    win95_GetFileAttributesExW(_In_ LPCWSTR lpFileName,
+                               _In_ GET_FILEEX_INFO_LEVELS fInfoLevelId,
+                               _Out_ LPVOID lpFileInformation)
     {
       if (!lpFileName || !lpFileInformation) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -137,5 +137,5 @@ namespace mingw_thunk
         return TRUE;
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

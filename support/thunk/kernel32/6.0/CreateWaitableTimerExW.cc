@@ -1,3 +1,5 @@
+#include "CreateWaitableTimerExW.h"
+
 #include <thunk/_common.h>
 
 #include <windows.h>
@@ -17,13 +19,26 @@ namespace mingw_thunk
                  _In_ DWORD dwFlags,
                  _In_ DWORD dwDesiredAccess)
   {
-    if (auto pCreateWaitableTimerExW = try_get_CreateWaitableTimerExW()) {
-      return pCreateWaitableTimerExW(
-          lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess);
-    }
+    __DISPATCH_THUNK_2(CreateWaitableTimerExW,
+                       const auto pfn = try_get_CreateWaitableTimerExW(),
+                       pfn,
+                       &f::fallback_CreateWaitableTimerExW);
 
-    return CreateWaitableTimerW(lpTimerAttributes,
-                                dwFlags & CREATE_WAITABLE_TIMER_MANUAL_RESET,
-                                lpTimerName);
+    return dllimport_CreateWaitableTimerExW(
+        lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess);
   }
+
+  namespace f
+  {
+    HANDLE __stdcall fallback_CreateWaitableTimerExW(
+        _In_opt_ LPSECURITY_ATTRIBUTES lpTimerAttributes,
+        _In_opt_ LPCWSTR lpTimerName,
+        _In_ DWORD dwFlags,
+        _In_ DWORD dwDesiredAccess)
+    {
+      return CreateWaitableTimerW(lpTimerAttributes,
+                                  dwFlags & CREATE_WAITABLE_TIMER_MANUAL_RESET,
+                                  lpTimerName);
+    }
+  } // namespace f
 } // namespace mingw_thunk

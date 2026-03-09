@@ -1,3 +1,5 @@
+#include "TryEnterCriticalSection.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/critical_section.h>
@@ -18,24 +20,32 @@ namespace mingw_thunk
                  TryEnterCriticalSection,
                  _Inout_ LPCRITICAL_SECTION lpCriticalSection)
   {
-
 #if THUNK_LEVEL >= NTDDI_WIN98
-
-    if (internal::is_nt())
-      return __ms_TryEnterCriticalSection(lpCriticalSection);
-
+    __DISPATCH_THUNK_2(TryEnterCriticalSection,
+                       i::is_nt(),
+                       &__ms_TryEnterCriticalSection,
+                       &f::win9x_TryEnterCriticalSection);
 #else
-
-    if (internal::is_nt())
-      return get_TryEnterCriticalSection()(lpCriticalSection);
-
+    __DISPATCH_THUNK_2(TryEnterCriticalSection,
+                       i::is_nt(),
+                       get_TryEnterCriticalSection(),
+                       &f::win9x_TryEnterCriticalSection);
 #endif
 
-    const auto *cs =
-        reinterpret_cast<internal::critical_section_t *>(lpCriticalSection);
-    if (!cs->check_type())
-      return FALSE;
-
-    return cs->impl()->try_enter();
+    return dllimport_TryEnterCriticalSection(lpCriticalSection);
   }
+
+  namespace f
+  {
+    BOOL __stdcall
+    win9x_TryEnterCriticalSection(_Inout_ LPCRITICAL_SECTION lpCriticalSection)
+    {
+      const auto *cs =
+          reinterpret_cast<d::critical_section_t *>(lpCriticalSection);
+      if (!cs->check_type())
+        return FALSE;
+
+      return cs->impl()->try_enter();
+    }
+  } // namespace f
 } // namespace mingw_thunk

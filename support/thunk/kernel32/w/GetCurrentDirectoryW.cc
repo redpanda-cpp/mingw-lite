@@ -19,16 +19,18 @@ namespace mingw_thunk
                  _In_ DWORD nBufferLength,
                  _Out_ LPWSTR lpBuffer)
   {
-    if (internal::is_nt())
-      return __ms_GetCurrentDirectoryW(nBufferLength, lpBuffer);
+    __DISPATCH_THUNK_2(GetCurrentDirectoryW,
+                       i::is_nt(),
+                       &__ms_GetCurrentDirectoryW,
+                       &f::win9x_GetCurrentDirectoryW);
 
-    return impl::win9x_GetCurrentDirectoryW(nBufferLength, lpBuffer);
+    return dllimport_GetCurrentDirectoryW(nBufferLength, lpBuffer);
   }
 
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetCurrentDirectoryW(_In_ DWORD nBufferLength, _Out_ LPWSTR lpBuffer)
+    DWORD __stdcall win9x_GetCurrentDirectoryW(_In_ DWORD nBufferLength,
+                                               _Out_ LPWSTR lpBuffer)
     {
       // dry run for buffer size
       if (nBufferLength && !lpBuffer) {
@@ -60,5 +62,5 @@ namespace mingw_thunk
         return w_filename.size() + 1;
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

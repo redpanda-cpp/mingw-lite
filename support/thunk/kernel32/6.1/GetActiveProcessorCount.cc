@@ -1,3 +1,5 @@
+#include "GetActiveProcessorCount.h"
+
 #include <thunk/_common.h>
 #include <thunk/yy/api-ms-win-core-processtopology-obsolete.h>
 
@@ -15,10 +17,19 @@ namespace mingw_thunk
                  GetActiveProcessorCount,
                  _In_ WORD GroupNumber)
   {
-    if (auto pGetActiveProcessorCount = try_get_GetActiveProcessorCount()) {
-      return pGetActiveProcessorCount(GroupNumber);
-    }
+    __DISPATCH_THUNK_2(GetActiveProcessorCount,
+                       const auto pfn = try_get_GetActiveProcessorCount(),
+                       pfn,
+                       &f::fallback_GetActiveProcessorCount);
 
-    return Downlevel::GetProcessorCount(GroupNumber);
+    return dllimport_GetActiveProcessorCount(GroupNumber);
   }
+
+  namespace f
+  {
+    DWORD __stdcall fallback_GetActiveProcessorCount(_In_ WORD GroupNumber)
+    {
+      return Downlevel::GetProcessorCount(GroupNumber);
+    }
+  } // namespace f
 } // namespace mingw_thunk

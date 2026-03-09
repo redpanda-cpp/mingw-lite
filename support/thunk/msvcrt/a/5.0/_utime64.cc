@@ -15,13 +15,15 @@ namespace mingw_thunk
                  const char *filename,
                  struct __utimbuf64 *times)
   {
-    if (const auto pfn = try_get__utime64())
-      return pfn(filename, times);
+    __DISPATCH_THUNK_2(_utime64,
+                       const auto pfn = try_get__utime64(),
+                       pfn,
+                       &f::time32__utime64);
 
-    return impl::time32__utime64(filename, times);
+    return dllimport__utime64(filename, times);
   }
 
-  namespace impl
+  namespace f
   {
     int time32__utime64(const char *filename, struct __utimbuf64 *times)
     {
@@ -33,5 +35,5 @@ namespace mingw_thunk
       _close(fd);
       return ret;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

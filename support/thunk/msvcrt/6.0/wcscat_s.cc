@@ -17,13 +17,15 @@ namespace mingw_thunk
                  size_t numberOfElements,
                  const wchar_t *strSource)
   {
-    if (const auto pfn = try_get_wcscat_s())
-      return pfn(strDestination, numberOfElements, strSource);
+    __DISPATCH_THUNK_2(wcscat_s,
+                       const auto pfn = try_get_wcscat_s(),
+                       pfn,
+                       &f::fallback_wcscat_s);
 
-    return impl::fallback_wcscat_s(strDestination, numberOfElements, strSource);
+    return dllimport_wcscat_s(strDestination, numberOfElements, strSource);
   }
 
-  namespace impl
+  namespace f
   {
     errno_t fallback_wcscat_s(wchar_t *strDestination,
                               size_t numberOfElements,
@@ -56,5 +58,5 @@ namespace mingw_thunk
         *strDestination = 0;
       return err;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

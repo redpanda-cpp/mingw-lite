@@ -4,18 +4,18 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    inline BOOL winnt_get_file_information_by_handle_ex(
-        HANDLE hFile,
-        FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
-        LPVOID lpFileInformation,
-        DWORD dwBufferSize);
+    BOOL __stdcall winnt_GetFileInformationByHandleEx(
+        _In_ HANDLE hFile,
+        _In_ FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+        _Out_writes_bytes_(dwBufferSize) LPVOID lpFileInformation,
+        _In_ DWORD dwBufferSize);
 
-    inline BOOL win9x_get_file_information_by_handle_ex(
-        HANDLE hFile,
-        FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
-        LPVOID lpFileInformation,
-        DWORD dwBufferSize);
-  } // namespace impl
+    BOOL __stdcall win9x_GetFileInformationByHandleEx(
+        _In_ HANDLE hFile,
+        _In_ FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+        _Out_writes_bytes_(dwBufferSize) LPVOID lpFileInformation,
+        _In_ DWORD dwBufferSize);
+  } // namespace f
 } // namespace mingw_thunk

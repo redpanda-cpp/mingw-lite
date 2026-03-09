@@ -23,7 +23,7 @@ TEST_CASE("_findfirst64 and _findnext64")
   __finddata64_t data;
   bool found = false;
 
-  intptr_t handle = mingw_thunk::impl::time32__findfirst64(pattern, &data);
+  intptr_t handle = mingw_thunk::f::time32__findfirst64(pattern, &data);
 
   REQUIRE(handle != -1);
 
@@ -31,7 +31,7 @@ TEST_CASE("_findfirst64 and _findnext64")
     if (strncmp(data.name, filename, MAX_PATH) == 0)
       found = true;
   } while ([&]() {
-    int ret = mingw_thunk::impl::time32__findnext64(handle, &data);
+    int ret = mingw_thunk::f::time32__findnext64(handle, &data);
     return ret == 0;
   }());
 

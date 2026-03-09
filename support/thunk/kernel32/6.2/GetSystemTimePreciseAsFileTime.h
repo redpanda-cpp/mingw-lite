@@ -4,9 +4,9 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    VOID fallback_GetSystemTimePreciseAsFileTime(
+    VOID __stdcall fallback_GetSystemTimePreciseAsFileTime(
         _Out_ LPFILETIME lpSystemTimeAsFileTime);
-  } // namespace impl
+  }
 } // namespace mingw_thunk

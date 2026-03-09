@@ -16,13 +16,15 @@ namespace mingw_thunk
                  rsize_t dest_size,
                  const wchar_t *src)
   {
-    if (const auto pfn = try_get_wcscpy_s())
-      return pfn(dest, dest_size, src);
+    __DISPATCH_THUNK_2(wcscpy_s,
+                       const auto pfn = try_get_wcscpy_s(),
+                       pfn,
+                       &f::fallback_wcscpy_s);
 
-    return impl::fallback_wcscpy_s(dest, dest_size, src);
+    return dllimport_wcscpy_s(dest, dest_size, src);
   }
 
-  namespace impl
+  namespace f
   {
     errno_t
     fallback_wcscpy_s(wchar_t *dest, rsize_t dest_size, const wchar_t *src)
@@ -53,5 +55,5 @@ namespace mingw_thunk
       dest[len] = 0;
       return 0;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

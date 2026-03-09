@@ -17,7 +17,7 @@ TEST_CASE("WideCharToMultiByte")
     const char *expected = "Hello, world!";
     char out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_WideCharToMultiByte(
+    int len = mingw_thunk::f::win95_WideCharToMultiByte(
         CP_UTF8, 0, in, -1, out, buffer_len, nullptr, nullptr);
     REQUIRE(len == strlen(expected) + 1);
     REQUIRE(strcmp(out, expected) == 0);
@@ -29,11 +29,11 @@ TEST_CASE("WideCharToMultiByte")
     const char *expected = "Hello, world!";
     char out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_WideCharToMultiByte(
+    int len = mingw_thunk::f::win95_WideCharToMultiByte(
         CP_UTF8, 0, in, -1, nullptr, 0, nullptr, nullptr);
     REQUIRE(len == strlen(expected) + 1);
 
-    int len2 = mingw_thunk::impl::win95_WideCharToMultiByte(
+    int len2 = mingw_thunk::f::win95_WideCharToMultiByte(
         CP_UTF8, 0, in, wcslen(in), nullptr, 0, nullptr, nullptr);
     REQUIRE(len2 == strlen(expected));
   }
@@ -45,7 +45,7 @@ TEST_CASE("WideCharToMultiByte")
     char out[buffer_len] = {};
 
     int buffer_len_2 = 5;
-    int len = mingw_thunk::impl::win95_WideCharToMultiByte(
+    int len = mingw_thunk::f::win95_WideCharToMultiByte(
         CP_UTF8, 0, in, -1, out, buffer_len_2, nullptr, nullptr);
     REQUIRE(len == 0);
     REQUIRE(GetLastError() == ERROR_INSUFFICIENT_BUFFER);
@@ -58,7 +58,7 @@ TEST_CASE("WideCharToMultiByte")
     const char *expected = "你好，“世界”！";
     char out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_WideCharToMultiByte(
+    int len = mingw_thunk::f::win95_WideCharToMultiByte(
         CP_UTF8, 0, in, -1, out, buffer_len, nullptr, nullptr);
     REQUIRE(len == strlen(expected) + 1);
     REQUIRE(strcmp(out, expected) == 0);
@@ -70,7 +70,7 @@ TEST_CASE("WideCharToMultiByte")
     const char *expected = "👋🌏🌍🌎";
     char out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_WideCharToMultiByte(
+    int len = mingw_thunk::f::win95_WideCharToMultiByte(
         CP_UTF8, 0, in, -1, out, buffer_len, nullptr, nullptr);
     REQUIRE(len == strlen(expected) + 1);
     REQUIRE(strcmp(out, expected) == 0);

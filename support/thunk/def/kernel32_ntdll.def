@@ -5,5 +5,6 @@ EXPORTS
   __ms_NtSetInformationFile == NtSetInformationFile
   __ms_RtlDosPathNameToNtPathName_U == RtlDosPathNameToNtPathName_U
   __ms_RtlFreeUnicodeString == RtlFreeUnicodeString
+  __ms_RtlGetNtVersionNumbers == RtlGetNtVersionNumbers
   __ms_RtlNtStatusToDosError == RtlNtStatusToDosError
   __ms_RtlPcToFileHeader == RtlPcToFileHeader

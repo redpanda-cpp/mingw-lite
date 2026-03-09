@@ -15,13 +15,15 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       msvcrt, 0, int, __cdecl, _futime64, int fd, struct __utimbuf64 *filetime)
   {
-    if (const auto pfn = try_get__futime64())
-      return pfn(fd, filetime);
+    __DISPATCH_THUNK_2(_futime64,
+                       const auto pfn = try_get__futime64(),
+                       pfn,
+                       &f::time32__futime64);
 
-    return impl::time32__futime64(fd, filetime);
+    return dllimport__futime64(fd, filetime);
   };
 
-  namespace impl
+  namespace f
   {
     int time32__futime64(int fd, struct __utimbuf64 *filetime)
     {
@@ -37,5 +39,5 @@ namespace mingw_thunk
 
       return 0;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

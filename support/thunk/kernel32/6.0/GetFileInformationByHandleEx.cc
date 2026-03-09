@@ -2,7 +2,6 @@
 
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
-#include <thunk/ddk/wdm.h>
 #include <thunk/os.h>
 #include <thunk/yy/yy.h>
 
@@ -22,24 +21,24 @@ namespace mingw_thunk
                  _Out_writes_bytes_(dwBufferSize) LPVOID lpFileInformation,
                  _In_ DWORD dwBufferSize)
   {
-    if (const auto pfn = try_get_GetFileInformationByHandleEx())
-      return pfn(hFile, FileInformationClass, lpFileInformation, dwBufferSize);
+    __DISPATCH_THUNK_3(GetFileInformationByHandleEx,
+                       const auto pfn = try_get_GetFileInformationByHandleEx(),
+                       pfn,
+                       i::is_nt(),
+                       &f::winnt_GetFileInformationByHandleEx,
+                       &f::win9x_GetFileInformationByHandleEx);
 
-    if (internal::is_nt())
-      return impl::winnt_get_file_information_by_handle_ex(
-          hFile, FileInformationClass, lpFileInformation, dwBufferSize);
-
-    return impl::win9x_get_file_information_by_handle_ex(
+    return dllimport_GetFileInformationByHandleEx(
         hFile, FileInformationClass, lpFileInformation, dwBufferSize);
   }
 
-  namespace impl
+  namespace f
   {
-    BOOL win9x_get_file_information_by_handle_ex(
-        HANDLE hFile,
-        FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
-        LPVOID lpFileInformation,
-        DWORD dwBufferSize)
+    BOOL __stdcall win9x_GetFileInformationByHandleEx(
+        _In_ HANDLE hFile,
+        _In_ FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+        _Out_writes_bytes_(dwBufferSize) LPVOID lpFileInformation,
+        _In_ DWORD dwBufferSize)
     {
       switch (FileInformationClass) {
       case FileBasicInfo: {
@@ -104,11 +103,11 @@ namespace mingw_thunk
 
     // YY-Thunks 1.1.6
     // Windows Vista,  Windows Server 2008
-    BOOL winnt_get_file_information_by_handle_ex(
-        HANDLE hFile,
-        FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
-        LPVOID lpFileInformation,
-        DWORD dwBufferSize)
+    BOOL __stdcall winnt_GetFileInformationByHandleEx(
+        _In_ HANDLE hFile,
+        _In_ FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+        _Out_writes_bytes_(dwBufferSize) LPVOID lpFileInformation,
+        _In_ DWORD dwBufferSize)
     {
       FILE_INFORMATION_CLASS NtFileInformationClass;
       DWORD cbMinBufferSize;
@@ -148,7 +147,7 @@ namespace mingw_thunk
         bNtQueryDirectoryFile = true;
         break;
       case FileRemoteProtocolInfo:
-        NtFileInformationClass = FileRemoteProtocolInformation;
+        NtFileInformationClass = g::FileRemoteProtocolInformation;
         cbMinBufferSize = sizeof(FILE_REMOTE_PROTOCOL_INFO);
         break;
       default:
@@ -227,5 +226,5 @@ namespace mingw_thunk
         return FALSE;
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

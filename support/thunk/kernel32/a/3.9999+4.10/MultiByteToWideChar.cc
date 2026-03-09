@@ -20,19 +20,16 @@ namespace mingw_thunk
                  _Out_opt_ LPWSTR lpWideCharStr,
                  _In_ int cchWideChar)
   {
-    if (internal::os_geq(VER_PLATFORM_WIN32_WINDOWS, 4, 10))
-      return __ms_MultiByteToWideChar(CodePage,
-                                      dwFlags,
-                                      lpMultiByteStr,
-                                      cbMultiByte,
-                                      lpWideCharStr,
-                                      cchWideChar);
+    __DISPATCH_THUNK_2(MultiByteToWideChar,
+                       i::os_version() >= g::win32_win98,
+                       &__ms_MultiByteToWideChar,
+                       &f::win95_MultiByteToWideChar);
 
-    return impl::win95_MultiByteToWideChar(CodePage,
-                                           dwFlags,
-                                           lpMultiByteStr,
-                                           cbMultiByte,
-                                           lpWideCharStr,
-                                           cchWideChar);
+    return dllimport_MultiByteToWideChar(CodePage,
+                                         dwFlags,
+                                         lpMultiByteStr,
+                                         cbMultiByte,
+                                         lpWideCharStr,
+                                         cchWideChar);
   }
 } // namespace mingw_thunk

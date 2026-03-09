@@ -1,3 +1,5 @@
+#include "GetCurrentThreadStackLimits.h"
+
 #include <thunk/_common.h>
 #include <thunk/os.h>
 
@@ -26,23 +28,38 @@ namespace mingw_thunk
                  _Out_ PULONG_PTR LowLimit,
                  _Out_ PULONG_PTR HighLimit)
   {
-    if (const auto pfn = try_get_GetCurrentThreadStackLimits())
-      return pfn(LowLimit, HighLimit);
-
-    void *teb = NtCurrentTeb();
-
 #if THUNK_LEVEL >= NTDDI_WIN4
-
-    *HighLimit = *(uintptr_t *)((uintptr_t)teb + high_limit_offset);
-    *LowLimit = *(uintptr_t *)((uintptr_t)teb + low_limit_offset);
-    return;
-
+    __DISPATCH_THUNK_2(GetCurrentThreadStackLimits,
+                       const auto pfn = try_get_GetCurrentThreadStackLimits(),
+                       pfn,
+                       &f::winnt_GetCurrentThreadStackLimits);
 #else
+    __DISPATCH_THUNK_3(GetCurrentThreadStackLimits,
+                       const auto pfn = try_get_GetCurrentThreadStackLimits(),
+                       pfn,
+                       i::is_nt(),
+                       &f::winnt_GetCurrentThreadStackLimits,
+                       &f::win9x_GetCurrentThreadStackLimits);
+#endif
 
-    if (internal::is_nt()) {
+    return dllimport_GetCurrentThreadStackLimits(LowLimit, HighLimit);
+  }
+
+  namespace f
+  {
+    VOID __stdcall winnt_GetCurrentThreadStackLimits(_Out_ PULONG_PTR LowLimit,
+                                                     _Out_ PULONG_PTR HighLimit)
+    {
+      void *teb = NtCurrentTeb();
       *HighLimit = *(uintptr_t *)((uintptr_t)teb + high_limit_offset);
       *LowLimit = *(uintptr_t *)((uintptr_t)teb + low_limit_offset);
-    } else {
+    }
+
+#if THUNK_LEVEL < NTDDI_WIN4
+    VOID __stdcall win9x_GetCurrentThreadStackLimits(_Out_ PULONG_PTR LowLimit,
+                                                     _Out_ PULONG_PTR HighLimit)
+    {
+      void *teb = NtCurrentTeb();
       uintptr_t stack_base = *(uintptr_t *)((uintptr_t)teb + high_limit_offset);
       uintptr_t stack_limit =
           *(uintptr_t *)((uintptr_t)teb + win9x_limit_offset);
@@ -52,8 +69,6 @@ namespace mingw_thunk
       *HighLimit = stack_base;
       *LowLimit = stack_limit;
     }
-    return;
-
 #endif
-  }
+  } // namespace f
 } // namespace mingw_thunk

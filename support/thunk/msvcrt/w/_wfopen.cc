@@ -1,5 +1,7 @@
 #include "_wfopen.h"
+
 #include <thunk/_common.h>
+#include <thunk/_no_thunk.h>
 #include <thunk/os.h>
 #include <thunk/string.h>
 
@@ -16,13 +18,12 @@ namespace mingw_thunk
                  const wchar_t *filename,
                  const wchar_t *mode)
   {
-    if (internal::is_nt())
-      return __ms__wfopen(filename, mode);
+    __DISPATCH_THUNK_2(_wfopen, i::is_nt(), &__ms__wfopen, &f::win9x__wfopen);
 
-    return impl::win9x__wfopen(filename, mode);
+    return dllimport__wfopen(filename, mode);
   }
 
-  namespace impl
+  namespace f
   {
     FILE *win9x__wfopen(const wchar_t *filename, const wchar_t *mode)
     {
@@ -45,5 +46,5 @@ namespace mingw_thunk
 
       return __ms_fopen(a_name.c_str(), a_mode.c_str());
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

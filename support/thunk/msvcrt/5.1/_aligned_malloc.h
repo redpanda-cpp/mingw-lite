@@ -4,8 +4,8 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     void *fallback__aligned_malloc(size_t size, size_t alignment);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

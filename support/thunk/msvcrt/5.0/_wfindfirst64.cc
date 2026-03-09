@@ -19,13 +19,15 @@ namespace mingw_thunk
                  const wchar_t *filespec,
                  struct _wfinddata64_t *fileinfo)
   {
-    if (const auto pfn = try_get__wfindfirst64(); pfn && internal::is_nt())
-      return pfn(filespec, fileinfo);
+    __DISPATCH_THUNK_2(_wfindfirst64,
+                       const auto pfn = try_get__wfindfirst64(),
+                       pfn,
+                       &f::time32__wfindfirst64);
 
-    return impl::time32__wfindfirst64(filespec, fileinfo);
+    return dllimport__wfindfirst64(filespec, fileinfo);
   }
 
-  namespace impl
+  namespace f
   {
     intptr_t time32__wfindfirst64(const wchar_t *filespec,
                                   struct _wfinddata64_t *fileinfo)
@@ -54,5 +56,5 @@ namespace mingw_thunk
 
       return reinterpret_cast<intptr_t>(h);
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

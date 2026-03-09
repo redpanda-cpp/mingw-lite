@@ -17,13 +17,15 @@ namespace mingw_thunk
                  size_t size,
                  size_t alignment)
   {
-    if (const auto pfn = try_get__aligned_malloc())
-      return pfn(size, alignment);
+    __DISPATCH_THUNK_2(_aligned_malloc,
+                       const auto pfn = try_get__aligned_malloc(),
+                       pfn,
+                       &f::fallback__aligned_malloc);
 
-    return impl::fallback__aligned_malloc(size, alignment);
+    return dllimport__aligned_malloc(size, alignment);
   }
 
-  namespace impl
+  namespace f
   {
     void *fallback__aligned_malloc(size_t size, size_t alignment)
     {
@@ -47,5 +49,5 @@ namespace mingw_thunk
 
       return aligned;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

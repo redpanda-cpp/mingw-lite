@@ -21,18 +21,19 @@ namespace mingw_thunk
                  _Out_ LPWSTR lpFilename,
                  _In_ DWORD nSize)
   {
-    if (internal::is_nt())
-      return __ms_GetModuleFileNameW(hModule, lpFilename, nSize);
+    __DISPATCH_THUNK_2(GetModuleFileNameW,
+                       i::is_nt(),
+                       &__ms_GetModuleFileNameW,
+                       &f::win9x_GetModuleFileNameW);
 
-    return impl::win9x_GetModuleFileNameW(hModule, lpFilename, nSize);
+    return dllimport_GetModuleFileNameW(hModule, lpFilename, nSize);
   }
 
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetModuleFileNameW(_In_opt_ HMODULE hModule,
-                             _Out_ LPWSTR lpFilename,
-                             _In_ DWORD nSize)
+    DWORD __stdcall win9x_GetModuleFileNameW(_In_opt_ HMODULE hModule,
+                                             _Out_ LPWSTR lpFilename,
+                                             _In_ DWORD nSize)
     {
       // dry run for buffer size
       if (nSize && !lpFilename) {
@@ -73,5 +74,5 @@ namespace mingw_thunk
         return nSize;
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

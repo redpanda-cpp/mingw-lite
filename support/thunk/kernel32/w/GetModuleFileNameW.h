@@ -4,11 +4,10 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetModuleFileNameW(_In_opt_ HMODULE hModule,
-                             _Out_ LPWSTR lpFilename,
-                             _In_ DWORD nSize);
-  } // namespace impl
+    DWORD __stdcall win9x_GetModuleFileNameW(_In_opt_ HMODULE hModule,
+                                             _Out_ LPWSTR lpFilename,
+                                             _In_ DWORD nSize);
+  } // namespace f
 } // namespace mingw_thunk

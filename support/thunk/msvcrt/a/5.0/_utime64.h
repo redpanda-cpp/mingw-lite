@@ -4,8 +4,8 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
     int time32__utime64(const char *filename, struct __utimbuf64 *times);
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

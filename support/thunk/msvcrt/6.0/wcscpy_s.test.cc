@@ -17,7 +17,7 @@ TEST_CASE("wcscpy_s")
 
   SECTION("normal case")
   {
-    errno_t err = mingw_thunk::impl::fallback_wcscpy_s(dest, N, src);
+    errno_t err = mingw_thunk::f::fallback_wcscpy_s(dest, N, src);
 
     REQUIRE(err == 0);
     REQUIRE(wcscmp(dest, src) == 0);
@@ -26,11 +26,11 @@ TEST_CASE("wcscpy_s")
   SECTION("boundary case")
   {
     dest[0] = 1;
-    errno_t err = mingw_thunk::impl::fallback_wcscpy_s(dest, src_len, src);
+    errno_t err = mingw_thunk::f::fallback_wcscpy_s(dest, src_len, src);
     REQUIRE(err == ERANGE);
     REQUIRE(wcscmp(dest, L"") == 0);
 
-    err = mingw_thunk::impl::fallback_wcscpy_s(dest, src_len + 1, src);
+    err = mingw_thunk::f::fallback_wcscpy_s(dest, src_len + 1, src);
     REQUIRE(err == 0);
     REQUIRE(wcscmp(dest, src) == 0);
   }
@@ -38,21 +38,21 @@ TEST_CASE("wcscpy_s")
   SECTION("error: null src")
   {
     dest[0] = 1;
-    errno_t err = mingw_thunk::impl::fallback_wcscpy_s(dest, N, nullptr);
+    errno_t err = mingw_thunk::f::fallback_wcscpy_s(dest, N, nullptr);
     REQUIRE(err == EINVAL);
     REQUIRE(wcscmp(dest, L"") == 0);
   }
 
   SECTION("error: null dest")
   {
-    errno_t err = mingw_thunk::impl::fallback_wcscpy_s(nullptr, N, src);
+    errno_t err = mingw_thunk::f::fallback_wcscpy_s(nullptr, N, src);
     REQUIRE(err == EINVAL);
   }
 
   SECTION("error: dest size is 0")
   {
     dest[0] = 1;
-    errno_t err = mingw_thunk::impl::fallback_wcscpy_s(dest, 0, src);
+    errno_t err = mingw_thunk::f::fallback_wcscpy_s(dest, 0, src);
     REQUIRE(err == EINVAL);
     // ISO C semantic (Microsoft say dest[0] == 0)
     REQUIRE(dest[0] == 1);
@@ -62,7 +62,7 @@ TEST_CASE("wcscpy_s")
   {
     dest[0] = 1;
     // ISO C semantic (Microsoft say OK)
-    errno_t err = mingw_thunk::impl::fallback_wcscpy_s(dest, rsize_max, src);
+    errno_t err = mingw_thunk::f::fallback_wcscpy_s(dest, rsize_max, src);
     REQUIRE(err == EINVAL);
     REQUIRE(dest[0] == 1);
   }

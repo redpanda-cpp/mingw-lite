@@ -4,9 +4,9 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetCurrentDirectoryW(_In_ DWORD nBufferLength, _Out_ LPWSTR lpBuffer);
-  } // namespace impl
+    DWORD __stdcall win9x_GetCurrentDirectoryW(_In_ DWORD nBufferLength,
+                                               _Out_ LPWSTR lpBuffer);
+  } // namespace f
 } // namespace mingw_thunk

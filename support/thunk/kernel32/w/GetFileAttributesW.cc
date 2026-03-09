@@ -1,3 +1,5 @@
+#include "GetFileAttributesW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -12,20 +14,30 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       kernel32, 4, DWORD, WINAPI, GetFileAttributesW, _In_ LPCWSTR lpFileName)
   {
-    if (internal::is_nt())
-      return __ms_GetFileAttributesW(lpFileName);
+    __DISPATCH_THUNK_2(GetFileAttributesW,
+                       i::is_nt(),
+                       &__ms_GetFileAttributesW,
+                       &f::win9x_GetFileAttributesW);
 
-    if (!lpFileName) {
-      SetLastError(ERROR_INVALID_PARAMETER);
-      return INVALID_FILE_ATTRIBUTES;
-    }
-
-    d::a_str aname;
-    if (!aname.from_w(lpFileName)) {
-      SetLastError(ERROR_INVALID_PARAMETER);
-      return INVALID_FILE_ATTRIBUTES;
-    }
-
-    return __ms_GetFileAttributesA(aname.c_str());
+    return dllimport_GetFileAttributesW(lpFileName);
   }
+
+  namespace f
+  {
+    DWORD __stdcall win9x_GetFileAttributesW(_In_ LPCWSTR lpFileName)
+    {
+      if (!lpFileName) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return INVALID_FILE_ATTRIBUTES;
+      }
+
+      d::a_str aname;
+      if (!aname.from_w(lpFileName)) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return INVALID_FILE_ATTRIBUTES;
+      }
+
+      return __ms_GetFileAttributesA(aname.c_str());
+    }
+  } // namespace f
 } // namespace mingw_thunk

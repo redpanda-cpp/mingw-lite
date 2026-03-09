@@ -1,3 +1,5 @@
+#include "RemoveDllDirectory.h"
+
 #include <thunk/_common.h>
 
 #include <windows.h>
@@ -11,11 +13,20 @@ namespace mingw_thunk
                  RemoveDllDirectory,
                  _In_ DLL_DIRECTORY_COOKIE Cookie)
   {
-    if (auto pfn = try_get_RemoveDllDirectory())
-      return pfn(Cookie);
+    __DISPATCH_THUNK_2(RemoveDllDirectory,
+                       const auto pfn = try_get_RemoveDllDirectory(),
+                       pfn,
+                       &f::fallback_RemoveDllDirectory);
 
-    // This should not be called because `AddDllDirectory` always fails.
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return 0;
+    return dllimport_RemoveDllDirectory(Cookie);
   }
+
+  namespace f
+  {
+    BOOL __stdcall fallback_RemoveDllDirectory(_In_ DLL_DIRECTORY_COOKIE Cookie)
+    {
+      SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+      return 0;
+    }
+  } // namespace f
 } // namespace mingw_thunk

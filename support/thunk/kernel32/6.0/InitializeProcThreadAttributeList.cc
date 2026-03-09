@@ -1,3 +1,5 @@
+#include "InitializeProcThreadAttributeList.h"
+
 #include <thunk/_common.h>
 
 #include <windows.h>
@@ -14,10 +16,26 @@ namespace mingw_thunk
                  DWORD dwFlags,
                  _Inout_ PSIZE_T lpSize)
   {
-    if (const auto pfn = try_get_InitializeProcThreadAttributeList())
-      return pfn(lpAttributeList, dwAttributeCount, dwFlags, lpSize);
+    __DISPATCH_THUNK_2(InitializeProcThreadAttributeList,
+                       const auto pfn =
+                           try_get_InitializeProcThreadAttributeList(),
+                       pfn,
+                       &f::fallback_InitializeProcThreadAttributeList);
 
-    SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-    return FALSE;
+    return dllimport_InitializeProcThreadAttributeList(
+        lpAttributeList, dwAttributeCount, dwFlags, lpSize);
   }
+
+  namespace f
+  {
+    BOOL __stdcall fallback_InitializeProcThreadAttributeList(
+        _Out_opt_ LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList,
+        _In_ DWORD dwAttributeCount,
+        DWORD dwFlags,
+        _Inout_ PSIZE_T lpSize)
+    {
+      SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+      return FALSE;
+    }
+  } // namespace f
 } // namespace mingw_thunk

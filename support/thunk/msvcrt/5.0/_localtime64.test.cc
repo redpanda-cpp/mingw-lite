@@ -10,7 +10,7 @@ TEST_CASE("_localtime64")
   __time64_t time64 = __time64_t(0x7FFF'FFFF) + 24 * 60 * 60;
   struct tm tm32 = *_localtime32(&time32);
 
-  struct tm tm64 = *mingw_thunk::impl::time32__localtime64(&time64);
+  struct tm tm64 = *mingw_thunk::f::time32__localtime64(&time64);
 
   REQUIRE(tm32.tm_year == tm64.tm_year);
   REQUIRE(tm32.tm_mon == tm64.tm_mon);

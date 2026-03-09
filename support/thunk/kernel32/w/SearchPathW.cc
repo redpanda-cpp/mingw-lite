@@ -23,23 +23,21 @@ namespace mingw_thunk
                  _Out_ LPWSTR lpBuffer,
                  _Out_opt_ LPWSTR *lpFilePart)
   {
-    if (internal::is_nt())
-      return __ms_SearchPathW(
-          lpPath, lpFileName, lpExtension, nBufferLength, lpBuffer, lpFilePart);
+    __DISPATCH_THUNK_2(
+        SearchPathW, i::is_nt(), &__ms_SearchPathW, &f::win9x_SearchPathW);
 
-    return impl::win9x_SearchPathW(
+    return dllimport_SearchPathW(
         lpPath, lpFileName, lpExtension, nBufferLength, lpBuffer, lpFilePart);
   }
 
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_SearchPathW(_In_opt_ LPCWSTR lpPath,
-                      _In_ LPCWSTR lpFileName,
-                      _In_opt_ LPCWSTR lpExtension,
-                      _In_ DWORD nBufferLength,
-                      _Out_ LPWSTR lpBuffer,
-                      _Out_opt_ LPWSTR *lpFilePart)
+    DWORD __stdcall win9x_SearchPathW(_In_opt_ LPCWSTR lpPath,
+                                      _In_ LPCWSTR lpFileName,
+                                      _In_opt_ LPCWSTR lpExtension,
+                                      _In_ DWORD nBufferLength,
+                                      _Out_ LPWSTR lpBuffer,
+                                      _Out_opt_ LPWSTR *lpFilePart)
     {
       if (!lpFileName) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -83,7 +81,7 @@ namespace mingw_thunk
         return FALSE;
 
       while (ret > a_buf.size()) {
-        if (!a_buf.resize(a_buf.size() * 2)) {
+        if (!a_buf.resize(ret)) {
           SetLastError(ERROR_OUTOFMEMORY);
           return 0;
         }
@@ -94,7 +92,7 @@ namespace mingw_thunk
                                a_buf.data(),
                                &a_file_part);
         if (ret == 0)
-          return FALSE;
+          return 0;
       }
 
       size_t file_part_idx = a_file_part - a_buf.data();
@@ -119,5 +117,5 @@ namespace mingw_thunk
       }
       return w_size;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

@@ -9,6 +9,13 @@
 
 namespace mingw_thunk
 {
+  namespace f
+  {
+    BOOL WINAPI fallback_GetCPInfoExW(_In_ UINT CodePage,
+                                      _In_ DWORD dwFlags,
+                                      _Out_ LPCPINFOEXW lpCPInfoEx);
+  }
+
   __DEFINE_THUNK(kernel32,
                  12,
                  BOOL,
@@ -18,17 +25,19 @@ namespace mingw_thunk
                  _In_ DWORD dwFlags,
                  _Out_ LPCPINFOEXW lpCPInfoEx)
   {
-    if (const auto pfn = try_get_GetCPInfoExW())
-      return pfn(CodePage, dwFlags, lpCPInfoEx);
+    __DISPATCH_THUNK_2(GetCPInfoExW,
+                       const auto pfn = try_get_GetCPInfoExW(),
+                       pfn,
+                       &f::fallback_GetCPInfoExW);
 
-    return impl::fallback_GetCPInfoExW(CodePage, dwFlags, lpCPInfoEx);
+    return dllimport_GetCPInfoExW(CodePage, dwFlags, lpCPInfoEx);
   }
 
-  namespace impl
+  namespace f
   {
-    BOOL fallback_GetCPInfoExW(_In_ UINT CodePage,
-                               _In_ DWORD dwFlags,
-                               _Out_ LPCPINFOEXW lpCPInfoEx)
+    BOOL WINAPI fallback_GetCPInfoExW(_In_ UINT CodePage,
+                                      _In_ DWORD dwFlags,
+                                      _Out_ LPCPINFOEXW lpCPInfoEx)
     {
       if (CodePage >= USHRT_MAX) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -74,5 +83,5 @@ namespace mingw_thunk
 
       return TRUE;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

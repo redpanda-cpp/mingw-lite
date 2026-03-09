@@ -14,21 +14,21 @@ namespace mingw_thunk
                  GetSystemTimePreciseAsFileTime,
                  _Out_ LPFILETIME lpSystemTimeAsFileTime)
   {
-    if (auto const pGetSystemTimePreciseAsFileTime =
-            try_get_GetSystemTimePreciseAsFileTime()) {
-      return pGetSystemTimePreciseAsFileTime(lpSystemTimeAsFileTime);
-    }
+    __DISPATCH_THUNK_2(GetSystemTimePreciseAsFileTime,
+                       const auto pfn =
+                           try_get_GetSystemTimePreciseAsFileTime(),
+                       pfn,
+                       &f::fallback_GetSystemTimePreciseAsFileTime);
 
-    return impl::fallback_GetSystemTimePreciseAsFileTime(
-        lpSystemTimeAsFileTime);
+    return dllimport_GetSystemTimePreciseAsFileTime(lpSystemTimeAsFileTime);
   }
 
-  namespace impl
+  namespace f
   {
-    VOID fallback_GetSystemTimePreciseAsFileTime(
+    VOID __stdcall fallback_GetSystemTimePreciseAsFileTime(
         _Out_ LPFILETIME lpSystemTimeAsFileTime)
     {
       return GetSystemTimeAsFileTime(lpSystemTimeAsFileTime);
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

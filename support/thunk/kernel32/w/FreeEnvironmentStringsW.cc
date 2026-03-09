@@ -1,3 +1,5 @@
+#include "FreeEnvironmentStringsW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -11,12 +13,22 @@ namespace mingw_thunk
   // Windows NT 4.0
   __DEFINE_THUNK(kernel32, 4, BOOL, WINAPI, FreeEnvironmentStringsW, LPWCH penv)
   {
-    if (internal::is_nt())
-      return __ms_FreeEnvironmentStringsW(penv);
+    __DISPATCH_THUNK_2(FreeEnvironmentStringsW,
+                       i::is_nt(),
+                       &__ms_FreeEnvironmentStringsW,
+                       &f::win9x_FreeEnvironmentStringsW);
 
-    if (penv)
-      HeapFree(GetProcessHeap(), 0, penv);
-
-    return TRUE;
+    return dllimport_FreeEnvironmentStringsW(penv);
   }
+
+  namespace f
+  {
+    BOOL __stdcall win9x_FreeEnvironmentStringsW(LPWCH penv)
+    {
+      if (penv)
+        HeapFree(GetProcessHeap(), 0, penv);
+
+      return TRUE;
+    }
+  } // namespace f
 } // namespace mingw_thunk

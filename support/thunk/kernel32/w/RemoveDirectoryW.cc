@@ -1,3 +1,5 @@
+#include "RemoveDirectoryW.h"
+
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
 #include <thunk/os.h>
@@ -12,20 +14,30 @@ namespace mingw_thunk
   __DEFINE_THUNK(
       kernel32, 4, BOOL, WINAPI, RemoveDirectoryW, _In_ LPCWSTR lpPathName)
   {
-    if (internal::is_nt())
-      return __ms_RemoveDirectoryW(lpPathName);
+    __DISPATCH_THUNK_2(RemoveDirectoryW,
+                       i::is_nt(),
+                       &__ms_RemoveDirectoryW,
+                       &f::win9x_RemoveDirectoryW);
 
-    if (!lpPathName) {
-      SetLastError(ERROR_INVALID_PARAMETER);
-      return FALSE;
-    }
-
-    d::a_str aname;
-    if (!aname.from_w(lpPathName)) {
-      SetLastError(ERROR_OUTOFMEMORY);
-      return FALSE;
-    }
-
-    return __ms_RemoveDirectoryA(aname.c_str());
+    return dllimport_RemoveDirectoryW(lpPathName);
   }
+
+  namespace f
+  {
+    BOOL __stdcall win9x_RemoveDirectoryW(_In_ LPCWSTR lpPathName)
+    {
+      if (!lpPathName) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+      }
+
+      d::a_str aname;
+      if (!aname.from_w(lpPathName)) {
+        SetLastError(ERROR_OUTOFMEMORY);
+        return FALSE;
+      }
+
+      return __ms_RemoveDirectoryA(aname.c_str());
+    }
+  } // namespace f
 } // namespace mingw_thunk

@@ -1,3 +1,5 @@
+#include "GetMaximumProcessorCount.h"
+
 #include <thunk/_common.h>
 #include <thunk/yy/api-ms-win-core-processtopology-obsolete.h>
 
@@ -15,10 +17,19 @@ namespace mingw_thunk
                  GetMaximumProcessorCount,
                  _In_ WORD GroupNumber)
   {
-    if (auto pGetMaximumProcessorCount = try_get_GetMaximumProcessorCount()) {
-      return pGetMaximumProcessorCount(GroupNumber);
-    }
+    __DISPATCH_THUNK_2(GetMaximumProcessorCount,
+                       const auto pfn = try_get_GetMaximumProcessorCount(),
+                       pfn,
+                       &f::fallback_GetMaximumProcessorCount);
 
-    return Downlevel::GetProcessorCount(GroupNumber);
+    return dllimport_GetMaximumProcessorCount(GroupNumber);
   }
+
+  namespace f
+  {
+    DWORD __stdcall fallback_GetMaximumProcessorCount(_In_ WORD GroupNumber)
+    {
+      return Downlevel::GetProcessorCount(GroupNumber);
+    }
+  } // namespace f
 } // namespace mingw_thunk

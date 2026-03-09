@@ -21,12 +21,12 @@ TEST_CASE("_utime64 and _stat64")
 
   struct __utimbuf64 times = {0x1'0000'0000, 0x1'0000'0000};
 
-  int ret = mingw_thunk::impl::time32__utime64(filename, &times);
+  int ret = mingw_thunk::f::time32__utime64(filename, &times);
 
   REQUIRE(ret == 0);
 
   struct __stat64 stats;
-  ret = mingw_thunk::impl::time32__stat64(filename, &stats);
+  ret = mingw_thunk::f::time32__stat64(filename, &stats);
 
   REQUIRE(ret == 0);
   REQUIRE(stats.st_atime == times.actime);

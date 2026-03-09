@@ -19,16 +19,16 @@ namespace mingw_thunk
                  _In_ DWORD nBufferLength,
                  _Out_ LPWSTR lpBuffer)
   {
-    if (internal::is_nt())
-      return __ms_GetTempPathW(nBufferLength, lpBuffer);
+    __DISPATCH_THUNK_2(
+        GetTempPathW, i::is_nt(), &__ms_GetTempPathW, &f::win9x_GetTempPathW);
 
-    return impl::win9x_GetTempPathW(nBufferLength, lpBuffer);
+    return dllimport_GetTempPathW(nBufferLength, lpBuffer);
   }
 
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetTempPathW(_In_ DWORD nBufferLength, _Out_ LPWSTR lpBuffer)
+    DWORD __stdcall win9x_GetTempPathW(_In_ DWORD nBufferLength,
+                                       _Out_ LPWSTR lpBuffer)
     {
       // dry run for buffer size
       if (nBufferLength && !lpBuffer) {
@@ -67,5 +67,5 @@ namespace mingw_thunk
       lpBuffer[w_size] = 0;
       return w_size;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

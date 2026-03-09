@@ -6,8 +6,6 @@
 #include <windows.h>
 #include <winternl.h>
 
-#define _In_NLS_string_(s)
-
 #define __WarningMessage__(...)
 
 #define MAXIMUM_FILENAME_LENGTH 256

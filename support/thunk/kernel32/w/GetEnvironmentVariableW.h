@@ -4,11 +4,10 @@
 
 namespace mingw_thunk
 {
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetEnvironmentVariableW(_In_opt_ LPCWSTR lpName,
-                                  _Out_opt_ LPWSTR lpBuffer,
-                                  _In_ DWORD nSize);
-  } // namespace impl
+    DWORD __stdcall win9x_GetEnvironmentVariableW(_In_opt_ LPCWSTR lpName,
+                                                  _Out_opt_ LPWSTR lpBuffer,
+                                                  _In_ DWORD nSize);
+  } // namespace f
 } // namespace mingw_thunk

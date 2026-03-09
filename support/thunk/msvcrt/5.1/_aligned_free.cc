@@ -9,13 +9,15 @@ namespace mingw_thunk
 {
   __DEFINE_THUNK(msvcrt, 0, void, __cdecl, _aligned_free, void *memblock)
   {
-    if (const auto pfn = try_get__aligned_free())
-      return pfn(memblock);
+    __DISPATCH_THUNK_2(_aligned_free,
+                       const auto pfn = try_get__aligned_free(),
+                       pfn,
+                       &f::fallback__aligned_free);
 
-    impl::fallback__aligned_free(memblock);
+    return dllimport__aligned_free(memblock);
   }
 
-  namespace impl
+  namespace f
   {
     void fallback__aligned_free(void *memblock)
     {
@@ -24,5 +26,5 @@ namespace mingw_thunk
         ::free(allocation);
       }
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

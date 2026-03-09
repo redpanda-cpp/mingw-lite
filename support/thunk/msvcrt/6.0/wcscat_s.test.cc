@@ -28,7 +28,7 @@ TEST_CASE("wcscat_s")
   {
     fill_dest();
 
-    errno_t err = mingw_thunk::impl::fallback_wcscat_s(dest, N, str2);
+    errno_t err = mingw_thunk::f::fallback_wcscat_s(dest, N, str2);
 
     REQUIRE(err == 0);
     REQUIRE(wcscmp(dest, result) == 0);
@@ -38,13 +38,13 @@ TEST_CASE("wcscat_s")
   {
     fill_dest();
     errno_t err =
-        mingw_thunk::impl::fallback_wcscat_s(dest, str1_len + str2_len, str2);
+        mingw_thunk::f::fallback_wcscat_s(dest, str1_len + str2_len, str2);
     REQUIRE(err == ERANGE);
     REQUIRE(wcscmp(dest, L"") == 0);
 
     fill_dest();
-    err = mingw_thunk::impl::fallback_wcscat_s(
-        dest, str1_len + str2_len + 1, str2);
+    err =
+        mingw_thunk::f::fallback_wcscat_s(dest, str1_len + str2_len + 1, str2);
     REQUIRE(err == 0);
     REQUIRE(wcscmp(dest, result) == 0);
   }
@@ -52,21 +52,21 @@ TEST_CASE("wcscat_s")
   SECTION("error: null src")
   {
     fill_dest();
-    errno_t err = mingw_thunk::impl::fallback_wcscat_s(dest, N, nullptr);
+    errno_t err = mingw_thunk::f::fallback_wcscat_s(dest, N, nullptr);
     REQUIRE(err == EINVAL);
     REQUIRE(wcscmp(dest, L"") == 0);
   }
 
   SECTION("error: null dest")
   {
-    errno_t err = mingw_thunk::impl::fallback_wcscat_s(nullptr, N, str2);
+    errno_t err = mingw_thunk::f::fallback_wcscat_s(nullptr, N, str2);
     REQUIRE(err == EINVAL);
   }
 
   SECTION("error: dest size is 0")
   {
     dest[0] = 1;
-    errno_t err = mingw_thunk::impl::fallback_wcscat_s(dest, 0, str2);
+    errno_t err = mingw_thunk::f::fallback_wcscat_s(dest, 0, str2);
     REQUIRE(err == EINVAL);
     // ISO C semantic (Microsoft say 0)
     REQUIRE(dest[0] == 1);
@@ -76,7 +76,7 @@ TEST_CASE("wcscat_s")
   {
     dest[0] = 1;
     // ISO C semantic (Microsoft say OK)
-    errno_t err = mingw_thunk::impl::fallback_wcscat_s(dest, rsize_max, str2);
+    errno_t err = mingw_thunk::f::fallback_wcscat_s(dest, rsize_max, str2);
     REQUIRE(err == EINVAL);
     REQUIRE(dest[0] == 1);
   }

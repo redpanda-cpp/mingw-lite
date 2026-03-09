@@ -10,8 +10,8 @@ TEST_CASE("GetFullPathNameW")
   wchar_t buffer[MAX_PATH];
   wchar_t *filePart;
 
-  DWORD result = mingw_thunk::impl::win9x_GetFullPathNameW(
-      path, MAX_PATH, buffer, &filePart);
+  DWORD result =
+      mingw_thunk::f::win9x_GetFullPathNameW(path, MAX_PATH, buffer, &filePart);
 
   REQUIRE(result > 0);
 

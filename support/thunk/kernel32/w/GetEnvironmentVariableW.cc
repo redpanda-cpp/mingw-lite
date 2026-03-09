@@ -20,18 +20,19 @@ namespace mingw_thunk
                  _Out_opt_ LPWSTR lpBuffer,
                  _In_ DWORD nSize)
   {
-    if (internal::is_nt())
-      return __ms_GetEnvironmentVariableW(lpName, lpBuffer, nSize);
+    __DISPATCH_THUNK_2(GetEnvironmentVariableW,
+                       i::is_nt(),
+                       &__ms_GetEnvironmentVariableW,
+                       &f::win9x_GetEnvironmentVariableW);
 
-    return impl::win9x_GetEnvironmentVariableW(lpName, lpBuffer, nSize);
+    return dllimport_GetEnvironmentVariableW(lpName, lpBuffer, nSize);
   }
 
-  namespace impl
+  namespace f
   {
-    DWORD
-    win9x_GetEnvironmentVariableW(_In_opt_ LPCWSTR lpName,
-                                  _Out_opt_ LPWSTR lpBuffer,
-                                  _In_ DWORD nSize)
+    DWORD __stdcall win9x_GetEnvironmentVariableW(_In_opt_ LPCWSTR lpName,
+                                                  _Out_opt_ LPWSTR lpBuffer,
+                                                  _In_ DWORD nSize)
     {
       d::a_str a_name;
       if (lpName && !a_name.from_w(lpName)) {
@@ -72,5 +73,5 @@ namespace mingw_thunk
       lpBuffer[w_size] = 0;
       return w_size;
     }
-  } // namespace impl
+  } // namespace f
 } // namespace mingw_thunk

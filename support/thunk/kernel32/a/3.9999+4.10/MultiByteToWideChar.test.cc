@@ -17,7 +17,8 @@ TEST_CASE("MultiByteToWideChar")
     const wchar_t *expected = L"Hello, world!";
     wchar_t out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_MultiByteToWideChar(CP_UTF8, 0, in, -1, out, buffer_len);
+    int len = mingw_thunk::f::win95_MultiByteToWideChar(
+        CP_UTF8, 0, in, -1, out, buffer_len);
     REQUIRE(len == wcslen(expected) + 1);
     REQUIRE(wcscmp(out, expected) == 0);
   }
@@ -28,10 +29,12 @@ TEST_CASE("MultiByteToWideChar")
     const wchar_t *expected = L"Hello, world!";
     wchar_t out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_MultiByteToWideChar(CP_UTF8, 0, in, -1, out, 0);
+    int len =
+        mingw_thunk::f::win95_MultiByteToWideChar(CP_UTF8, 0, in, -1, out, 0);
     REQUIRE(len == wcslen(expected) + 1);
 
-    int len2 = mingw_thunk::impl::win95_MultiByteToWideChar(CP_UTF8, 0, in, strlen(in), nullptr, 0);
+    int len2 = mingw_thunk::f::win95_MultiByteToWideChar(
+        CP_UTF8, 0, in, strlen(in), nullptr, 0);
     REQUIRE(len2 == wcslen(expected));
   }
 
@@ -42,7 +45,8 @@ TEST_CASE("MultiByteToWideChar")
     wchar_t out[buffer_len] = {};
 
     int buffer_len_2 = 5;
-    int len = mingw_thunk::impl::win95_MultiByteToWideChar(CP_UTF8, 0, in, -1, out, buffer_len_2);
+    int len = mingw_thunk::f::win95_MultiByteToWideChar(
+        CP_UTF8, 0, in, -1, out, buffer_len_2);
     REQUIRE(len == 0);
     REQUIRE(GetLastError() == ERROR_INSUFFICIENT_BUFFER);
     REQUIRE(out[buffer_len_2] == 0);
@@ -54,7 +58,8 @@ TEST_CASE("MultiByteToWideChar")
     const wchar_t *expected = L"你好，“世界”！";
     wchar_t out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_MultiByteToWideChar(CP_UTF8, 0, in, -1, out, buffer_len);
+    int len = mingw_thunk::f::win95_MultiByteToWideChar(
+        CP_UTF8, 0, in, -1, out, buffer_len);
     REQUIRE(len == wcslen(expected) + 1);
     REQUIRE(wcscmp(out, expected) == 0);
   }
@@ -65,7 +70,8 @@ TEST_CASE("MultiByteToWideChar")
     const wchar_t *expected = L"👋🌏🌍🌎";
     wchar_t out[buffer_len] = {};
 
-    int len = mingw_thunk::impl::win95_MultiByteToWideChar(CP_UTF8, 0, in, -1, out, buffer_len);
+    int len = mingw_thunk::f::win95_MultiByteToWideChar(
+        CP_UTF8, 0, in, -1, out, buffer_len);
     REQUIRE(len == wcslen(expected) + 1);
     REQUIRE(wcscmp(out, expected) == 0);
   }
