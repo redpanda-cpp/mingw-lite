@@ -67,7 +67,16 @@ namespace mingw_thunk::internal
       return ERROR_TIMEOUT;
     }
 
-    return __ms_RtlNtStatusToDosError(Status);
+#if THUNK_LEVEL >= NTDDI_WIN98
+    const auto RtlNtStatusToDosError = __ms_RtlNtStatusToDosError;
+#else
+    const auto RtlNtStatusToDosError = ntdll_RtlNtStatusToDosError();
+#endif
+    if (RtlNtStatusToDosError) {
+      return RtlNtStatusToDosError(Status);
+    } else {
+      return ERROR_GEN_FAILURE;
+    }
   }
 
   static DWORD __fastcall BaseSetLastNTError(_In_ NTSTATUS Status)

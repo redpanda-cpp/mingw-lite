@@ -18,10 +18,17 @@ namespace mingw_thunk
                  _In_ PCIDLIST_ABSOLUTE pidl,
                  _Out_ LPWSTR pszPath)
   {
+#if THUNK_LEVEL >= NTDDI_WIN98
     __DISPATCH_THUNK_2(SHGetPathFromIDListW,
                        i::is_nt(),
                        &__ms_SHGetPathFromIDListW,
                        &f::win9x_SHGetPathFromIDListW);
+#else
+    __DISPATCH_THUNK_2(SHGetPathFromIDListW,
+                       i::is_nt(),
+                       shell32_SHGetPathFromIDListW(),
+                       &f::win9x_SHGetPathFromIDListW);
+#endif
 
     return dllimport_SHGetPathFromIDListW(pidl, pszPath);
   }

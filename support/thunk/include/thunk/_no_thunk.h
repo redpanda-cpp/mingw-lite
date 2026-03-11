@@ -41,7 +41,10 @@ namespace mingw_thunk
     __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlDosPathNameToNtPathName_U)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlFreeUnicodeString)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlGetNtVersionNumbers)
+    __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlNtStatusToDosError)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, RtlPcToFileHeader)
+
+    __DECLARE_NON_THUNK_FUNCTION(shell32, SHGetPathFromIDListW)
   } // namespace
 
 #undef __DECLARE_NON_THUNK_FUNCTION
