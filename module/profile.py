@@ -56,6 +56,54 @@ class BranchProfile(BranchVersions, ProfileInfo):
       return self.min_os.major * 0x100 + self.min_os.minor
 
 BRANCHES: Dict[str, BranchVersions] = {
+  'next': BranchVersions(
+    gcc = '16-20260308',
+    rev = '0',
+    display_version = 'next-16-20260308',
+
+    short_import = True,
+    utf8_thunk = True,
+
+    mcfgthread = '2.3-ga.1',
+    mingw = '13.0.0',
+
+    binutils = '2.46.0',
+    expat = '2.7.4',
+    gdb = '17.1',
+    gmp = '6.3.0',
+    iconv = '1.18',
+    make = '4.4.1',
+    mpc = '1.3.1',
+    mpfr = '4.2.2',
+    pdcurses = '3.9',
+    pkgconf = '2.5.1',
+    python = '3.14.3',
+    z = '1.3.2',
+  ),
+  'current': BranchVersions(
+    gcc = '15-20260307',
+    rev = '0',
+    display_version = 'current-15-20260307',
+
+    short_import = True,
+    utf8_thunk = True,
+
+    mcfgthread = '2.3-ga.1',
+    mingw = '13.0.0',
+
+    binutils = '2.46.0',
+    expat = '2.7.4',
+    gdb = '17.1',
+    gmp = '6.3.0',
+    iconv = '1.18',
+    make = '4.4.1',
+    mpc = '1.3.1',
+    mpfr = '4.2.2',
+    pdcurses = '3.9',
+    pkgconf = '2.5.1',
+    python = '3.14.3',
+    z = '1.3.2',
+  ),
   '16': BranchVersions(
     gcc = '16-20260308',
     rev = '0',
@@ -156,15 +204,6 @@ BRANCHES: Dict[str, BranchVersions] = {
     z = '1.3.2',
   ),
 }
-
-BRANCHES['15+u8thunk'] = BranchVersions(
-  **{
-    **BRANCHES['15'].__dict__,
-    'display_version': '15.2.0+u8thunk',
-    'short_import': True,
-    'utf8_thunk': True,
-  }
-)
 
 _MINGW_ARCH_2_TRIPLET_MAP: dict[str, str] = {
   '64': 'x86_64-w64-mingw32',
