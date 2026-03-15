@@ -72,8 +72,13 @@ static void clean_shared_libs_recursive(const wchar_t *tar_dir,
 
 void error_exit(const char *msg) {
   fprintf(stderr, "%s\n", msg);
-  _getch();
+  flush_console_and_get_char();
   exit(EXIT_FAILURE);
+}
+
+void flush_console_and_get_char() {
+  FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+  _getch();
 }
 
 void install_shared_libs() {
@@ -306,7 +311,14 @@ HANDLE spawn(const wchar_t *argv[]) {
   }
   cmdline[idx] = 0;
 
-  STARTUPINFOW si = {sizeof(si)};
+  STARTUPINFOW si = {
+      .cb = sizeof(si),
+      .dwFlags = STARTF_USESTDHANDLES,
+      .hStdInput = GetStdHandle(STD_INPUT_HANDLE),
+      .hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE),
+      .hStdError = GetStdHandle(STD_ERROR_HANDLE),
+  };
+
   PROCESS_INFORMATION pi = {0};
   DWORD exit_code = 0;
   if (!CreateProcessW(NULL, cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si,

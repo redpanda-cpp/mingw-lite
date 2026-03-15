@@ -51,7 +51,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
   printf("[test-make-gdb] done\n");
 
-  _getch();
+  flush_console_and_get_char();
 
   return 0;
 }

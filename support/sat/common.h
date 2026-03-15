@@ -6,6 +6,7 @@
 void change_to_self_dir();
 void clean_shared_libs();
 void error_exit(const char *msg);
+void flush_console_and_get_char();
 void install_shared_libs();
 bool is_nt();
 bool lt_win98();
