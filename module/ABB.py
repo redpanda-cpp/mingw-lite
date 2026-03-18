@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
-from typing import Optional
+from typing import List, Optional
 
 from module.alt_crt import postprocess_crt_import_libraries
 from module.debug import shell_here
@@ -178,8 +178,18 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
     paths.layer_AAB.crt_base / 'usr/local',
     *common_cross_layers(paths),
+
+    # u8crt
+    paths.layer_AAB.crt_shared / 'usr/local',
+    paths.layer_AAB.gcc_lib_shared / 'usr/local',
+    paths.layer_AAB.winpthreads_shared / 'usr/local',
   ]):
     thunk_src_dir = paths.in_tree_src_dir.thunk
+
+    if ver.utf8_user_crt:
+      thunk_profile = 'core-utf8'
+    else:
+      thunk_profile = 'core'
 
     xmake_config(thunk_src_dir, [
       '--buildir=build-ABB',
@@ -188,7 +198,7 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--mingw=/usr/local',
       f'--mingw-version={v.major}',
       f'--thunk-level={ver.min_os}',
-      '--profile=core',
+      f'--profile={thunk_profile}',
     ])
     xmake_build(thunk_src_dir, config.jobs)
     xmake_install(thunk_src_dir, paths.layer_ABB.thunk)
@@ -217,6 +227,11 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     crt0_inc_dir = paths.layer_ABB.crt0 / 'include'
     crt_inc_dir = paths.layer_ABB.crt / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
+
+    # u8crt
+    if ver.utf8_user_crt:
+      xmake_install(thunk_src_dir, paths.layer_ABB.crt, ['u8crt.a'])
+      xmake_install(thunk_src_dir, paths.layer_ABB.crt_shared, ['u8crt.so'])
 
   license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
   ensure(license_dir)
@@ -323,16 +338,17 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.iconv / 'usr/local',
     paths.layer_AAB.intl / 'usr/local',
   ]):
-    config_flags = []
+    config_flags: List[str] = []
 
     if ver.exception == 'dwarf':
       config_flags.append('--disable-sjlj-exceptions')
       config_flags.append('--with-dwarf2')
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
-
     if ver.utf8_thunk:
       config_flags.append('--disable-win32-utf8-manifest')
+    if not ver.utf8_user_crt:
+      config_flags.append('--with-libiconv')
 
     configure(build_dir, [
       '--prefix=',
@@ -357,7 +373,6 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       # packages
       f'--with-arch={ver.march}',
       '--without-libcc1',
-      '--with-libiconv',
       '--with-tune=generic',
       *config_flags,
       *cflags_B(

@@ -1,9 +1,10 @@
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
+#include <thunk/u8crt/musl.h>
 
 #include <stdio.h>
 
-#include "@console_buffer.h"
+#include "@stdio.h"
 
 namespace mingw_thunk
 {
@@ -20,16 +21,7 @@ namespace mingw_thunk
       return __ms_fputs(s, stream);
 
     size_t len = strlen(s);
-    auto &buffer = g::stdio_buffer[fd];
-    buffer.append(s, len);
-
-    buffer.flush_if_reaching_threshold(fd);
-
-    if (i::is_buffered(fd)) {
-      buffer.flush_complete_line(fd);
-    } else {
-      buffer.flush_complete_sequence(fd);
-    }
+    musl::fwrite(s, 1, len, musl::g_fp_from_fd(fd));
     return len;
   }
 } // namespace mingw_thunk

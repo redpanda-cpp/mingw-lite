@@ -36,13 +36,25 @@ jobs:
             '32_686-msvcrt_win98',
             '32_486-msvcrt_win98',
           ]
+          beyond_profile = [
+            # u8crt
+            '64-u8crt', '32-u8crt',
+          ]
 
           exclude_profile_branch = [
-            {'profile': '32-msvcrt_win2000', 'branch': 'current'},
-            {'profile': '32-msvcrt_win2000', 'branch': '16'},
-            {'profile': '32_686-msvcrt_winnt40', 'branch': '15'},
-            {'profile': '32_686-msvcrt_winnt40', 'branch': '14'},
-            {'profile': '32_686-msvcrt_winnt40', 'branch': '13'},
+            *( # deprecated
+              {'profile': '32-msvcrt_win2000', 'branch': b}
+              for b in ['current', '16']
+            ),
+            *( # u8thunk path test
+              {'profile': '32_686-msvcrt_winnt40', 'branch': b}
+              for b in ['15', '14', '13']
+            ),
+            *( # u8crt
+              {'profile': p, 'branch': b}
+              for p in ['64-u8crt', '32-u8crt']
+              for b in ['16', '15', '14', '13']
+            ),
           ]
 
           alt_branch = ['15']
@@ -91,6 +103,14 @@ jobs:
               'pattern': 'mingw32_386-*',
               'dict': '128m',
             },
+
+            # beyond mingw lite
+            {
+              'name': 'u8crt',
+              'profile': json.dumps(['64-u8crt', '32-u8crt']),
+              'pattern': '{mingw64-u8crt-*,mingw32-u8crt-*}',
+              'dict': '128m',
+            },
           ]
 
           sat_exclude_profile_branch = ':'.join([
@@ -111,7 +131,7 @@ jobs:
             prerelease = not current_branch.isdigit() or int(current_branch) >= 16
           else:
             branch = all_branch
-            profile = common_profile + all_old_profile
+            profile = common_profile + all_old_profile + beyond_profile
             release = False
             prerelease = True
 

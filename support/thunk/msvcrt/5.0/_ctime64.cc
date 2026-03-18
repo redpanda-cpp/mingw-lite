@@ -25,6 +25,8 @@ namespace mingw_thunk
       struct tm *tm = _localtime64(sourceTime);
       if (!tm)
         return nullptr;
+
+      // “ASCII time”, not affected by UTF-8.
       return asctime(tm);
     }
   } // namespace f

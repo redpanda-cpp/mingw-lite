@@ -1,11 +1,69 @@
-target('alias-short-msvcrt-os')
-  set_kind('static')
+function msvcrt_utf8_files()
+  return {
+    'msvcrt/u/environment/__initenv.cc',
+    'msvcrt/u/environment/__p__environ.cc',
+    'msvcrt/u/environment/_putenv.cc',
+    'msvcrt/u/environment/getenv.cc',
+    'msvcrt/u/environment/putenv.cc',
+    'msvcrt/u/filesystem/_chmod.cc',
+    'msvcrt/u/filesystem/_findfirst.cc',
+    'msvcrt/u/filesystem/_findfirst32.cc',
+    'msvcrt/u/filesystem/_findfirst32i64.cc',
+    'msvcrt/u/filesystem/_findfirst64.cc',
+    'msvcrt/u/filesystem/_findfirst64i32.cc',
+    'msvcrt/u/filesystem/_findfirsti64.cc',
+    'msvcrt/u/filesystem/_findnext.cc',
+    'msvcrt/u/filesystem/_findnext32.cc',
+    'msvcrt/u/filesystem/_findnext32i64.cc',
+    'msvcrt/u/filesystem/_findnext64.cc',
+    'msvcrt/u/filesystem/_findnext64i32.cc',
+    'msvcrt/u/filesystem/_findnexti64.cc',
+    'msvcrt/u/filesystem/_fullpath.cc',
+    'msvcrt/u/filesystem/_stat.cc',
+    'msvcrt/u/filesystem/_stat32.cc',
+    'msvcrt/u/filesystem/_stat32i64.cc',
+    'msvcrt/u/filesystem/_stat64.cc',
+    'msvcrt/u/filesystem/_stat64i32.cc',
+    'msvcrt/u/filesystem/_stati64.cc',
+    'msvcrt/u/filesystem/_unlink.cc',
+    'msvcrt/u/filesystem/remove.cc',
+    'msvcrt/u/filesystem/rename.cc',
+    'msvcrt/u/filesystem/unlink.cc',
+    'msvcrt/u/runtime/__p___argv.cc',
+    'msvcrt/u/stdio/_getcwd.cc',
+    'msvcrt/u/stdio/_open.cc',
+    'msvcrt/u/stdio/_read.cc',
+    'msvcrt/u/stdio/_write.cc',
+    'msvcrt/u/stdio/fflush.cc',
+    'msvcrt/u/stdio/fgetc.cc',
+    'msvcrt/u/stdio/fgets.cc',
+    'msvcrt/u/stdio/fopen.cc',
+    'msvcrt/u/stdio/fputc.cc',
+    'msvcrt/u/stdio/fputs.cc',
+    'msvcrt/u/stdio/fread.cc',
+    'msvcrt/u/stdio/fwrite.cc',
+    'msvcrt/u/stdio/getc.cc',
+    'msvcrt/u/stdio/getcwd.cc',
+    'msvcrt/u/stdio/open.cc',
+    'msvcrt/u/stdio/putc.cc',
+    'msvcrt/u/stdio/puts.cc',
+    'msvcrt/u/stdio/read.cc',
+    'msvcrt/u/stdio/ungetc.cc',
+    'msvcrt/u/stdio/write.cc',
+  }
+end
 
-  if is_arch('i386', 'i686') then
-    on_build(build_short_import_library('def/lib32/msvcrt.def'))
-  else
-    on_build(build_short_import_library('def/msvcrt.def'))
-  end
+function msvcrt_utf8_startup_deps()
+  -- symbols that are referenced by startup object
+  -- they should be explicitly added to test target to be chosen
+  -- also they depend on some internal declarations not available in old versions
+  return {
+    'msvcrt/u/environment/__initenv.cc',
+    'msvcrt/u/environment/__p__environ.cc',
+    'msvcrt/u/runtime/__getmainargs.cc',
+    'msvcrt/u/runtime/__p___argv.cc',
+  }
+end
 
 function until_mingw(version)
   return function(target_version)
@@ -43,6 +101,7 @@ end
 
 function msvcrt_thunk_toolchain_5_0()
   return {
+    {'_ctime64', v = until_mingw(14)},
     {'_fstat32i64', v = until_mingw(12)},
     {'_fstat64', v = until_mingw(13)},
     {'_futime64', v = until_mingw(14)},
@@ -77,7 +136,6 @@ end
 
 function msvcrt_thunk_toolchain_a_5_0()
   return {
-    {'_ctime64', v = until_mingw(14)},
     {'_findfirst64', v = until_mingw(14)},
     {'_findnext64', v = until_mingw(14)},
     {'_stat32i64', v = until_mingw(12)},
@@ -98,9 +156,23 @@ function add_msvcrt_sources(functions, prefix)
   end
 end
 
+target('alias-short-msvcrt-os')
+  set_kind('static')
+
+  if is_arch('i386', 'i686') then
+    on_build(build_short_import_library('def/lib32/msvcrt.def'))
+  else
+    on_build(build_short_import_library('def/msvcrt.def'))
+  end
+
 target('overlay-msvcrt-os')
   add_defines('__MSVCRT_VERSION__=0x0600')
   enable_thunk_options()
+
+  if profile_toolchain_utf8() then
+    add_deps('u8crt.a')
+    set_policy('build.merge_archive', true)
+  end
 
   if profile_core() then
     if ntddi_version() < ntddi_win4() then
@@ -175,49 +247,8 @@ target('overlay-msvcrt-os')
   end
 
   if profile_toolchain_utf8() then
-    add_files(
-      'msvcrt/u/environment/__initenv.cc',
-      'msvcrt/u/environment/__p__environ.cc',
-      'msvcrt/u/environment/_putenv.cc',
-      'msvcrt/u/environment/getenv.cc',
-      'msvcrt/u/environment/putenv.cc',
-      'msvcrt/u/filesystem/_chmod.cc',
-      'msvcrt/u/filesystem/_findfirst.cc',
-      'msvcrt/u/filesystem/_findfirst32.cc',
-      'msvcrt/u/filesystem/_findfirst32i64.cc',
-      'msvcrt/u/filesystem/_findfirst64.cc',
-      'msvcrt/u/filesystem/_findfirst64i32.cc',
-      'msvcrt/u/filesystem/_findfirsti64.cc',
-      'msvcrt/u/filesystem/_findnext.cc',
-      'msvcrt/u/filesystem/_findnext32.cc',
-      'msvcrt/u/filesystem/_findnext32i64.cc',
-      'msvcrt/u/filesystem/_findnext64.cc',
-      'msvcrt/u/filesystem/_findnext64i32.cc',
-      'msvcrt/u/filesystem/_findnexti64.cc',
-      'msvcrt/u/filesystem/_fullpath.cc',
-      'msvcrt/u/filesystem/_stat.cc',
-      'msvcrt/u/filesystem/_stat32.cc',
-      'msvcrt/u/filesystem/_stat32i64.cc',
-      'msvcrt/u/filesystem/_stat64.cc',
-      'msvcrt/u/filesystem/_stat64i32.cc',
-      'msvcrt/u/filesystem/_stati64.cc',
-      'msvcrt/u/filesystem/_unlink.cc',
-      'msvcrt/u/filesystem/remove.cc',
-      'msvcrt/u/filesystem/rename.cc',
-      'msvcrt/u/filesystem/unlink.cc',
-      'msvcrt/u/runtime/__getmainargs.cc',
-      'msvcrt/u/runtime/__p___argv.cc',
-      'msvcrt/u/stdio/@console_buffer.cc',
-      'msvcrt/u/stdio/_getcwd.cc',
-      'msvcrt/u/stdio/_open.cc',
-      'msvcrt/u/stdio/fflush.cc',
-      'msvcrt/u/stdio/fopen.cc',
-      'msvcrt/u/stdio/fputc.cc',
-      'msvcrt/u/stdio/fputs.cc',
-      'msvcrt/u/stdio/getcwd.cc',
-      'msvcrt/u/stdio/open.cc',
-      'msvcrt/u/stdio/putc.cc',
-      'msvcrt/u/stdio/puts.cc')
+    add_files(table.unpack(msvcrt_utf8_files()))
+    add_files(table.unpack(msvcrt_utf8_startup_deps()))
   end
 
   if profile_toolchain() then
@@ -306,6 +337,7 @@ target('test-msvcrt')
 
   if is_arch('i386', 'i686') then
     add_files(
+      'msvcrt/5.0/_ctime64.cc',
       'msvcrt/5.0/_futime64.test.cc',
       'msvcrt/5.0/_gmtime64.test.cc',
       'msvcrt/5.0/_localtime64.test.cc',
@@ -319,7 +351,6 @@ target('thunk-msvcrt-a')
   add_defines('__MSVCRT_VERSION__=0x0600')
   add_deps('alias-long-msvcrt')
   add_files(
-    'msvcrt/a/5.0/_ctime64.cc',
     'msvcrt/a/5.0/_findfirst64.cc',
     'msvcrt/a/5.0/_findnext64.cc',
     'msvcrt/a/5.0/_stat64.cc',
@@ -343,48 +374,8 @@ target('test-msvcrt-a')
 
 target('thunk-msvcrt-u')
   add_defines('__MSVCRT_VERSION__=0x0600')
-  add_deps('alias-long-msvcrt')
-  add_files(
-    'msvcrt/u/environment/__p__environ.cc',
-    'msvcrt/u/environment/_putenv.cc',
-    'msvcrt/u/environment/getenv.cc',
-    'msvcrt/u/environment/putenv.cc',
-    'msvcrt/u/filesystem/_chmod.cc',
-    'msvcrt/u/filesystem/_findfirst.cc',
-    'msvcrt/u/filesystem/_findfirst32.cc',
-    'msvcrt/u/filesystem/_findfirst32i64.cc',
-    'msvcrt/u/filesystem/_findfirst64.cc',
-    'msvcrt/u/filesystem/_findfirst64i32.cc',
-    'msvcrt/u/filesystem/_findfirsti64.cc',
-    'msvcrt/u/filesystem/_findnext.cc',
-    'msvcrt/u/filesystem/_findnext32.cc',
-    'msvcrt/u/filesystem/_findnext32i64.cc',
-    'msvcrt/u/filesystem/_findnext64.cc',
-    'msvcrt/u/filesystem/_findnext64i32.cc',
-    'msvcrt/u/filesystem/_findnexti64.cc',
-    'msvcrt/u/filesystem/_fullpath.cc',
-    'msvcrt/u/filesystem/_stat.cc',
-    'msvcrt/u/filesystem/_stat32.cc',
-    'msvcrt/u/filesystem/_stat32i64.cc',
-    'msvcrt/u/filesystem/_stat64.cc',
-    'msvcrt/u/filesystem/_stat64i32.cc',
-    'msvcrt/u/filesystem/_stati64.cc',
-    'msvcrt/u/filesystem/_unlink.cc',
-    'msvcrt/u/filesystem/remove.cc',
-    'msvcrt/u/filesystem/rename.cc',
-    'msvcrt/u/filesystem/unlink.cc',
-    'msvcrt/u/runtime/__p___argv.cc',
-    'msvcrt/u/stdio/@console_buffer.cc',
-    'msvcrt/u/stdio/_getcwd.cc',
-    'msvcrt/u/stdio/_open.cc',
-    'msvcrt/u/stdio/fflush.cc',
-    'msvcrt/u/stdio/fopen.cc',
-    'msvcrt/u/stdio/fputc.cc',
-    'msvcrt/u/stdio/fputs.cc',
-    'msvcrt/u/stdio/getcwd.cc',
-    'msvcrt/u/stdio/open.cc',
-    'msvcrt/u/stdio/putc.cc',
-    'msvcrt/u/stdio/puts.cc')
+  add_deps('alias-long-msvcrt', 'u8crt.a')
+  add_files(table.unpack(msvcrt_utf8_files()))
   enable_thunk_options()
   merge_win32_alias()
   skip_install()
@@ -400,11 +391,12 @@ target('test-msvcrt-u')
   enable_test_options()
   skip_install()
 
-target('console-msvcrt-u')
+target('console-msvcrt')
+  add_cxflags('-fno-builtin')
   add_defines('__MSVCRT_VERSION__=0x0600')
-  add_deps('thunk-msvcrt-u')
-  add_files('test/console-u.c')
-  add_linkorders('thunk-msvcrt-u', 'msvcrt-os')
+  add_deps('thunk-msvcrt-u', 'u8crt.a')
+  add_files('test/console.c')
+  add_linkorders('thunk-msvcrt-u', 'u8crt.a', 'msvcrt-os')
   add_links('msvcrt-os')
   enable_test_options()
   skip_install()
@@ -413,11 +405,8 @@ target('argv-msvcrt')
   add_cxxflags('-nostdinc++')
   add_defines('__MSVCRT_VERSION__=0x0600')
   add_deps('thunk-msvcrt-u')
-  add_files(
-    'test/argv.c',
-    'msvcrt/u/environment/__initenv.cc',
-    'msvcrt/u/environment/__p__environ.cc',
-    'msvcrt/u/runtime/__getmainargs.cc')
+  add_files('test/argv.c')
+  add_files(table.unpack(msvcrt_utf8_startup_deps()))
   add_links('msvcrt-os')
   add_tests('default', {
     runargs = {"你好", "世界"},

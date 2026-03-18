@@ -106,6 +106,13 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if not ver.utf8_thunk:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'disable-default-utf8-manifest.patch')
 
+    if ver.utf8_user_crt:
+      # U8CRT: spec
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'u8crt-spec.patch')
+
+      # U8CRT: validate UTF-8
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'u8crt-validate-utf8.patch')
+
     # Use Linux style tooldir
     # MinGW Lite install binutils with `tooldir=$prefix`, the common practice in Linux.
     # However, GCC tries to locate the tools in $prefix/$triplet and then falls back to PATH.
@@ -187,6 +194,19 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     ], check = True)
 
     patch_done(paths.src_dir.gcc)
+
+def _gcc_lib_bootstrap(ver: BranchProfile, paths: ProjectPaths):
+  shutil.copytree(
+    paths.in_tree_src_tree.gcc_lib_bootstrap,
+    paths.in_tree_src_dir.gcc_lib_bootstrap,
+    ignore = shutil.ignore_patterns(
+      '.cache',
+      '.vscode',
+      '.xmake',
+      'build',
+    ),
+    dirs_exist_ok = True,
+  )
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.src_arx.gdb.name}'
@@ -522,6 +542,7 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _binutils(ver, paths, download_only)
   _expat(ver, paths, download_only)
   _gcc(ver, paths, download_only)
+  _gcc_lib_bootstrap(ver, paths)
   _gdb(ver, paths, download_only)
   _gmp(ver, paths, download_only)
   _iconv(ver, paths, download_only)

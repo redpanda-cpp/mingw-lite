@@ -1,6 +1,15 @@
 LIBRARY msvcrt.dll
 EXPORTS
+  __ms__read == _read
+  __ms__write == _write
   __ms_fflush == fflush
+  __ms_fgetc == fgetc
+  __ms_fgets == fgets
   __ms_fputc == fputc
   __ms_fputs == fputs
+  __ms_fread == fread
+  __ms_fwrite == fwrite
+  __ms_getc == getc
+  __ms_putc == putc
   __ms_puts == puts
+  __ms_ungetc == ungetc

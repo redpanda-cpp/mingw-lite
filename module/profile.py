@@ -49,6 +49,7 @@ class ProfileInfo:
   win32_winnt: int
   min_os: Version
   thunk_free: bool
+  utf8_user_crt: bool
 
 @dataclass
 class BranchProfile(BranchVersions, ProfileInfo):
@@ -252,7 +253,14 @@ _ARCH_VARIANT_2_OPTIMIZE_FOR_SIZE_MAP: dict[str, bool] = {
   '32_386': True,
 }
 
-def _create_profile(arch: str, crt: str, thread: str, min_os: str, stable: bool = True) -> ProfileInfo:
+def _create_profile(
+  arch: str,
+  crt: str,
+  thread: str,
+  min_os: str,
+  stable: bool = True,
+  u8crt: bool = False,
+) -> ProfileInfo:
   mingw_arch = arch.split('_')[0]
   exception = 'dwarf' if mingw_arch == '32' else 'seh'
   triplet = _MINGW_ARCH_2_TRIPLET_MAP[mingw_arch]
@@ -274,6 +282,7 @@ def _create_profile(arch: str, crt: str, thread: str, min_os: str, stable: bool 
     win32_winnt = 0x0A00,
     min_os = Version(min_os),
     thunk_free = stable,
+    utf8_user_crt = u8crt,
   )
 
 PROFILES: Dict[str, ProfileInfo] = {
@@ -306,19 +315,24 @@ PROFILES: Dict[str, ProfileInfo] = {
 
   '32-msvcrt_win2000': None, # branch-dependent
 
-  '32_686-msvcrt_winnt40': _create_profile('32_686', 'msvcrt', 'posix', '4.0',         False),
-  '32_686-msvcrt_win98':   _create_profile('32_686', 'msvcrt', 'posix', '3.9999+4.10', False),
+  '32_686-msvcrt_winnt40': _create_profile('32_686', 'msvcrt', 'posix', '4.0',         stable = False),
+  '32_686-msvcrt_win98':   _create_profile('32_686', 'msvcrt', 'posix', '3.9999+4.10', stable = False),
+  '32_486-msvcrt_win98':   _create_profile('32_486', 'msvcrt', 'posix', '3.9999+4.10', stable = False),
+  '32_386-msvcrt_win95':   _create_profile('32_386', 'msvcrt', 'posix', '3.9999+4.00', stable = False),
 
-  '32_486-msvcrt_win98': _create_profile('32_486', 'msvcrt', 'posix', '3.9999+4.10', False),
+  #####################
+  # beyond MinGW Lite #
+  #####################
 
-  '32_386-msvcrt_win95': _create_profile('32_386', 'msvcrt', 'posix', '3.9999+4.00', False),
+  '64-u8crt': _create_profile('64', 'ucrt', 'posix', '5.2', stable = False, u8crt = True),
+  '32-u8crt': _create_profile('32', 'ucrt', 'posix', '5.1', stable = False, u8crt = True),
 }
 
 def _profile_32_msvcrt_win2000(branch: str):
   v = Version(branch)
   if v.major >= 16:
     raise NotImplementedError()
-  return _create_profile('32', 'msvcrt', 'posix', '5.0', False)
+  return _create_profile('32', 'msvcrt', 'posix', '5.0', stable = False)
 
 BRANCH_DEPENDENT_PROFILES: Dict[str, Callable[[str], ProfileInfo]] = {
   '32-msvcrt_win2000': _profile_32_msvcrt_win2000,

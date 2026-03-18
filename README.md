@@ -16,7 +16,7 @@
   layers=(
     /path/to/mingw/AAB/{binutils,crt-target,gcc,gcc-lib,headers,mcfgthread,winpthreads}/usr/local
     # optional shared layers
-    /path/to/mingw/AAB/{gcc-lib-shared,mcfgthread-shared,winpthreads-shared}/usr/local
+    /path/to/mingw/AAB/{crt-shared,gcc-lib-shared,mcfgthread-shared,winpthreads-shared}/usr/local
   )
   lowerdir=$(IFS=:; echo "${layers[*]}")
   sudo mount -t overlay none /usr/local -o lowerdir=$lowerdir
@@ -111,3 +111,9 @@ Limitations on Windows 95:
 - Atomic operations will introduce observable overhead by calling libatomic subroutines.
 
 **Technical notes**: inspired by [YY-Thunks](https://github.com/Chuyu-Team/YY-Thunks), our legacy OS support is achieved by thunks. A thunk is small piece of code that wrap the original Win32 or CRT function, providing alternative implementation when the function is not available on the target OS. Absolutely necessary thunks that support C++ standard library are built into import libraries. No extra operation is required.
+
+## Beyond MinGW Lite
+
+There are profiles that reuse MinGW Lite’s build scripts, but have characteristics that are not adoptable in MinGW Lite.
+
+- [MinGW ∞ (mingw-infinity)](https://github.com/redpanda-cpp/mingw-infinity) (64-u8crt, 32-u8crt): derived from ucrt profiles, they reinterpret strings as UTF-8 in CRT functions (stdio, filesystem, etc.).

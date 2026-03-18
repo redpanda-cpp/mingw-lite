@@ -6,6 +6,27 @@ add_rules(
 set_languages('c11', 'cxx17')
 set_plat('mingw')
 
+function add_thunk_flags()
+  add_cxxflags(
+    -- set_exceptions('none') doesn't work with Xmake 2.8.7 (Ubuntu 24.04)
+    '-fno-exceptions',
+    '-fno-threadsafe-statics',
+    '-nostdinc++')
+  add_defines(
+    'NOMINMAX',
+    'NOSTL_NOCRT',
+    'NS_NOSTL=mingw_thunk::stl',
+    'NS_NOCRT=mingw_thunk::libc',
+    'THUNK_LEVEL=' .. ntddi_version(),
+    'WIN32_LEAN_AND_MEAN',
+    '_WIN32_WINNT=0x0A00',
+    '__CRT__NO_INLINE',
+    '__USE_MINGW_ANSI_STDIO=0')
+  add_includedirs('include')
+  add_shflags('-nostdlib++', {force = true})
+  set_exceptions('none')
+end
+
 function build_long_import_library(sourcefiles)
   return function(target)
     local ar = target:tool('ar')
@@ -115,24 +136,8 @@ function enable_test_options()
 end
 
 function enable_thunk_options()
-  add_cxxflags(
-    -- set_exceptions('none') doesn't work with Xmake 2.8.7 (Ubuntu 24.04)
-    '-fno-exceptions',
-    '-fno-threadsafe-statics',
-    '-nostdinc++')
-  add_defines(
-    'NOMINMAX',
-    'NOSTL_NOCRT',
-    'NS_NOSTL=mingw_thunk::stl',
-    'NS_NOCRT=mingw_thunk::libc',
-    'THUNK_LEVEL=' .. ntddi_version(),
-    'WIN32_LEAN_AND_MEAN',
-    '_WIN32_WINNT=0x0A00',
-    '__CRT__NO_INLINE',
-    '__USE_MINGW_ANSI_STDIO=0')
   add_files('placeholder/placeholder.c')
-  add_includedirs('include')
-  set_exceptions('none')
+  add_thunk_flags()
   set_kind('static')
 end
 
@@ -143,6 +148,10 @@ end
 
 function profile_core()
   return get_config('profile') == 'core'
+end
+
+function profile_core_utf8()
+  return get_config('profile') == 'core-utf8'
 end
 
 function profile_toolchain()
@@ -171,6 +180,7 @@ option('profile')
   set_showmenu(true)
   set_values(
     'core',
+    'core-utf8',
     'qt',
     'toolchain',
     'toolchain-utf8')
@@ -204,12 +214,14 @@ includes('dep/catch2')
 
 includes('ntddi_version.lua')
 
-includes('target_advapi32.lua')
-includes('target_bcrypt.lua')
-includes('target_kernel32.lua')
-includes('target_msvcrt.lua')
-includes('target_pathcch.lua')
-includes('target_psapi.lua')
-includes('target_shell32.lua')
-includes('target_ucrt.lua')
-includes('target_ws2_32.lua')
+includes('ovl_advapi32.lua')
+includes('ovl_bcrypt.lua')
+includes('ovl_kernel32.lua')
+includes('ovl_msvcrt.lua')
+includes('ovl_pathcch.lua')
+includes('ovl_psapi.lua')
+includes('ovl_shell32.lua')
+includes('ovl_ucrt.lua')
+includes('ovl_ws2_32.lua')
+
+includes('ext_u8crt.lua')

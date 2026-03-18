@@ -120,6 +120,9 @@ def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.mcfgthread / 'usr/local',
     paths.layer_AAB.mcfgthread_shared / 'usr/local',
     paths.layer_AAB.winpthreads_bootstrap / 'usr/local',
+
+    # u8crt
+    paths.layer_AAB.crt_shared / 'usr/local',
   ]):
     make_custom(build_dir, ['all-target'], config.jobs)
     make_custom(build_dir, [
@@ -167,6 +170,38 @@ def _crt_base(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAB.crt_base)
 
+def _gcc_lib_bootstrap(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  install_dir = paths.layer_AAB.gcc_lib_bootstrap / 'usr/local' / ver.target
+
+  if not ver.utf8_user_crt:
+    touch(install_dir / '.keep')
+    return
+
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.crt_base / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+  ]):
+    src_dir = paths.in_tree_src_dir.gcc_lib_bootstrap
+
+    xmake_config(src_dir, [
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      '--mingw=/usr/local',
+      f'--exception={ver.exception}',
+    ])
+    xmake_build(src_dir, config.jobs)
+
+    xmake_install(src_dir, install_dir)
+
+    if ver.exception == 'seh':
+      shutil.copy(install_dir / 'lib/libgcc_s_seh-1.dll.a', install_dir / 'lib/libgcc_s.a')
+    else:
+      shutil.copy(install_dir / 'lib/libgcc_s_dw2-1.dll.a', install_dir / 'lib/libgcc_s.a')
+
 def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mingw)
 
@@ -176,6 +211,7 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.crt_base / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.gcc_lib_bootstrap / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
   ]):
     thunk_src_dir = paths.in_tree_src_dir.thunk
@@ -222,6 +258,14 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     crt_inc_dir = paths.layer_AAB.crt_host / 'usr/local' / ver.target / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
 
+    # to satisfy spec
+    if ver.utf8_user_crt:
+      xmake_install(
+        thunk_src_dir,
+        paths.layer_AAB.crt_host / 'usr/local' / ver.target,
+        ['u8crt.a']
+      )
+
 def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mingw)
 
@@ -231,9 +275,15 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.crt_base / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.gcc_lib_bootstrap / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
   ]):
     thunk_src_dir = paths.in_tree_src_dir.thunk
+
+    if ver.utf8_user_crt:
+      thunk_profile = 'core-utf8'
+    else:
+      thunk_profile = 'core'
 
     xmake_config(thunk_src_dir, [
       '--builddir=build-AAB',
@@ -242,7 +292,7 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
       '--mingw=/usr/local',
       f'--mingw-version={v.major}',
       f'--thunk-level={ver.min_os}',
-      '--profile=core',
+      f'--profile={thunk_profile}',
     ])
     xmake_build(thunk_src_dir, config.jobs)
     xmake_install(thunk_src_dir, paths.layer_AAB.thunk_target / 'usr/local' / ver.target)
@@ -271,6 +321,13 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     crt0_inc_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'include'
     crt_inc_dir = paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
+
+    # u8crt
+    if ver.utf8_user_crt:
+      xmake_install(thunk_src_dir, paths.layer_AAB.crt_target / 'usr/local' / ver.target, ['u8crt.a'])
+      xmake_install(thunk_src_dir, paths.layer_AAB.crt_shared / 'usr/local' / ver.target, ['u8crt.so'])
+    else:
+      touch(paths.layer_AAB.crt_shared / 'usr/local/.keep')
 
 def _utf8(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.build_dir / 'utf8'
@@ -479,6 +536,7 @@ def build_AAB_compiler(ver: BranchProfile, paths: ProjectPaths, config: argparse
   _headers_1(ver, paths, config)
   _gcc_1(ver, paths, config)
   _crt_base(ver, paths, config)
+  _gcc_lib_bootstrap(ver, paths, config)
   _crt_host(ver, paths, config)
   _crt_target(ver, paths, config)
   _utf8(ver, paths, config)

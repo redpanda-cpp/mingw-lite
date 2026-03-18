@@ -176,15 +176,26 @@ namespace mingw_thunk
   // crt: stdio
 #ifdef _UCRT
   __DECLARE_MS_IMPORT(__stdio_common_vfprintf)
+  __DECLARE_MS_IMPORT(__stdio_common_vfscanf)
+  __DECLARE_MS_IMPORT(__stdio_common_vsscanf)
 #endif
   __DECLARE_MS_IMPORT(_open)
+  __DECLARE_MS_IMPORT(_read)
   __DECLARE_MS_IMPORT(_wfopen)
   __DECLARE_MS_IMPORT(_wopen)
+  __DECLARE_MS_IMPORT(_write)
+  __DECLARE_MS_IMPORT(fgetc)
   __DECLARE_MS_IMPORT(fflush)
+  __DECLARE_MS_IMPORT(fgets)
   __DECLARE_MS_IMPORT(fopen)
   __DECLARE_MS_IMPORT(fputc)
   __DECLARE_MS_IMPORT(fputs)
+  __DECLARE_MS_IMPORT(fread)
+  __DECLARE_MS_IMPORT(fwrite)
+  __DECLARE_MS_IMPORT(getc)
+  __DECLARE_MS_IMPORT(putc)
   __DECLARE_MS_IMPORT(puts)
+  __DECLARE_MS_IMPORT(ungetc)
 
   // crt: time
 #ifndef _WIN64

@@ -1,10 +1,11 @@
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
+#include <thunk/u8crt/musl.h>
 
-#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 
-#include "@console_buffer.h"
+#include "@stdio.h"
 
 namespace mingw_thunk
 {
@@ -24,29 +25,6 @@ namespace mingw_thunk
       return __ms___stdio_common_vfprintf(
           options, stream, format, locale, arglist);
 
-    int bytes =
-        __stdio_common_vsprintf(options, nullptr, 0, format, locale, arglist);
-
-    if (bytes <= 0)
-      return bytes;
-
-    auto &buffer = g::stdio_buffer[fd];
-    size_t old_size = buffer.size();
-
-    if (!buffer.resize(old_size + bytes)) {
-      _set_errno(ENOMEM);
-      return -1;
-    }
-    __stdio_common_vsprintf(
-        options, buffer.data() + old_size, bytes, format, locale, arglist);
-
-    buffer.flush_if_reaching_threshold(fd);
-
-    if (i::is_buffered(stream)) {
-      buffer.flush_complete_line(fd);
-    } else {
-      buffer.flush_complete_sequence(fd);
-    }
-    return bytes;
+    return musl::vfprintf(musl::g_fp_from_fd(fd), format, arglist);
   }
 } // namespace mingw_thunk

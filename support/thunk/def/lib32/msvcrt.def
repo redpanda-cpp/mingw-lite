@@ -33,13 +33,22 @@ EXPORTS
 
   ; stdio
   __ms__open == _open
+  __ms__read == _read
   __ms__wfopen == _wfopen
   __ms__wopen == _wopen
+  __ms__write == _write
   __ms_fflush == fflush
+  __ms_fgetc == fgetc
+  __ms_fgets == fgets
   __ms_fopen == fopen
   __ms_fputc == fputc
   __ms_fputs == fputs
+  __ms_fread == fread
+  __ms_fwrite == fwrite
+  __ms_getc == getc
+  __ms_putc == putc
   __ms_puts == puts
+  __ms_ungetc == ungetc
 
   ; time
   __ms__utime32 == _utime

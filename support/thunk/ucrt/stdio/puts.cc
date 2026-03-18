@@ -1,26 +1,23 @@
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
-#include <thunk/unicode.h>
+#include <thunk/u8crt/musl.h>
 
 #include <stdio.h>
 #include <string.h>
 
-#include "@console_buffer.h"
+#include "@stdio.h"
 
 namespace mingw_thunk
 {
   __DEFINE_THUNK(
       api_ms_win_crt_stdio_l1_1_0, 0, int, __cdecl, puts, const char *s)
   {
-    int fd = _fileno(stdout);
-    if (!i::is_console(fd))
+    if (!i::is_console(1))
       return __ms_puts(s);
 
     size_t len = strlen(s);
-    auto &buffer = g::stdio_buffer[fd];
-    buffer.append(s, len);
-    buffer.push('\n');
-    buffer.flush_all(fd);
+    musl::fwrite(s, 1, len, musl::g_stdout);
+    musl::fputc('\n', musl::g_stdout);
     return len + 1;
   }
 } // namespace mingw_thunk

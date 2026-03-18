@@ -28,6 +28,7 @@ class SourcePaths(NamedTuple):
 
 class InTreeSourcePaths(NamedTuple):
   atomic_bootstrap: Path
+  gcc_lib_bootstrap: Path
   intl: Path
   sync: Path
   thunk: Path
@@ -53,7 +54,9 @@ class LayerPathsAAB(NamedTuple):
   crt_base: Path
   crt_host: Path
   crt_target: Path
+  crt_shared: Path
   gcc: Path
+  gcc_lib_bootstrap: Path
   gcc_lib: Path
   gcc_lib_shared: Path
   headers: Path
@@ -83,6 +86,7 @@ class LayerPathsABB(NamedTuple):
   binutils: Path
   crt0: Path
   crt: Path
+  crt_shared: Path
   gcc: Path
   gcc_lib: Path
   gcc_lib_shared: Path
@@ -250,6 +254,7 @@ class ProjectPaths:
 
     self.in_tree_src_dir = InTreeSourcePaths(
       atomic_bootstrap = self.build_dir / 'atomic-bootstrap',
+      gcc_lib_bootstrap = self.build_dir / 'gcc-lib-bootstrap',
       intl = self.build_dir / 'intl',
       sync = self.build_dir / 'sync',
       thunk = self.build_dir / 'thunk',
@@ -257,6 +262,7 @@ class ProjectPaths:
 
     self.in_tree_src_tree = InTreeSourcePaths(
       atomic_bootstrap = self.root_dir / 'support/atomic-bootstrap',
+      gcc_lib_bootstrap = self.root_dir / 'support/gcc-lib-bootstrap',
       intl = self.root_dir / 'support/intl',
       sync = self.root_dir / 'support/sync',
       thunk = self.root_dir / 'support/thunk',
@@ -286,7 +292,9 @@ class ProjectPaths:
       crt_base = layer_AAB_prefix / 'crt-base',
       crt_host = layer_AAB_prefix / 'crt-host',
       crt_target = layer_AAB_prefix / 'crt-target',
+      crt_shared = layer_AAB_prefix / 'crt-shared',
       gcc = layer_AAB_prefix / 'gcc',
+      gcc_lib_bootstrap = layer_AAB_prefix / 'gcc-lib-bootstrap',
       gcc_lib = layer_AAB_prefix / 'gcc-lib',
       gcc_lib_shared = layer_AAB_prefix / 'gcc-lib-shared',
       mcfgthread = layer_AAB_prefix / 'mcfgthread',
@@ -318,6 +326,7 @@ class ProjectPaths:
       binutils = layer_ABB_prefix / 'binutils',
       crt0 = layer_ABB_prefix / 'crt0',
       crt = layer_ABB_prefix / 'crt',
+      crt_shared = layer_ABB_prefix / 'crt' / shared_dir,
       gcc = layer_ABB_prefix / 'gcc',
       gcc_lib = layer_ABB_prefix / 'gcc-lib',
       gcc_lib_shared = layer_ABB_prefix / 'gcc-lib' / shared_dir,

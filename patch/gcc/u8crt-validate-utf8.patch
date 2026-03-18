@@ -1,0 +1,15 @@
+diff --git a/gcc/c-family/c-opts.cc b/gcc/c-family/c-opts.cc
+index 108eaabd5d4..1407eb79e35 100644
+--- a/gcc/c-family/c-opts.cc
++++ b/gcc/c-family/c-opts.cc
+@@ -1280,9 +1280,7 @@ c_common_post_options (const char **pfilename)
+   init_global_opts_from_cpp (&global_options, cpp_get_options (parse_in));
+   /* For C++23 and explicit -finput-charset=UTF-8, turn on -Winvalid-utf8
+      by default and make it a pedwarn unless -Wno-invalid-utf8.  */
+-  if (cxx_dialect >= cxx23
+-      && cpp_opts->cpp_input_charset_explicit
+-      && strcmp (cpp_opts->input_charset, "UTF-8") == 0
++  if (strcmp (cpp_opts->input_charset, "UTF-8") == 0
+       && (cpp_opts->cpp_warn_invalid_utf8
+ 	  || !global_options_set.x_warn_invalid_utf8))
+     {

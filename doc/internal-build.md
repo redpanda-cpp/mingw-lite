@@ -47,10 +47,12 @@ Internally named “AAB”, build = host = x86_64-linux-gnu, target = x86_64-w64
   - binutils
   - mingw-w64-headers
   - gcc (compiler)
-  - mingw-w64-crt (host)
-  - mingw-w64-crt (target)
-  - UTF-8 tricks
-  - i386 atomic bootstrap helper
+  - mingw-w64-crt (unmodified)
+  - u8crt bootstrap helper (libgcc, pthread, etc.)
+  - mingw-w64-crt (apply host thunks)
+  - mingw-w64-crt (apply target thunks)
+  - host UTF-8 manifest for old branches
+  - i386 atomic bootstrap helper (libatomic)
   - mcfgthreads
   - winpthreads (bootstrap)
   - mingw-w64-headers (cleanup pthread dummy header)
