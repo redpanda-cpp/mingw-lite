@@ -2,8 +2,9 @@
 
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
-#include <thunk/addrinfo.h>
 #include <thunk/string.h>
+
+#include "@wspiapi.h"
 
 namespace mingw_thunk
 {
@@ -36,6 +37,7 @@ namespace mingw_thunk
 
   namespace f
   {
+    // CRT-free version of WspiapiLegacyGetNameInfo
     INT WSAAPI ipv4_getnameinfo(_In_ const SOCKADDR *pSockaddr,
                                 _In_ socklen_t SockaddrLength,
                                 _Out_ PCHAR pNodeBuffer,
@@ -44,57 +46,74 @@ namespace mingw_thunk
                                 _In_ DWORD ServiceBufferLength,
                                 _In_ INT Flags)
     {
-      if (pServiceBuffer && ServiceBufferLength > 0) {
-        int port = ntohs(((sockaddr_in *)pSockaddr)->sin_port);
-        if ((port >= 10000 && ServiceBufferLength < 6) ||
-            (port >= 1000 && ServiceBufferLength < 5) ||
-            (port >= 100 && ServiceBufferLength < 4) ||
-            (port >= 10 && ServiceBufferLength < 3) || ServiceBufferLength < 2)
-          return WSAEFAULT;
-        char *service = pServiceBuffer;
-        if (port >= 10000)
-          *service++ = '0' + port / 10000;
-        if (port >= 1000)
-          *service++ = '0' + port / 1000 % 10;
-        if (port >= 100)
-          *service++ = '0' + port / 100 % 10;
-        if (port >= 10)
-          *service++ = '0' + port / 10 % 10;
-        *service++ = '0' + port % 10;
-        *service++ = '\0';
+      struct servent *svc;
+      WORD port;
+      char str[] = "65535";
+      char *pstr = str;
+      struct hostent *phost;
+      struct in_addr l_inaddr;
+      char *pnode = NULL, *pc = NULL;
+
+      if (!pSockaddr || SockaddrLength < (int)sizeof(struct sockaddr))
+        return EAI_FAIL;
+      if (pSockaddr->sa_family != AF_INET)
+        return EAI_FAMILY;
+      if (SockaddrLength < (int)sizeof(struct sockaddr_in))
+        return EAI_FAIL;
+      if (!(pNodeBuffer && NodeBufferLength) &&
+          !(pServiceBuffer && ServiceBufferLength))
+        return EAI_NONAME;
+      if ((Flags & NI_NUMERICHOST) != 0 && (Flags & NI_NAMEREQD) != 0)
+        return EAI_BADFLAGS;
+      if (pServiceBuffer && ServiceBufferLength) {
+        port = ((struct sockaddr_in *)pSockaddr)->sin_port;
+        if (Flags & NI_NUMERICSERV)
+          i::write_port(str, ntohs(port));
+        else {
+          svc = getservbyport(port, (Flags & NI_DGRAM) ? "udp" : NULL);
+          if (svc && svc->s_name)
+            pstr = svc->s_name;
+          else
+            i::write_port(str, ntohs(port));
+        }
+        if (ServiceBufferLength > c::strlen(pstr))
+          c::strcpy(pServiceBuffer, pstr);
+        else
+          return EAI_FAIL;
       }
-
-      if (SockaddrLength == sizeof(sockaddr_in)) {
-        const sockaddr_in *addr = (const sockaddr_in *)pSockaddr;
-        hostent *host = gethostbyaddr(
-            (const char *)&addr->sin_addr, sizeof(in_addr), AF_INET);
-        if (!host && (Flags & NI_NAMEREQD)) {
-          WSASetLastError(EAI_NONAME);
-          return EAI_NONAME;
+      if (pNodeBuffer && NodeBufferLength) {
+        l_inaddr = ((struct sockaddr_in *)pSockaddr)->sin_addr;
+        if (Flags & NI_NUMERICHOST)
+          pnode = inet_ntoa(l_inaddr);
+        else {
+          phost =
+              gethostbyaddr((char *)&l_inaddr, sizeof(struct in_addr), AF_INET);
+          if (phost && phost->h_name) {
+            pnode = phost->h_name;
+            if ((Flags & NI_NOFQDN) != 0 && ((pc = strchr(pnode, '.')) != NULL))
+              *pc = 0;
+          } else {
+            if ((Flags & NI_NAMEREQD) != 0) {
+              switch (WSAGetLastError()) {
+              case WSAHOST_NOT_FOUND:
+                return EAI_NONAME;
+              case WSATRY_AGAIN:
+                return EAI_AGAIN;
+              case WSANO_RECOVERY:
+                return EAI_FAIL;
+              default:
+                return EAI_NONAME;
+              }
+            } else
+              pnode = inet_ntoa(l_inaddr);
+          }
         }
-
-        if (host && pNodeBuffer && NodeBufferLength > 0) {
-          c::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
-          pNodeBuffer[NodeBufferLength - 1] = '\0';
-        }
-        return 0;
-      } else if (SockaddrLength == sizeof(sockaddr_in6)) {
-        const sockaddr_in6 *addr = (const sockaddr_in6 *)pSockaddr;
-        hostent *host = gethostbyaddr(
-            (const char *)&addr->sin6_addr, sizeof(in6_addr), AF_INET6);
-        if (!host && (Flags & NI_NAMEREQD)) {
-          WSASetLastError(EAI_NONAME);
-          return EAI_NONAME;
-        }
-
-        if (host && pNodeBuffer && NodeBufferLength > 0) {
-          c::stpncpy(pNodeBuffer, host->h_name, NodeBufferLength);
-          pNodeBuffer[NodeBufferLength - 1] = '\0';
-        }
-        return 0;
-      } else {
-        return WSAEFAULT;
+        if (NodeBufferLength > c::strlen(pnode))
+          c::strcpy(pNodeBuffer, pnode);
+        else
+          return EAI_FAIL;
       }
+      return 0;
     }
   } // namespace f
 } // namespace mingw_thunk

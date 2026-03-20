@@ -51,6 +51,15 @@ namespace mingw_thunk
       return ret;
     }
 
+    inline char *strcpy(char *dest, const char *src)
+    {
+      char *cur = dest;
+      while (*src)
+        *cur++ = *src++;
+      *cur = 0;
+      return dest;
+    }
+
     inline size_t strlen(const char *str) noexcept
     {
       size_t len = 0;

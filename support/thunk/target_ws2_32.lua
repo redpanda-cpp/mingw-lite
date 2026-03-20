@@ -4,6 +4,7 @@ target('overlay-ws2_32')
   if profile_toolchain_or_utf8() then
     if ntddi_version() < ntddi_winxp() then
       add_files(
+        'ws2_32/5.1/@wspiapi.cc',
         'ws2_32/5.1/freeaddrinfo.cc',
         'ws2_32/5.1/getaddrinfo.cc',
         'ws2_32/5.1/getnameinfo.cc')
@@ -12,6 +13,7 @@ target('overlay-ws2_32')
 
 target('thunk-ws2_32')
   add_files(
+    'ws2_32/5.1/@wspiapi.cc',
     'ws2_32/5.1/freeaddrinfo.cc',
     'ws2_32/5.1/getaddrinfo.cc',
     'ws2_32/5.1/getnameinfo.cc')

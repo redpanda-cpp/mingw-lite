@@ -2,6 +2,7 @@
 
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
+#include <thunk/stdlib.h>
 
 namespace mingw_thunk
 {
@@ -18,13 +19,18 @@ namespace mingw_thunk
 
   namespace f
   {
+    // CRT-free version of WspiapiLegacyFreeAddrInfo
     VOID WSAAPI ipv4_freeaddrinfo(_In_ PADDRINFOA pAddrInfo)
     {
-      while (pAddrInfo) {
-        auto *next = pAddrInfo->ai_next;
-        HeapFree(GetProcessHeap(), 0, pAddrInfo->ai_addr);
-        HeapFree(GetProcessHeap(), 0, pAddrInfo);
-        pAddrInfo = next;
+      struct addrinfo *p;
+
+      for (p = pAddrInfo; p != NULL; p = pAddrInfo) {
+        if (p->ai_canonname)
+          c::free(p->ai_canonname);
+        if (p->ai_addr)
+          c::free(p->ai_addr);
+        pAddrInfo = p->ai_next;
+        c::free(p);
       }
     }
   } // namespace f
