@@ -12,7 +12,10 @@ jobs:
           python3 <<EOF >"$GITHUB_OUTPUT"
           import json
 
-          all_branch = ['16', '15', '14', '13']
+          all_branch = [
+            'current',
+            '16', '15', '14', '13',
+          ]
 
           common_profile = [
             '64-mcf', '64-win32', '64-ucrt', '64-msvcrt',
@@ -35,6 +38,7 @@ jobs:
           ]
 
           exclude_profile_branch = [
+            {'profile': '32-msvcrt_win2000', 'branch': 'current'},
             {'profile': '32-msvcrt_win2000', 'branch': '16'},
             {'profile': '32_686-msvcrt_winnt40', 'branch': '15'},
             {'profile': '32_686-msvcrt_winnt40', 'branch': '14'},
@@ -111,7 +115,7 @@ jobs:
                 for x in exclude_profile_branch)]
             execlude_profile_branch = []
             release = True
-            prerelease = int(current_branch) >= 16
+            prerelease = not current_branch.isdigit() or int(current_branch) >= 16
           else:
             branch = all_branch
             profile = common_profile + all_old_profile
