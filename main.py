@@ -122,10 +122,13 @@ def package_mingw(paths: ProjectPaths):
     paths.layer_ABB.binutils,
     paths.layer_ABB.crt,
     paths.layer_ABB.gcc,
+    paths.layer_ABB.gcc_lib,
     paths.layer_ABB.gdb,
     paths.layer_ABB.headers,
     paths.layer_ABB.make,
+    paths.layer_ABB.mcfgthread,
     paths.layer_ABB.pkgconf,
+    paths.layer_ABB.winpthreads,
   ]
 
   package_layers(paths.pkg_dir, layers, paths.mingw_pkg)
@@ -161,6 +164,8 @@ def main():
 
   if config.download_only:
     return
+
+  os.environ['XMAKE_ROOT'] = 'y'
 
   if not config.no_cross:
     build_AAA_library(ver, paths, config)

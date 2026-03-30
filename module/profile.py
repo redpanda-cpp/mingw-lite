@@ -28,6 +28,9 @@ class BranchVersions:
   z: str
 
   display_version: Optional[str] = None
+
+  meson: str = '1.10.2'
+  setuptools: str = '82.0.1'
   xmake: str = '3.0.7'
 
 @dataclass

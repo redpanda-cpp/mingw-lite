@@ -1,32 +1,85 @@
+diff --git a/gcc/c/gccspec.cc b/gcc/c/gccspec.cc
+index 2659af834ce..30f336594f5 100644
+--- a/gcc/c/gccspec.cc
++++ b/gcc/c/gccspec.cc
+@@ -41,6 +41,9 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options ATTRIBUTE_UN
+   /* True if we should add -shared-libgcc to the command-line.  */
+   int shared_libgcc = 0;
+ 
++  /* True if we should add -static-libgcc because libgcc_s.a is missing.  */
++  int need_static_libgcc = 0;
++
+   /* The total number of arguments with the new stuff.  */
+   unsigned int argc;
+ 
+@@ -75,7 +78,21 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options ATTRIBUTE_UN
+ 	}
+     }
+ 
+-  if  (shared_libgcc)
++# ifdef TARGET_PECOFF
++  /* MinGW Lite extension: fallback to static libgcc if missing shared one */
++  {
++#  ifdef CROSS_DIRECTORY_STRUCTURE
++      char *target_lib = concat ("/", DEFAULT_TARGET_MACHINE, "/lib/libgcc_s.a", NULL);
++#  else
++      const char *target_lib = "/lib/libgcc_s.a";
++#  endif
++    char *libgcc_s = make_relative_prefix (decoded_options[0].arg, "/bin", target_lib);
++    if (libgcc_s == NULL || access (libgcc_s, F_OK) != 0)
++      need_static_libgcc = 1;
++  }
++# endif
++
++  if (shared_libgcc || need_static_libgcc)
+     {
+       new_decoded_options = XNEWVEC (struct cl_decoded_option, argc + 1);
+ 
+@@ -87,8 +104,10 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options ATTRIBUTE_UN
+ 	}
+       while (i < argc);
+ 
+-      generate_option (OPT_shared_libgcc, NULL, 1, CL_DRIVER,
+-		       &new_decoded_options[i++]);
++      if (shared_libgcc)
++        generate_option (OPT_shared_libgcc, NULL, 1, CL_DRIVER, &new_decoded_options[i++]);
++      else
++        generate_option (OPT_static_libgcc, NULL, 1, CL_DRIVER, &new_decoded_options[i++]);
+ 
+       *in_decoded_options_count = i;
+       *in_decoded_options = new_decoded_options;
 diff --git a/gcc/cp/g++spec.cc b/gcc/cp/g++spec.cc
-index 7584f8c225b..85451529aa4 100644
+index 7584f8c225b..9bb935e6907 100644
 --- a/gcc/cp/g++spec.cc
 +++ b/gcc/cp/g++spec.cc
-@@ -23,6 +23,11 @@ along with GCC; see the file COPYING3.  If not see
- #include "tm.h"
- #include "opts.h"
- 
-+#ifdef _WIN32
-+#define WIN32_LEAN_AND_MEAN
-+#include <windows.h>
-+#endif
-+
- /* This bit is set if we saw a `-xfoo' language specification.  */
- #define LANGSPEC	(1<<1)
- /* This bit is set if they did `-lm' or `-lmath'.  */
-@@ -298,6 +303,15 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
+@@ -298,6 +298,18 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
       libgcc.  */
  #ifndef ENABLE_SHARED_LIBGCC
    shared_libgcc = 0;
-+#elif defined _WIN32
-+  /* MinGW Lite extension: fallback to static libgcc if missing shared one (default state) */
++#elif defined TARGET_PECOFF
++  /* MinGW Lite extension: fallback to static libgcc if missing shared one */
 +  {
-+    char self[MAX_PATH];
-+    GetModuleFileNameA (NULL, self, MAX_PATH);
-+    const char *libgcc_s = make_relative_prefix (self, "/bin", "/lib/libgcc_s.a");
-+    if (_access(libgcc_s, 0) != 0)
++# ifdef CROSS_DIRECTORY_STRUCTURE
++    char *target_lib = concat ("/", DEFAULT_TARGET_MACHINE, "/lib/libgcc_s.a", NULL);
++# else
++    const char *target_lib = "/lib/libgcc_s.a";
++# endif
++    char *libgcc_s = make_relative_prefix (decoded_options[0].arg, "/bin", target_lib);
++    if (libgcc_s == NULL || access (libgcc_s, F_OK) != 0)
 +      shared_libgcc = 0;
 +  }
  #endif
  
    /* Add one for shared_libgcc or extra static library.  */
+@@ -444,6 +456,11 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
+   if (shared_libgcc && !static_link)
+     generate_option (OPT_shared_libgcc, NULL, 1, CL_DRIVER,
+ 		     &new_decoded_options[j++]);
++#ifdef TARGET_PECOFF
++  else if (!shared_libgcc && !static_link)
++    generate_option (OPT_static_libgcc, NULL, 1, CL_DRIVER,
++		     &new_decoded_options[j++]);
++#endif
+ 
+   *in_decoded_options_count = j;
+   *in_decoded_options = new_decoded_options;

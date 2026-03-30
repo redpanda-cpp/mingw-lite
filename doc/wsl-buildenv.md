@@ -22,12 +22,8 @@ See [Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/install).
    ```bash
    apt update
    apt install --no-install-recommends -y \
-     autoconf automake build-essential cmake flex gettext libtool llvm meson texinfo xmake \
+     autoconf automake build-essential cmake flex gettext libtool llvm ninja-build texinfo \
      7zip ca-certificates curl file gawk libarchive-tools python3 python3-libarchive-c python3-packaging zstd
-   ```
-3. Set environment variables:
-   ```bash
-   echo "export XMAKE_ROOT=y" >>~/.bashrc
    ```
 
 ## Clone the Repository

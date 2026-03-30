@@ -192,6 +192,8 @@ def main():
     'fail': False,
   }
 
+  os.environ['XMAKE_ROOT'] = 'y'
+
   try:
     test_mingw_compiler(ver, paths, xmake_verbose)
     test_report['mingw64-compiler'] = "okay"

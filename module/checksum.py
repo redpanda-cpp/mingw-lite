@@ -37,6 +37,8 @@ CHECKSUMS: Dict[str, str] = {
   'mcfgthread-2.1-ga.1.tar.gz': '73d4ea39e8eee30738ed3f4a35f6cc4e5c6cba62570908ee37d1fc0bf5a7d722',
   'mcfgthread-2.3-ga.1.tar.gz': '78b91557e87c70f0915ef147ec01c2e64fbe887efddfd02f5d0196cd1c9e47e2',
 
+  'meson-1.10.2.tar.gz': '7890287d911dd4ee1ebd0efb61ed0321bfcd87c725df923a837cf90c6508f96b',
+
   'mingw-w64-v11.0.1.tar.bz2': '3f66bce069ee8bed7439a1a13da7cb91a5e67ea6170f21317ac7f5794625ee10',
   'mingw-w64-v12.0.0.tar.bz2': 'cc41898aac4b6e8dd5cffd7331b9d9515b912df4420a3a612b5ea2955bbeed2f',
   'mingw-w64-v13.0.0.tar.bz2': '5afe822af5c4edbf67daaf45eec61d538f49eef6b19524de64897c6b95828caf',
@@ -48,6 +50,8 @@ CHECKSUMS: Dict[str, str] = {
   'pkgconf-pkgconf-2.1.1.tar.gz': '6a181e0bf1195e95b7cd535a1854827aedb383b26b1fc24ca13586cb5e8e55af',
   'pkgconf-pkgconf-2.3.0.tar.gz': '0ee103cd390c3ee0e77a7a1c71dcb79a50a426fa2a648f6d07f2678c23adc5e3',
   'pkgconf-pkgconf-2.5.1.tar.gz': '79721badcad1987dead9c3609eb4877ab9b58821c06bdacb824f2c8897c11f2a',
+
+  'setuptools-82.0.1.tar.gz': 'c2e2bc8ab0d2bad5b3cebdf61d071334acc087335ff26406a2ce063c370d8bbd',
 
   'xmake-3.0.7.tar.gz': 'c9052e4550b8925268540603363d68fa90e4c1b407d0e6e00b735055afbea27f',
 

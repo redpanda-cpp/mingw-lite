@@ -1,0 +1,25 @@
+diff --git a/meson.build b/meson.build
+index 5cf334b8..038c69b4 100644
+--- a/meson.build
++++ b/meson.build
+@@ -273,9 +273,9 @@ add_project_arguments(
+ #===========================================================
+ # Dependencies
+ #===========================================================
+-dep_ntdll = cc.find_library('ntdll')
+-dep_kernel32 = cc.find_library('kernel32')
+-dep_advapi32 = cc.find_library('advapi32')
++dep_ntdll = declare_dependency(link_args: ['-lntdll'])
++dep_kernel32 = declare_dependency(link_args: ['-lkernel32'])
++dep_advapi32 = declare_dependency(link_args: ['-ladvapi32'])
+ 
+ #===========================================================
+ # Rules for headers
+@@ -373,6 +373,7 @@ foreach src: test_src
+                         link_args: [ '-static-libgcc', '-static-libstdc++' ],
+                         dependencies: test_dependencies,
+                         link_with: test_link_with,
++                        build_by_default: false,
+                         install: false)
+ 
+   test('..' / src, test_exe)

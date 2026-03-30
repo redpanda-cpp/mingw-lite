@@ -71,12 +71,9 @@ def _z(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   make_destdir_install(build_dir, paths.layer_AAA.z)
 
 def build_AAA_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  _gmp(ver.gmp, paths, config)
-
-  _mpfr(ver.mpfr, paths, config)
-
-  _mpc(ver.mpc, paths, config)
-
+  _gmp(ver, paths, config)
+  _mpfr(ver, paths, config)
+  _mpc(ver, paths, config)
   _z(ver, paths, config)
 
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
@@ -99,6 +96,33 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAA.python)
 
+def _setuptools(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.z / 'usr/local',
+    paths.layer_AAA.python / 'usr/local',
+  ]):
+    subprocess.run([
+      'python3',
+      'setup.py',
+      'install',
+      f'--root={paths.layer_AAA.setuptools}',
+      '--prefix=/usr/local',
+    ], cwd = paths.src_dir.setuptools, check = True)
+
+def _meson(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.z / 'usr/local',
+    paths.layer_AAA.python / 'usr/local',
+    paths.layer_AAA.setuptools / 'usr/local',
+  ]):
+    subprocess.run([
+      'python3',
+      'setup.py',
+      'install',
+      f'--root={paths.layer_AAA.meson}',
+      '--prefix=/usr/local',
+    ], cwd = paths.src_dir.meson, check = True)
+
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   subprocess.run([
     './configure',
@@ -109,5 +133,6 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
 def build_AAA_tool(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _python(ver, paths, config)
-
+  _setuptools(ver, paths, config)
+  _meson(ver, paths, config)
   _xmake(ver, paths, config)

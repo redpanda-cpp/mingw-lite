@@ -5,9 +5,9 @@ import re
 import shutil
 import subprocess
 from tempfile import TemporaryDirectory
-from typing import Iterable, List, Union
+from typing import Iterable, List, Optional, Union
 
-from module.profile import ProfileInfo
+from module.path import ProjectPaths
 
 XMAKE_ARCH_MAP = {
   '32': 'i386',
@@ -68,6 +68,16 @@ def cflags_B(
     f'LDFLAGS{suffix}=' + ' '.join(ld + ld_extra),
   ]
 
+def common_cross_layers(paths: ProjectPaths):
+  return [
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.gcc_lib / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.mcfgthread / 'usr/local',
+    paths.layer_AAB.winpthreads / 'usr/local',
+  ]
+
 def configure(cwd: Path, args: List[str]):
   subprocess.run(
     ['../configure', *args],
@@ -77,6 +87,36 @@ def configure(cwd: Path, args: List[str]):
 
 def ensure(path: Path):
   path.mkdir(parents = True, exist_ok = True)
+
+def extract_shared_libs(
+  base_prefix: Path,
+  shared_prefix: Optional[Path],
+  special_files: List[Path] = [],
+):
+  bin_dir = base_prefix / 'bin'
+  lib_dir = base_prefix / 'lib'
+
+  files = [
+    *bin_dir.glob('*.dll'),
+    *lib_dir.glob('*.dll.a'),
+    *map(lambda p: base_prefix / p, special_files),
+  ]
+
+  for file in files:
+    if shared_prefix:
+      rel_dir = file.parent.relative_to(base_prefix)
+      ensure(shared_prefix / rel_dir)
+      shutil.move(file, shared_prefix / rel_dir / file.name)
+    else:
+      file.unlink()
+
+  dll_in_lib = [*lib_dir.glob('*.dll')]
+  for dll in dll_in_lib:
+    if shared_prefix:
+      ensure(shared_prefix / 'bin')
+      shutil.move(dll, shared_prefix / 'bin' / dll.name)
+    else:
+      dll.unlink()
 
 def fix_libtool_absolute_reference(la_path: Path):
   with open(la_path, 'r') as f:
@@ -201,6 +241,10 @@ def remove_info_main_menu(prefix: Path):
   info_main_menu = prefix / 'share/info/dir'
   if info_main_menu.exists():
     info_main_menu.unlink()
+
+def touch(path: Path):
+  ensure(path.parent)
+  path.touch(exist_ok = True)
 
 def xmake_build(cwd: Path, jobs: int):
   subprocess.run(

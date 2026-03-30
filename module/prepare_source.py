@@ -269,8 +269,23 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if download_only:
     return
 
-  check_and_extract(paths.src_dir.mcfgthread, paths.src_arx.mcfgthread)
-  patch_done(paths.src_dir.mcfgthread)
+  if check_and_extract(paths.src_dir.mcfgthread, paths.src_arx.mcfgthread):
+    v = Version(ver.mcfgthread.replace('-ga', ''))
+
+    # Fix bootstrap
+    if v < Version('2.1'):
+      patch(paths.src_dir.mcfgthread, paths.patch_dir / 'mcfgthread' / 'fix-bootstrap.patch')
+
+    patch_done(paths.src_dir.mcfgthread)
+
+def _meson(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://github.com/mesonbuild/meson/releases/download/{ver.meson}/{paths.src_arx.meson.name}'
+  validate_and_download(paths.src_arx.meson, url)
+  if download_only:
+    return
+
+  check_and_extract(paths.src_dir.meson, paths.src_arx.meson)
+  patch_done(paths.src_dir.meson)
 
 def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/{paths.src_arx.mingw.name}'
@@ -396,6 +411,15 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     patch_done(paths.src_dir.python)
 
+def _setuptools(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://github.com/pypa/setuptools/archive/refs/tags/v{ver.setuptools}.tar.gz'
+  validate_and_download(paths.src_arx.setuptools, url)
+  if download_only:
+    return
+
+  check_and_extract(paths.src_dir.setuptools, paths.src_arx.setuptools)
+  patch_done(paths.src_dir.setuptools)
+
 def _thunk(ver: BranchProfile, paths: ProjectPaths):
   shutil.copytree(
     paths.in_tree_src_tree.thunk,
@@ -468,14 +492,15 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _iconv(ver, paths, download_only)
   _intl(ver, paths)
   _make(ver, paths, download_only)
-  if ver.thread == 'mcf':
-    _mcfgthread(ver, paths, download_only)
+  _mcfgthread(ver, paths, download_only)
+  _meson(ver, paths, download_only)
   _mingw(ver, paths, download_only)
   _mpc(ver, paths, download_only)
   _mpfr(ver, paths, download_only)
   _pdcurses(ver, paths, download_only)
   _pkgconf(ver, paths, download_only)
   _python(ver, paths, download_only)
+  _setuptools(ver, paths, download_only)
   _thunk(ver, paths)
   _xmake(ver, paths, download_only)
   _z(ver, paths, download_only)

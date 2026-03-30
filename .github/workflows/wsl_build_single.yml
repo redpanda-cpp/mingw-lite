@@ -51,8 +51,7 @@ jobs:
           Remove-Item -Path assets/buildenv.tar.zst
 
           wsl --distribution mingw-lite-buildenv --exec `
-            env XMAKE_ROOT=y `
-              ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} ${{ inputs.enable_shared && '--enable-shared' || '' }}
+            ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} ${{ inputs.enable_shared && '--enable-shared' || '' }}
 
           wsl --shutdown
           wsl --unregister mingw-lite-buildenv

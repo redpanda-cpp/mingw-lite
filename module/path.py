@@ -15,12 +15,14 @@ class SourcePaths(NamedTuple):
   iconv: Path
   make: Path
   mcfgthread: Path
+  meson: Path
   mingw: Path
   mpc: Path
   mpfr: Path
   pdcurses: Path
   pkgconf: Path
   python: Path
+  setuptools: Path
   xmake: Path
   z: Path
 
@@ -36,7 +38,9 @@ class LayerPathsAAA(NamedTuple):
   mpfr: Path
   z: Path
 
+  meson: Path
   python: Path
+  setuptools: Path
   xmake: Path
 
 class LayerPathsAAB(NamedTuple):
@@ -44,12 +48,20 @@ class LayerPathsAAB(NamedTuple):
 
   atomic_bootstrap: Path
   binutils: Path
-  crt0: Path
-  crt: Path
+  crt_base: Path
+  crt_host: Path
+  crt_target: Path
   gcc: Path
+  gcc_lib: Path
+  gcc_lib_shared: Path
   headers: Path
-  thunk: Path
+  mcfgthread: Path
+  mcfgthread_shared: Path
+  thunk_host: Path
+  thunk_target: Path
   utf8: Path
+  winpthreads: Path
+  winpthreads_shared: Path
 
   expat: Path
   gmp: Path
@@ -69,11 +81,17 @@ class LayerPathsABB(NamedTuple):
   crt0: Path
   crt: Path
   gcc: Path
+  gcc_lib: Path
+  gcc_lib_shared: Path
   gdb: Path
   headers: Path
   make: Path
+  mcfgthread: Path
+  mcfgthread_shared: Path
   pkgconf: Path
   thunk: Path
+  winpthreads: Path
+  winpthreads_shared: Path
   xmake: Path
 
 class ProjectPaths:
@@ -160,15 +178,15 @@ class ProjectPaths:
       gmp = f'gmp-{ver.gmp}',
       iconv = f'libiconv-{ver.iconv}',
       make = f'make-{ver.make}',
-      mcfgthread = f'mcfgthread-{ver.mcfgthread}'
-        if ver.thread == 'mcf'
-        else None,
+      mcfgthread = f'mcfgthread-{ver.mcfgthread}',
+      meson = f'meson-{ver.meson}',
       mingw = f'mingw-w64-v{ver.mingw}',
       mpc = f'mpc-{ver.mpc}',
       mpfr = f'mpfr-{ver.mpfr}',
       pdcurses = f'PDCurses-{ver.pdcurses}',
       pkgconf = f'pkgconf-pkgconf-{ver.pkgconf}',
       python = f'Python-{ver.python}',
+      setuptools = f'setuptools-{ver.setuptools}',
       xmake = f'xmake-{ver.xmake}',
       z = f'zlib-{ver.z}',
     )
@@ -181,15 +199,15 @@ class ProjectPaths:
       gmp = self.build_dir / src_name.gmp,
       iconv = self.build_dir / src_name.iconv,
       make = self.build_dir / src_name.make,
-      mcfgthread = self.build_dir / src_name.mcfgthread
-        if ver.thread == 'mcf'
-        else None,
+      mcfgthread = self.build_dir / src_name.mcfgthread,
+      meson = self.build_dir / src_name.meson,
       mingw = self.build_dir / src_name.mingw,
       mpc = self.build_dir / src_name.mpc,
       mpfr = self.build_dir / src_name.mpfr,
       pdcurses = self.build_dir / src_name.pdcurses,
       pkgconf = self.build_dir / src_name.pkgconf,
       python = self.build_dir / src_name.python,
+      setuptools = self.build_dir / src_name.setuptools,
       xmake = self.build_dir / src_name.xmake,
       z = self.build_dir / src_name.z,
     )
@@ -204,15 +222,15 @@ class ProjectPaths:
       gmp = self.assets_dir / f'{src_name.gmp}.tar.zst',
       iconv = self.assets_dir / f'{src_name.iconv}.tar.gz',
       make = self.assets_dir / f'{src_name.make}.tar.lz',
-      mcfgthread = self.assets_dir / f'{src_name.mcfgthread}.tar.gz'
-        if ver.thread == 'mcf'
-        else None,
+      mcfgthread = self.assets_dir / f'{src_name.mcfgthread}.tar.gz',
+      meson = self.assets_dir / f'{src_name.meson}.tar.gz',
       mingw = self.assets_dir / f'{src_name.mingw}.tar.bz2',
       mpc = self.assets_dir / f'{src_name.mpc}.tar.gz',
       mpfr = self.assets_dir / f'{src_name.mpfr}.tar.xz',
       pdcurses = self.assets_dir / f'{src_name.pdcurses}.tar.gz',
       python = self.assets_dir / f'{src_name.python}.tar.xz',
       pkgconf = self.assets_dir / f'{src_name.pkgconf}.tar.gz',
+      setuptools = self.assets_dir / f'{src_name.setuptools}.tar.gz',
       xmake = self.assets_dir / f'{src_name.xmake}.tar.gz',
       z = self.assets_dir / f'{src_name.z}.tar.gz',
     )
@@ -236,7 +254,9 @@ class ProjectPaths:
       mpfr = layer_AAA_prefix / 'mpfr',
       z = layer_AAA_prefix / 'z',
 
+      meson = layer_AAA_prefix / 'meson',
       python = layer_AAA_prefix / 'python',
+      setuptools = layer_AAA_prefix / 'setuptools',
       xmake = layer_AAA_prefix / 'xmake',
     )
 
@@ -246,12 +266,20 @@ class ProjectPaths:
 
       atomic_bootstrap = layer_AAB_prefix / 'atomic-bootstrap',
       binutils = layer_AAB_prefix / 'binutils',
-      crt0 = layer_AAB_prefix / 'crt0',
-      crt = layer_AAB_prefix / 'crt',
+      crt_base = layer_AAB_prefix / 'crt-base',
+      crt_host = layer_AAB_prefix / 'crt-host',
+      crt_target = layer_AAB_prefix / 'crt-target',
       gcc = layer_AAB_prefix / 'gcc',
+      gcc_lib = layer_AAB_prefix / 'gcc-lib',
+      gcc_lib_shared = layer_AAB_prefix / 'gcc-lib-shared',
+      mcfgthread = layer_AAB_prefix / 'mcfgthread',
+      mcfgthread_shared = layer_AAB_prefix / 'mcfgthread-shared',
       headers = layer_AAB_prefix / 'headers',
-      thunk = layer_AAB_prefix / 'thunk',
+      thunk_host = layer_AAB_prefix / 'thunk-host',
+      thunk_target = layer_AAB_prefix / 'thunk-target',
       utf8 = layer_AAB_prefix / 'utf8',
+      winpthreads = layer_AAB_prefix / 'winpthreads',
+      winpthreads_shared = layer_AAB_prefix / 'winpthreads-shared',
 
       expat = layer_AAB_prefix / 'expat',
       gmp = layer_AAB_prefix / 'gmp',
@@ -273,11 +301,17 @@ class ProjectPaths:
       crt0 = layer_ABB_prefix / 'crt0',
       crt = layer_ABB_prefix / 'crt',
       gcc = layer_ABB_prefix / 'gcc',
+      gcc_lib = layer_ABB_prefix / 'gcc-lib',
+      gcc_lib_shared = layer_ABB_prefix / 'gcc-lib/lib/shared',
       gdb = layer_ABB_prefix / 'gdb',
       headers = layer_ABB_prefix / 'headers',
       make = layer_ABB_prefix / 'make',
+      mcfgthread = layer_ABB_prefix / 'mcfgthread',
+      mcfgthread_shared = layer_ABB_prefix / 'mcfgthread/lib/shared',
       pkgconf = layer_ABB_prefix / 'pkgconf',
       thunk = layer_ABB_prefix / 'thunk',
+      winpthreads = layer_ABB_prefix / 'winpthreads',
+      winpthreads_shared = layer_ABB_prefix / 'winpthreads/lib/shared',
       xmake = layer_ABB_prefix / 'xmake',
     )
 

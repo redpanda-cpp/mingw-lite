@@ -11,11 +11,17 @@
   - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` to `$prefix/`.
 - Cross toolchain: tools are organized by package. Mount required packages to `/usr/local`:
   ```bash
-  layers=(/path/to/mingw/AAB/{binutils,crt,gcc,headers}/usr/local)
+  layers=(
+    /path/to/mingw/AAB/{binutils,crt-target,gcc,gcc-lib,headers,mcfgthread,winpthreads}/usr/local
+    # optional shared layers
+    /path/to/mingw/AAB/{gcc-lib-shared,mcfgthread-shared,winpthreads-shared}/usr/local
+  )
   lowerdir=$(IFS=:; echo "${layers[*]}")
   sudo mount -t overlay none /usr/local -o lowerdir=$lowerdir
   ```
   For container environment, `CAP_SYS_ADMIN` required (`--cap-add=sys_admin`).
+
+  > Note: [There are two variants of CRT libraries, host CRT (`AAB/crt-host`) and target CRT (`AAB/crt-target`).](./doc/internal-build.md) The target CRT is always preferred for general integration, such as building static or shared libraries, and building applications. The shared runtime libraries are linked with target CRT, so never use them with host CRT.
 
 ## Build
 
