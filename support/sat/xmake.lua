@@ -4,9 +4,9 @@ add_rules("mode.debug", "mode.release")
 set_languages("c11")
 
 add_defines('DEBUG_BUILD_DIR="build/debug"')
-add_defines('ENABLE_SHARED')
 add_defines('ENABLE_UTF8')
 add_defines('MINGW_DIR="mingw64"')
+add_defines('SHARED_DIR=L"lib/shared"')
 add_defines('XMAKE_ARCH="x86_64"')
 add_ldflags('-municode', {force = true})
 

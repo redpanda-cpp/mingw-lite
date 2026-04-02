@@ -9,9 +9,6 @@ on:
       branch:
         required: true
         type: string
-      enable_shared:
-        required: true
-        type: boolean
 
 jobs:
   build:
@@ -51,7 +48,7 @@ jobs:
           Remove-Item -Path assets/buildenv.tar.zst
 
           wsl --distribution mingw-lite-buildenv --exec `
-            ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} ${{ inputs.enable_shared && '--enable-shared' || '' }}
+            ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
 
           wsl --shutdown
           wsl --unregister mingw-lite-buildenv
@@ -63,4 +60,4 @@ jobs:
 
       - name: Test
         run: |
-          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 --verbose ${{ inputs.enable_shared && '--enable-shared' || '' }}
+          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 --verbose

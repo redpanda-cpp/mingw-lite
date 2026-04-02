@@ -29,7 +29,7 @@ void clean_shared_libs() {
   resolve_mingw_root_dir(mingw_root_dir);
 
   wchar_t shared_dir[MAX_PATH];
-  _snwprintf(shared_dir, MAX_PATH, L"%ls/lib/shared", mingw_root_dir);
+  _snwprintf(shared_dir, MAX_PATH, L"%ls/%ls", mingw_root_dir, SHARED_DIR);
 
   clean_shared_libs_recursive(mingw_root_dir, shared_dir);
 }
@@ -86,7 +86,7 @@ void install_shared_libs() {
   resolve_mingw_root_dir(mingw_root_dir);
 
   wchar_t shared_dir[MAX_PATH];
-  _snwprintf(shared_dir, MAX_PATH, L"%ls/lib/shared", mingw_root_dir);
+  _snwprintf(shared_dir, MAX_PATH, L"%ls/%ls", mingw_root_dir, SHARED_DIR);
 
   install_shared_libs_recursive(mingw_root_dir, shared_dir);
 }
@@ -230,7 +230,7 @@ int resolve_mingw_bin_dir(wchar_t dir[MAX_PATH]) {
 }
 
 int resolve_mingw_lib_shared_dir(wchar_t dir[MAX_PATH]) {
-  const wchar_t *const rel_lib_shared_dir = L"/lib/shared";
+  const wchar_t *const rel_lib_shared_dir = SHARED_DIR;
   const int rel_len = wcslen(rel_lib_shared_dir);
 
   int dir_len = resolve_mingw_root_dir(dir);

@@ -27,6 +27,19 @@ def _automake(path: Path):
     check = True,
   )
 
+def _atomic_bootstrap(ver: BranchProfile, paths: ProjectPaths):
+  shutil.copytree(
+    paths.in_tree_src_tree.atomic_bootstrap,
+    paths.in_tree_src_dir.atomic_bootstrap,
+    ignore = shutil.ignore_patterns(
+      '.cache',
+      '.vscode',
+      '.xmake',
+      'build',
+    ),
+    dirs_exist_ok = True,
+  )
+
 def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/binutils/{paths.src_arx.binutils.name}'
   validate_and_download(paths.src_arx.binutils, url)
@@ -112,6 +125,17 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     # Allow missing shared libgcc
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-missing-shared-libgcc.patch')
+
+    # Fix pre-586 atomic link
+    if ver.march in ('i386', 'i486'):
+      if v.major >= 14:
+        patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-pre586-atomic-link_14.patch')
+      else:
+        patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-pre586-atomic-link_13.patch')
+
+    # Migrate i386 sync builtin
+    if ver.march == 'i386':
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'migrate-i386-sync-builtin.patch')
 
     # Allow UTF-8 module name
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-utf8-module-name.patch')
@@ -324,6 +348,16 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
       do_regenerate = True
       patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
 
+    # CRT and winpthreads: migrate i386 sync builtin
+    if ver.march == 'i386':
+      if v.major >= 13:
+        patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'migrate-i386-sync-builtin_13.patch')
+      else:
+        patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'migrate-i386-sync-builtin_11.patch')
+
+      if v.major < 12:
+        patch(paths.src_dir.mingw, paths.patch_dir / 'winpthreads' / 'migrate-i386-sync-builtin.patch')
+
     # Winpthreads: Fix linkage
     if v.major == 13:
       patch(paths.src_dir.mingw, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
@@ -484,6 +518,7 @@ def _z(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   patch_done(paths.src_dir.z)
 
 def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  _atomic_bootstrap(ver, paths)
   _binutils(ver, paths, download_only)
   _expat(ver, paths, download_only)
   _gcc(ver, paths, download_only)

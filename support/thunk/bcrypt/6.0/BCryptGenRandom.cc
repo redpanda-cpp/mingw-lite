@@ -50,10 +50,10 @@ namespace mingw_thunk
       uint32_t *buffer = reinterpret_cast<uint32_t *>(pbBuffer);
 
       for (size_t i = 0; i < blocks; ++i)
-        buffer[i] = i::__rand32();
+        buffer[i] = i::rand32();
 
       if (remainder) {
-        uint32_t value = i::__rand32();
+        uint32_t value = i::rand32();
         c::memcpy(buffer + blocks, &value, remainder);
       }
 

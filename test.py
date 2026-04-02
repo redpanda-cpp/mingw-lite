@@ -80,7 +80,7 @@ def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[s
   subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test_dir)
 
 def test_mingw_shared(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
-  shutil.copytree(paths.test_mingw_dir / 'lib/shared', paths.test_mingw_dir, dirs_exist_ok = True)
+  shutil.copytree(paths.test_mingw_dir / paths.shared_dir, paths.test_mingw_dir, dirs_exist_ok = True)
 
   rel_mingw_dir = paths.test_mingw_dir.relative_to(paths.test_dir)
   xmake = paths.test_mingw_dir / 'bin/xmake.exe'
@@ -206,13 +206,12 @@ def main():
   except Exception as e:
     test_report['fail'] = True
     test_report['mingw64-make-gdb'] = repr(e)
-  if config.enable_shared:
-    try:
-      test_mingw_shared(ver, paths, xmake_verbose)
-      test_report['mingw64-shared'] = "okay"
-    except Exception as e:
-      test_report['fail'] = True
-      test_report['mingw64-shared'] = repr(e)
+  try:
+    test_mingw_shared(ver, paths, xmake_verbose)
+    test_report['mingw64-shared'] = "okay"
+  except Exception as e:
+    test_report['fail'] = True
+    test_report['mingw64-shared'] = repr(e)
 
   print("============================== TEST REPORT ==============================")
   pprint(test_report)

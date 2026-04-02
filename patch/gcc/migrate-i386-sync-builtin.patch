@@ -1,0 +1,44 @@
+diff --git a/libbacktrace/dwarf.c b/libbacktrace/dwarf.c
+index 8ff1fb3ce3d..b8a8e79fd18 100644
+--- a/libbacktrace/dwarf.c
++++ b/libbacktrace/dwarf.c
+@@ -4057,7 +4057,9 @@ backtrace_dwarf_add (struct backtrace_state *state,
+ 	      pp = &p->next;
+ 	    }
+ 
+-	  if (__sync_bool_compare_and_swap (pp, NULL, fdata))
++          struct dwarf_data *expected = NULL;
++          if (__atomic_compare_exchange_n (pp, &expected, fdata,
++                                           0, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE))
+ 	    break;
+ 	}
+     }
+diff --git a/libbacktrace/pecoff.c b/libbacktrace/pecoff.c
+index 56af4828e27..293584eb1b2 100644
+--- a/libbacktrace/pecoff.c
++++ b/libbacktrace/pecoff.c
+@@ -497,7 +497,9 @@ coff_add_syminfo_data (struct backtrace_state *state,
+ 	      pp = &p->next;
+ 	    }
+ 
+-	  if (__sync_bool_compare_and_swap (pp, NULL, sdata))
++          struct coff_syminfo_data *expected = NULL;
++          if (__atomic_compare_exchange_n (pp, &expected, sdata,
++                                           0, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE))
+ 	    break;
+ 	}
+     }
+@@ -913,8 +915,11 @@ backtrace_initialize (struct backtrace_state *state,
+       if (found_sym)
+ 	backtrace_atomic_store_pointer (&state->syminfo_fn, coff_syminfo);
+       else
+-	(void) __sync_bool_compare_and_swap (&state->syminfo_fn, NULL,
+-					     coff_nosyms);
++      {
++        syminfo expected = NULL;
++        (void) __atomic_compare_exchange_n (&state->syminfo_fn, &expected, coff_nosyms,
++                                            0, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
++      }
+     }
+ 
+   if (!state->threaded)

@@ -1,3 +1,0 @@
-int __atomic_compare_exchange_4;
-int __sync_bool_compare_and_swap_4;
-int __sync_val_compare_and_swap_4;

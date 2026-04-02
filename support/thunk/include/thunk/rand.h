@@ -3,19 +3,39 @@
 #include <stdint.h>
 #include <sysinfoapi.h>
 
+#if defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) &&                             \
+    __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
+#define _MINGW_THUNK_RAND_TARGET_HAVE_ATOMIC 1
+#define _MINGW_THUNK_RAND_ENABLE_ATOMIC
+#else
+#define _MINGW_THUNK_RAND_TARGET_HAVE_ATOMIC 0
+#define _MINGW_THUNK_RAND_ENABLE_ATOMIC __attribute__((__target__("arch=i586")))
+#endif
+
 namespace mingw_thunk
 {
-  namespace i
+  namespace g
   {
-    inline uint64_t &__rand_seed()
+    inline uint64_t &rand_seed()
     {
       static uint64_t seed = GetTickCount64();
       return seed;
     }
 
-    inline uint64_t __rand64()
+    inline bool &rand_lock()
     {
-      uint64_t &seed = __rand_seed();
+      static bool lock = false;
+      return lock;
+    }
+
+  } // namespace g
+
+  namespace i
+  {
+    _MINGW_THUNK_RAND_ENABLE_ATOMIC
+    inline uint64_t rand64_atomic()
+    {
+      uint64_t &seed = g::rand_seed();
       uint64_t old_seed = __atomic_load_n(&seed, __ATOMIC_ACQUIRE);
       uint64_t new_seed;
       do {
@@ -29,9 +49,70 @@ namespace mingw_thunk
       return new_seed;
     }
 
-    inline uint32_t __rand32()
+    inline uint64_t rand64_lock()
     {
-      return __rand64() >> 32;
+      bool &lock = g::rand_lock();
+      while (__atomic_test_and_set(&lock, __ATOMIC_ACQUIRE))
+        ;
+      uint64_t &seed = g::rand_seed();
+      seed = 6364136223846793005ull * seed + 1;
+      uint64_t result = seed;
+      __atomic_clear(&lock, __ATOMIC_RELEASE);
+      return result;
+    }
+
+    inline uint64_t rand64()
+    {
+#if _MINGW_THUNK_RAND_TARGET_HAVE_ATOMIC
+      return rand64_atomic();
+#else
+      static decltype(&rand64) rand64_func = nullptr;
+      if (!rand64_func) {
+        if (__builtin_cpu_supports("cmpxchg8b"))
+          rand64_func = rand64_atomic;
+        else
+          rand64_func = rand64_lock;
+      }
+      return rand64_func();
+#endif
+    }
+
+    inline uint32_t rand32()
+    {
+      return rand64() >> 32;
+    }
+
+    _MINGW_THUNK_RAND_ENABLE_ATOMIC
+    inline void srand_atomic(unsigned s)
+    {
+      uint64_t &seed = g::rand_seed();
+      uint64_t new_seed = s - 1; // musl's choice
+      __atomic_store(&seed, &new_seed, __ATOMIC_RELEASE);
+    }
+
+    inline void srand_lock(unsigned s)
+    {
+      bool &lock = g::rand_lock();
+      while (__atomic_test_and_set(&lock, __ATOMIC_ACQUIRE))
+        ;
+      g::rand_seed() = s - 1;
+      __atomic_clear(&lock, __ATOMIC_RELEASE);
+    }
+
+    inline void srand(unsigned s)
+    {
+#if __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
+      srand_atomic(s);
+#else
+      static decltype(&srand) srand_func = nullptr;
+      if (!srand_func) {
+        if (__builtin_cpu_supports("cmpxchg8b"))
+          srand_func = srand_atomic;
+        else
+          srand_func = srand_lock;
+      }
+      return srand_func(s);
+#endif
     }
   } // namespace i
 
@@ -39,14 +120,14 @@ namespace mingw_thunk
   {
     inline int rand()
     {
-      return i::__rand64() >> (64 - 15);
+      return i::rand64() >> (64 - 15);
     }
 
     inline void srand(unsigned s)
     {
-      uint64_t &seed = i::__rand_seed();
-      uint64_t new_seed = s - 1; // musl's choice
-      __atomic_store(&seed, &new_seed, __ATOMIC_RELEASE);
+      i::srand(s);
     }
   } // namespace c
 } // namespace mingw_thunk
+
+#undef _MINGW_THUNK_RAND_TARGET_HAVE_ATOMIC

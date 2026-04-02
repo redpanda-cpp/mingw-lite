@@ -9,10 +9,7 @@ int wmain(int argc, wchar_t *argv[]) {
   resolve_mingw_bin_dir(mingw_bin_dir);
   prepend_to_env_path(mingw_bin_dir);
 
-#ifdef ENABLE_SHARED
   clean_shared_libs();
-#endif
-
   change_to_self_dir();
 
   const wchar_t *xmake_config_argv[] = {

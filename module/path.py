@@ -27,7 +27,9 @@ class SourcePaths(NamedTuple):
   z: Path
 
 class InTreeSourcePaths(NamedTuple):
+  atomic_bootstrap: Path
   intl: Path
+  sync: Path
   thunk: Path
 
 class LayerPathsAAA(NamedTuple):
@@ -60,6 +62,7 @@ class LayerPathsAAB(NamedTuple):
   thunk_host: Path
   thunk_target: Path
   utf8: Path
+  winpthreads_bootstrap: Path
   winpthreads: Path
   winpthreads_shared: Path
 
@@ -97,6 +100,7 @@ class LayerPathsABB(NamedTuple):
 class ProjectPaths:
   root_dir: Path
   abi_name: str
+  shared_dir: str
 
   assets_dir: Path
   dist_dir: Path
@@ -111,7 +115,6 @@ class ProjectPaths:
 
   # build phase
 
-  sync_src_dir: Path
   utf8_src_dir: Path
   build_dir: Path
   layer_dir: Path
@@ -146,9 +149,13 @@ class ProjectPaths:
   ):
     self.root_dir = Path.cwd()
     abi_name = f'mingw{config.profile}-{config.branch}'
-    if config.enable_shared and not ver.thunk_free:
-      abi_name += '-unstable'
     self.abi_name = abi_name
+
+    if ver.abi_frozen and ver.thunk_free:
+      shared_dir = 'lib/shared'
+    else:
+      shared_dir = 'lib/shared-unstable'
+    self.shared_dir = shared_dir
 
     self.assets_dir = self.root_dir / 'assets'
     self.dist_dir = self.root_dir / 'dist'
@@ -164,7 +171,6 @@ class ProjectPaths:
 
     # build phase
 
-    self.sync_src_dir = self.root_dir / 'support/sync'
     self.utf8_src_dir = self.root_dir / 'support/utf8'
     self.build_dir = Path(f'/tmp/build/{abi_name}')
     self.layer_dir = Path(f'/tmp/layer/{abi_name}')
@@ -236,12 +242,16 @@ class ProjectPaths:
     )
 
     self.in_tree_src_dir = InTreeSourcePaths(
+      atomic_bootstrap = self.build_dir / 'atomic-bootstrap',
       intl = self.build_dir / 'intl',
+      sync = self.build_dir / 'sync',
       thunk = self.build_dir / 'thunk',
     )
 
     self.in_tree_src_tree = InTreeSourcePaths(
+      atomic_bootstrap = self.root_dir / 'support/atomic-bootstrap',
       intl = self.root_dir / 'support/intl',
+      sync = self.root_dir / 'support/sync',
       thunk = self.root_dir / 'support/thunk',
     )
 
@@ -278,6 +288,7 @@ class ProjectPaths:
       thunk_host = layer_AAB_prefix / 'thunk-host',
       thunk_target = layer_AAB_prefix / 'thunk-target',
       utf8 = layer_AAB_prefix / 'utf8',
+      winpthreads_bootstrap = layer_AAB_prefix / 'winpthreads-bootstrap',
       winpthreads = layer_AAB_prefix / 'winpthreads',
       winpthreads_shared = layer_AAB_prefix / 'winpthreads-shared',
 
@@ -302,16 +313,16 @@ class ProjectPaths:
       crt = layer_ABB_prefix / 'crt',
       gcc = layer_ABB_prefix / 'gcc',
       gcc_lib = layer_ABB_prefix / 'gcc-lib',
-      gcc_lib_shared = layer_ABB_prefix / 'gcc-lib/lib/shared',
+      gcc_lib_shared = layer_ABB_prefix / 'gcc-lib' / shared_dir,
       gdb = layer_ABB_prefix / 'gdb',
       headers = layer_ABB_prefix / 'headers',
       make = layer_ABB_prefix / 'make',
       mcfgthread = layer_ABB_prefix / 'mcfgthread',
-      mcfgthread_shared = layer_ABB_prefix / 'mcfgthread/lib/shared',
+      mcfgthread_shared = layer_ABB_prefix / 'mcfgthread' / shared_dir,
       pkgconf = layer_ABB_prefix / 'pkgconf',
       thunk = layer_ABB_prefix / 'thunk',
       winpthreads = layer_ABB_prefix / 'winpthreads',
-      winpthreads_shared = layer_ABB_prefix / 'winpthreads/lib/shared',
+      winpthreads_shared = layer_ABB_prefix / 'winpthreads' / shared_dir,
       xmake = layer_ABB_prefix / 'xmake',
     )
 

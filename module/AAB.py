@@ -65,10 +65,6 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     config_flags = []
 
-    if config.enable_shared:
-      config_flags.append('--enable-shared')
-    else:
-      config_flags.append('--disable-shared')
     if ver.exception == 'dwarf':
       config_flags.append('--disable-sjlj-exceptions')
       config_flags.append('--with-dwarf2')
@@ -81,6 +77,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-gcc-major-version-only',
       f'--target={ver.target}',
       f'--build={config.build}',
+      '--enable-shared',
       '--enable-static',
       # features
       '--disable-bootstrap',
@@ -114,45 +111,16 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.gcc / 'build-AAB'
 
-  common_layers = [
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.atomic_bootstrap / 'usr/local',
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.crt_target / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.mcfgthread / 'usr/local',
     paths.layer_AAB.mcfgthread_shared / 'usr/local',
-    paths.layer_AAB.winpthreads / 'usr/local',
-    paths.layer_AAB.winpthreads_shared / 'usr/local',
-  ]
-
-  with overlayfs_ro('/usr/local', common_layers):
-    make_custom(build_dir, ['all-target-libgcc'], config.jobs)
-
-  with overlayfs_ro('/usr/local', [
-    # override crt
-    paths.layer_AAB.atomic_bootstrap / 'usr/local',
-
-    *common_layers,
+    paths.layer_AAB.winpthreads_bootstrap / 'usr/local',
   ]):
-    make_custom(build_dir, ['all-target-libatomic'], config.jobs)
-
-  with overlayfs_ro('/usr/local', common_layers):
-    # target missing atomic instructions, and gcc will yield function calls.
-    # here we add libatomic to libgcc, so we don't need to handle build flags later.
-    if ver.march in ['i386', 'i486']:
-      libgcc_a = build_dir / ver.target / 'libgcc/libgcc.a'
-      atomic_objects = [*(build_dir / ver.target / 'libatomic').glob('*.o')]
-      if ver.march == 'i386':
-        sync_wrappers = ['sync_fetch_and_op', 'sync_op_and_fetch', 'sync_compare_and_swap']
-        for wrapper in sync_wrappers:
-          wrapper_src = paths.sync_src_dir / f'{wrapper}.cc'
-          wrapper_obj = build_dir / f'{wrapper}.o'
-          subprocess.run([
-            f'{ver.target}-gcc', '-c', wrapper_src, '-o', wrapper_obj,
-          ], check = True)
-          atomic_objects.append(wrapper_obj)
-      add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
-
     make_custom(build_dir, ['all-target'], config.jobs)
     make_custom(build_dir, [
       f'DESTDIR={paths.layer_AAB.gcc_lib}',
@@ -161,12 +129,9 @@ def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   base_prefix = paths.layer_AAB.gcc_lib / 'usr/local' / ver.target
   shared_prefix = paths.layer_AAB.gcc_lib_shared / 'usr/local' / ver.target
-  if config.enable_shared:
-    extract_shared_libs(base_prefix, shared_prefix, [
-      'lib/libgcc_s.a',  # shared libgcc
-    ])
-  else:
-    touch(shared_prefix / '.keep')
+  extract_shared_libs(base_prefix, shared_prefix, [
+    'lib/libgcc_s.a',  # shared libgcc
+  ])
 
 def _crt_base(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.mingw / 'mingw-w64-crt' / 'build-AAB'
@@ -366,44 +331,39 @@ def _utf8(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       ], check = True)
 
 def _atomic_bootstrap(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  lib_dir = paths.layer_AAB.atomic_bootstrap / 'usr/local' / ver.target / 'lib'
-  ensure(lib_dir)
+  install_dir = paths.layer_AAB.atomic_bootstrap / 'usr/local' / ver.target
 
-  if ver.march != 'i386':
+  if ver.march not in ('i386', 'i486'):
+    touch(install_dir / '.keep')
     return
 
-  build_dir = paths.build_dir / 'atomic_bootstrap'
-  ensure(build_dir)
+  # i386 and i486: we added `-latomic` to spec for convenience.
+  # so we need a `libatomic.dll` to link shared winpthreads.
 
-  # bootstrapping i386 libatomic is tricky.
+  # i386: bootstrapping libatomic is tricky.
   # the configure script checks whether GCC can compile program.
-  # however, CRT startup code depends on libatomic, which is not built yet.
-  # here we provide fake symbols to pass the check.
+  # however, CRT startup code depends on libatomic (`__atomic_compare_exchange_4`).
 
-  # also we cannot handle it in gcc phases (adding to libgcc.a),
-  # because it will be overwritten by 'configure-target-libatomic'.
-  # here we choose libkernel32.a.
+  # so here we provide `libatomic.dll` with `__atomic_compare_exchange_4`,
+  # with possible "illegal instrctions" (it doesn't matter, we don't run it).
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.crt_base / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
   ]):
-    fake_object = build_dir / 'libatomic_fake.o'
-    subprocess.run([
-      f'{ver.target}-gcc',
-      '-c', paths.sync_src_dir / 'bootstrap.c',
-      '-o', fake_object,
-    ], check = True)
+    src_dir = paths.in_tree_src_dir.atomic_bootstrap
 
-    crt_kernel32 = paths.layer_AAB.crt_host / 'usr/local' / ver.target / 'lib/libkernel32.a'
-    atomic_kernel32 = lib_dir / 'libkernel32.a'
-    shutil.copy(crt_kernel32, atomic_kernel32)
-    add_objects_to_static_lib(
-      'llvm-ar',
-      atomic_kernel32,
-      [fake_object],
-    )
+    xmake_config(src_dir, [
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      '--mingw=/usr/local',
+    ])
+    xmake_build(src_dir, config.jobs)
+
+    xmake_install(src_dir, install_dir)
 
 def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   base_prefix = paths.layer_AAB.mcfgthread / 'usr/local' / ver.target
@@ -454,17 +414,42 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
       build_dir = build_dir,
     )
 
-  if config.enable_shared:
-    extract_shared_libs(base_prefix, shared_prefix)
-  else:
-    touch(shared_prefix / '.keep')
-    extract_shared_libs(base_prefix, None)
+  extract_shared_libs(base_prefix, shared_prefix)
 
-def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+def _winpthreads_bootstrap(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.atomic_bootstrap / 'usr/local',
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.crt_target / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+    paths.layer_AAB.mcfgthread / 'usr/local',
+    paths.layer_AAB.mcfgthread_shared / 'usr/local',
+  ]):
+    build_dir = paths.src_dir.mingw / 'mingw-w64-libraries' / 'winpthreads' / 'build-bootstrap'
+    ensure(build_dir)
+    configure(build_dir, [
+      f'--prefix=/usr/local/{ver.target}',
+      f'--host={ver.target}',
+      f'--build={config.build}',
+      '--enable-shared',
+      '--enable-static',
+      *cflags_B(
+        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_size = ver.optimize_for_size,
+      ),
+    ])
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.winpthreads_bootstrap)
+
+def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.atomic_bootstrap / 'usr/local',
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.crt_target / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.gcc_lib / 'usr/local',
+    paths.layer_AAB.gcc_lib_shared / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
     paths.layer_AAB.mcfgthread / 'usr/local',
     paths.layer_AAB.mcfgthread_shared / 'usr/local',
@@ -475,7 +460,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
       f'--prefix=/usr/local/{ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
-      '--enable-shared' if config.enable_shared else '--disable-shared',
+      '--enable-shared',
       '--enable-static',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
@@ -487,10 +472,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
   base_prefix = paths.layer_AAB.winpthreads / 'usr/local' / ver.target
   shared_prefix = paths.layer_AAB.winpthreads_shared / 'usr/local' / ver.target
-  if config.enable_shared:
-    extract_shared_libs(base_prefix, shared_prefix)
-  else:
-    touch(shared_prefix / '.keep')
+  extract_shared_libs(base_prefix, shared_prefix)
 
 def build_AAB_compiler(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _binutils(ver, paths, config)
@@ -502,9 +484,10 @@ def build_AAB_compiler(ver: BranchProfile, paths: ProjectPaths, config: argparse
   _utf8(ver, paths, config)
   _atomic_bootstrap(ver, paths, config)
   _mcfgthread(ver, paths, config)
-  _winpthreads(ver, paths, config)
+  _winpthreads_bootstrap(ver, paths, config)
   _headers_2(ver, paths, config)
   _gcc_2(ver, paths, config)
+  _winpthreads(ver, paths, config)
 
 def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [

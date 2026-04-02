@@ -52,9 +52,10 @@ Internally named “AAB”, build = host = x86_64-linux-gnu, target = x86_64-w64
   - UTF-8 tricks
   - i386 atomic bootstrap helper
   - mcfgthreads
-  - winpthreads
+  - winpthreads (bootstrap)
   - mingw-w64-headers (cleanup pthread dummy header)
   - gcc (runtime)
+  - winpthreads
 - `build_AAB_library`
   - gmp
   - mpfr

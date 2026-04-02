@@ -27,11 +27,10 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
   flags = [
     '-std=c11', '-O2', '-municode', '-s',
     f'-DMINGW_DIR="{mingw_dir}"',
+    f'-DSHARED_DIR=L"{paths.shared_dir}"',
     f'-DXMAKE_ARCH="{xmake_arch}"',
     f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
   ]
-  if config.enable_shared:
-    flags.append('-DENABLE_SHARED')
   if ver.utf8_thunk:
     flags.append('-DENABLE_UTF8')
 
@@ -66,13 +65,12 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
       '-o', pkg_dir / 'test-make-gdb.exe',
     ], check = True)
 
-    if config.enable_shared:
-      subprocess.run([
-        gcc_exe,
-        *flags,
-        src_dir / 'test-shared.c', common_c,
-        '-o', pkg_dir / 'test-shared.exe',
-      ], check = True)
+    subprocess.run([
+      gcc_exe,
+      *flags,
+      src_dir / 'test-shared.c', common_c,
+      '-o', pkg_dir / 'test-shared.exe',
+    ], check = True)
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -236,7 +234,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
       '--prefix=',
       f'--host={ver.target}',
       f'--build={config.build}',
-      '--enable-shared' if config.enable_shared else '--disable-shared',
+      '--enable-shared',
       '--enable-static',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
@@ -248,8 +246,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
   base_prefix = paths.layer_ABB.winpthreads
   shared_prefix = paths.layer_ABB.winpthreads_shared
-  if config.enable_shared:
-    extract_shared_libs(base_prefix, shared_prefix)
+  extract_shared_libs(base_prefix, shared_prefix)
 
   license_dir = paths.layer_ABB.winpthreads / 'share/licenses/winpthreads'
   ensure(license_dir)
@@ -301,10 +298,7 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
       build_dir = build_dir,
     )
 
-  if config.enable_shared:
-    extract_shared_libs(base_prefix, shared_prefix)
-  else:
-    extract_shared_libs(base_prefix, None)
+  extract_shared_libs(base_prefix, shared_prefix)
 
   license_dir = paths.layer_AAB.gcc / 'share/licenses/mcfgthread'
   ensure(license_dir)
@@ -331,10 +325,6 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   ]):
     config_flags = []
 
-    if config.enable_shared:
-      config_flags.append('--enable-shared')
-    else:
-      config_flags.append('--disable-shared')
     if ver.exception == 'dwarf':
       config_flags.append('--disable-sjlj-exceptions')
       config_flags.append('--with-dwarf2')
@@ -351,6 +341,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--target={ver.target}',
       f'--host={ver.target}',
       f'--build={config.build}',
+      '--enable-shared',
       '--enable-static',
       # features
       '--disable-bootstrap',
@@ -413,27 +404,11 @@ def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
         [build_dir / ver.target / 'libstdc++-v3/src/c++23/print.o'],
       )
 
-    # add libatomic to libgcc for convenience
-    if ver.march in ['i386', 'i486']:
-      libgcc_a = paths.layer_ABB.gcc_lib / 'lib/gcc' / ver.target / str(v.major) / 'libgcc.a'
-      atomic_objects = [*(build_dir / ver.target / 'libatomic').glob('*.o')]
-      if ver.march == 'i386':
-        sync_wrappers = ['sync_fetch_and_op', 'sync_op_and_fetch', 'sync_compare_and_swap']
-        for wrapper in sync_wrappers:
-          wrapper_src = paths.sync_src_dir / f'{wrapper}.cc'
-          wrapper_obj = build_dir / f'{wrapper}.o'
-          subprocess.run([
-            f'{ver.target}-gcc', '-c', wrapper_src, '-o', wrapper_obj,
-          ], check = True)
-          atomic_objects.append(wrapper_obj)
-      add_objects_to_static_lib(f'{ver.target}-ar', libgcc_a, atomic_objects)
-
   base_prefix = paths.layer_ABB.gcc_lib
   shared_prefix = paths.layer_ABB.gcc_lib_shared
-  if config.enable_shared:
-    extract_shared_libs(base_prefix, shared_prefix, [
-      'lib/libgcc_s.a',  # shared libgcc
-    ])
+  extract_shared_libs(base_prefix, shared_prefix, [
+    'lib/libgcc_s.a',  # shared libgcc
+  ])
 
   remove_info_main_menu(paths.layer_ABB.gcc)
 

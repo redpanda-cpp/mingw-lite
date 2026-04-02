@@ -7,8 +7,10 @@
 ## Use
 
 - Native toolchain: the toolchain is static by default.
-  - Profiles that target Windows XP (NT 5.1, see below) or later provide optional shared runtime libraries.
-  - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` to `$prefix/`.
+  - The toolchain provides optional shared runtime libraries.
+  - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` or `$prefix/lib/shared-unstable/*` to `$prefix/`.
+  - Do not mix shared runtime libraries from different branches or profiles.
+  - If the shared runtime libraries are marked “unstable”, do not mix them from different release versions.
 - Cross toolchain: tools are organized by package. Mount required packages to `/usr/local`:
   ```bash
   layers=(

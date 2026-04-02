@@ -1,0 +1,221 @@
+diff --git a/mingw-w64-headers/include/psdk_inc/intrin-impl.h b/mingw-w64-headers/include/psdk_inc/intrin-impl.h
+index e109c15d0..a78f8fe3c 100644
+--- a/mingw-w64-headers/include/psdk_inc/intrin-impl.h
++++ b/mingw-w64-headers/include/psdk_inc/intrin-impl.h
+@@ -122,7 +122,7 @@ __INTRINSICS_USEINLINE
+    Operator: One of xor, or, and */
+ #define __buildlogicali(x, y, o) y x(volatile y *Destination, y Value) \
+ { \
+-    return __sync_fetch_and_ ## o(Destination, Value); \
++    return __atomic_fetch_ ## o(Destination, Value, __ATOMIC_SEQ_CST); \
+ }
+ 
+ /* This macro is used by InterlockedBitTestAndSet, InterlockedBitTestAndReset, InterlockedBitTestAndComplement,
+@@ -777,7 +777,7 @@ __MINGW_EXTENSION __int64 _InterlockedIncrement64(__int64 volatile *Addend);
+ #if !__has_builtin(_InterlockedIncrement64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedIncrement64(__int64 volatile *Addend) {
+-    return __sync_add_and_fetch(Addend, 1);
++    return __atomic_add_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedIncrement64
+@@ -788,7 +788,7 @@ __MINGW_EXTENSION __int64 _InterlockedDecrement64(__int64 volatile *Addend);
+ #if !__has_builtin(_InterlockedDecrement64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedDecrement64(__int64 volatile *Addend) {
+-    return __sync_sub_and_fetch(Addend, 1);
++    return __atomic_sub_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedDecrement64
+@@ -799,7 +799,7 @@ __MINGW_EXTENSION __int64 _InterlockedExchange64(__int64 volatile *Target, __int
+ #if !__has_builtin(_InterlockedExchange64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedExchange64(__int64 volatile *Target, __int64 Value) {
+-    return __sync_lock_test_and_set(Target, Value);
++    return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedExchange64
+@@ -810,7 +810,7 @@ __MINGW_EXTENSION __int64 _InterlockedExchangeAdd64(__int64 volatile *Addend, __
+ #if !__has_builtin(_InterlockedExchangeAdd64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedExchangeAdd64(__int64 volatile *Addend, __int64 Value) {
+-    return __sync_fetch_and_add(Addend, Value);
++    return __atomic_fetch_add(Addend, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedExchangeAdd64
+@@ -1336,7 +1336,7 @@ __MINGW_EXTENSION __int64 _InterlockedIncrement64(__int64 volatile *Addend);
+ #if !__has_builtin(_InterlockedIncrement64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedIncrement64(__int64 volatile *Addend) {
+-    return __sync_add_and_fetch(Addend, 1);
++    return __atomic_add_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedIncrement64
+@@ -1347,7 +1347,7 @@ __MINGW_EXTENSION __int64 _InterlockedDecrement64(__int64 volatile *Addend);
+ #if !__has_builtin(_InterlockedDecrement64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedDecrement64(__int64 volatile *Addend) {
+-    return __sync_sub_and_fetch(Addend, 1);
++    return __atomic_sub_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedDecrement64
+@@ -1358,7 +1358,7 @@ __MINGW_EXTENSION __int64 _InterlockedExchange64(__int64 volatile *Target, __int
+ #if !__has_builtin(_InterlockedExchange64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedExchange64(__int64 volatile *Target, __int64 Value) {
+-    return __sync_lock_test_and_set(Target, Value);
++    return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedExchange64
+@@ -1369,7 +1369,7 @@ __MINGW_EXTENSION __int64 _InterlockedExchangeAdd64(__int64 volatile *Addend, __
+ #if !__has_builtin(_InterlockedExchangeAdd64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedExchangeAdd64(__int64 volatile *Addend, __int64 Value) {
+-    return __sync_fetch_and_add(Addend, Value);
++    return __atomic_fetch_add(Addend, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedExchangeAdd64
+@@ -1625,7 +1625,9 @@ char _InterlockedCompareExchange8(char volatile *destination, char exchange, cha
+ #if !__has_builtin(_InterlockedCompareExchange8)
+ __INTRINSICS_USEINLINE
+ char _InterlockedCompareExchange8(char volatile *destination, char exchange, char comperand) {
+-    return __sync_val_compare_and_swap(destination, comperand, exchange);
++    __atomic_compare_exchange_n(destination, &comperand, exchange,
++                                0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
++    return comperand;
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedCompareExchange8
+@@ -1636,7 +1638,7 @@ short _InterlockedIncrement16(short volatile *Addend);
+ #if !__has_builtin(_InterlockedIncrement16)
+ __INTRINSICS_USEINLINE 
+ short _InterlockedIncrement16(short volatile *Addend) {
+-    return __sync_add_and_fetch(Addend, 1);
++    return __atomic_add_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedIncrement16
+@@ -1647,7 +1649,7 @@ short _InterlockedDecrement16(short volatile *Addend);
+ #if !__has_builtin(_InterlockedDecrement16)
+ __INTRINSICS_USEINLINE 
+ short _InterlockedDecrement16(short volatile *Addend) {
+-    return __sync_sub_and_fetch(Addend, 1);
++    return __atomic_sub_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedDecrement16
+@@ -1658,7 +1660,9 @@ short _InterlockedCompareExchange16(short volatile *Destination, short ExChange,
+ #if !__has_builtin(_InterlockedCompareExchange16)
+ __INTRINSICS_USEINLINE 
+ short _InterlockedCompareExchange16(short volatile *Destination, short ExChange, short Comperand) {
+-    return __sync_val_compare_and_swap(Destination, Comperand, ExChange);
++    __atomic_compare_exchange_n(Destination, &Comperand, ExChange,
++                                0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
++    return Comperand;
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedCompareExchange16
+@@ -1669,7 +1673,7 @@ __LONG32 _InterlockedExchangeAdd(__LONG32 volatile *Addend, __LONG32 Value);
+ #if !__has_builtin(_InterlockedExchangeAdd)
+ __INTRINSICS_USEINLINE 
+ __LONG32 _InterlockedExchangeAdd(__LONG32 volatile *Addend, __LONG32 Value) {
+-    return __sync_fetch_and_add(Addend, Value);
++    return __atomic_fetch_add(Addend, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedExchangeAdd
+@@ -1680,7 +1684,9 @@ __LONG32 _InterlockedCompareExchange(__LONG32 volatile *Destination, __LONG32 Ex
+ #if !__has_builtin(_InterlockedCompareExchange)
+ __INTRINSICS_USEINLINE 
+ __LONG32 _InterlockedCompareExchange(__LONG32 volatile *Destination, __LONG32 ExChange, __LONG32 Comperand) {
+-    return __sync_val_compare_and_swap(Destination, Comperand, ExChange);
++    __atomic_compare_exchange_n(Destination, &Comperand, ExChange,
++                                0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
++    return Comperand;
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedCompareExchange
+@@ -1691,7 +1697,7 @@ __LONG32 _InterlockedIncrement(__LONG32 volatile *Addend);
+ #if !__has_builtin(_InterlockedIncrement)
+ __INTRINSICS_USEINLINE 
+ __LONG32 _InterlockedIncrement(__LONG32 volatile *Addend) {
+-   return __sync_add_and_fetch(Addend, 1);
++   return __atomic_add_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedIncrement
+@@ -1702,7 +1708,7 @@ __LONG32 _InterlockedDecrement(__LONG32 volatile *Addend);
+ #if !__has_builtin(_InterlockedDecrement)
+ __INTRINSICS_USEINLINE 
+ __LONG32 _InterlockedDecrement(__LONG32 volatile *Addend) {
+-   return __sync_sub_and_fetch(Addend, 1);
++   return __atomic_sub_fetch(Addend, 1, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedDecrement
+@@ -1713,7 +1719,7 @@ __LONG32 _InterlockedAdd(__LONG32 volatile *Addend, __LONG32 Value);
+ #if !__has_builtin(_InterlockedAdd)
+ __INTRINSICS_USEINLINE
+ __LONG32 _InterlockedAdd(__LONG32 volatile *Addend, __LONG32 Value) {
+-    return __sync_add_and_fetch(Addend, Value);
++    return __atomic_add_fetch(Addend, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedAdd
+@@ -1724,7 +1730,7 @@ __MINGW_EXTENSION __int64 _InterlockedAdd64(__int64 volatile *Addend, __int64 Va
+ #if !__has_builtin(_InterlockedAdd64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE
+ __int64 _InterlockedAdd64(__int64 volatile *Addend, __int64 Value) {
+-    return __sync_add_and_fetch(Addend, Value);
++    return __atomic_add_fetch(Addend, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedAdd64
+@@ -1735,7 +1741,7 @@ __LONG32 _InterlockedExchange(__LONG32 volatile *Target, __LONG32 Value);
+ #if !__has_builtin(_InterlockedExchange)
+ __INTRINSICS_USEINLINE 
+ __LONG32 _InterlockedExchange(__LONG32 volatile *Target, __LONG32 Value) {
+-    return __sync_lock_test_and_set(Target, Value);
++    return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedExchange
+@@ -1746,7 +1752,9 @@ __MINGW_EXTENSION __int64 _InterlockedCompareExchange64(__int64 volatile *Destin
+ #if !__has_builtin(_InterlockedCompareExchange64)
+ __MINGW_EXTENSION __INTRINSICS_USEINLINE 
+ __int64 _InterlockedCompareExchange64(__int64 volatile *Destination, __int64 ExChange, __int64 Comperand) {
+-    return __sync_val_compare_and_swap(Destination, Comperand, ExChange);
++    __atomic_compare_exchange_n(Destination, &Comperand, ExChange,
++                                0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
++    return Comperand;
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedCompareExchange64
+@@ -1757,7 +1765,9 @@ void *_InterlockedCompareExchangePointer(void * volatile *Destination, void *ExC
+ #if !__has_builtin(_InterlockedCompareExchangePointer)
+ __INTRINSICS_USEINLINE 
+ void *_InterlockedCompareExchangePointer(void *volatile *Destination, void *ExChange, void *Comperand) {
+-    return __sync_val_compare_and_swap(Destination, Comperand, ExChange);
++    __atomic_compare_exchange_n(Destination, &Comperand, ExChange,
++                                0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
++    return Comperand;
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedCompareExchangePointer
+@@ -1768,7 +1778,7 @@ void *_InterlockedExchangePointer(void *volatile *Target,void *Value);
+ #if !__has_builtin(_InterlockedExchangePointer)
+ __INTRINSICS_USEINLINE 
+ void *_InterlockedExchangePointer(void *volatile *Target,void *Value) {
+-    return __sync_lock_test_and_set(Target, Value);
++    return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST);
+ }
+ #endif
+ #define __INTRINSIC_DEFINED__InterlockedExchangePointer

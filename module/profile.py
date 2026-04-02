@@ -8,6 +8,7 @@ class BranchVersions:
   gcc: str
   rev: str
 
+  abi_frozen: bool
   short_import: bool
   utf8_thunk: bool
 
@@ -64,6 +65,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '0',
     display_version = 'next-16-20260329',
 
+    abi_frozen = False,
     short_import = True,
     utf8_thunk = True,
 
@@ -88,6 +90,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '0',
     display_version = 'current-15-20260328',
 
+    abi_frozen = False,
     short_import = True,
     utf8_thunk = True,
 
@@ -111,6 +114,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '16-20260329',
     rev = '0',
 
+    abi_frozen = False,
     short_import = True,
     utf8_thunk = True,
 
@@ -134,6 +138,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '15.2.0',
     rev = '7.1',
 
+    abi_frozen = True,
     short_import = False,
     utf8_thunk = False,
 
@@ -159,6 +164,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '14.3.0',
     rev = '6.1',
 
+    abi_frozen = True,
     short_import = False,
     utf8_thunk = False,
 
@@ -184,6 +190,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gcc = '13.4.0',
     rev = '6.1',
 
+    abi_frozen = True,
     short_import = False,
     utf8_thunk = False,
 
