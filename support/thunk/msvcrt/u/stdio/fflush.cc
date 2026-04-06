@@ -9,6 +9,9 @@ namespace mingw_thunk
 {
   __DEFINE_THUNK(msvcrt, 0, int, __cdecl, fflush, FILE *stream)
   {
+    if (!stream)
+      return __ms_fflush(nullptr);
+
     int fd = _fileno(stream);
     if (!i::is_console(fd))
       return __ms_fflush(stream);

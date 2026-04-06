@@ -70,7 +70,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     utf8_thunk = True,
 
     mcfgthread = '2.3-ga.1',
-    mingw = '13.0.0',
+    mingw = '14.0.0',
 
     binutils = '2.46.0',
     expat = '2.7.4',
@@ -95,7 +95,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     utf8_thunk = True,
 
     mcfgthread = '2.3-ga.1',
-    mingw = '13.0.0',
+    mingw = '14.0.0',
 
     binutils = '2.46.0',
     expat = '2.7.4',
@@ -119,7 +119,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     utf8_thunk = True,
 
     mcfgthread = '2.3-ga.1',
-    mingw = '13.0.0',
+    mingw = '14.0.0',
 
     binutils = '2.46.0',
     expat = '2.7.4',

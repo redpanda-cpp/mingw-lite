@@ -42,6 +42,7 @@ CHECKSUMS: Dict[str, str] = {
   'mingw-w64-v11.0.1.tar.bz2': '3f66bce069ee8bed7439a1a13da7cb91a5e67ea6170f21317ac7f5794625ee10',
   'mingw-w64-v12.0.0.tar.bz2': 'cc41898aac4b6e8dd5cffd7331b9d9515b912df4420a3a612b5ea2955bbeed2f',
   'mingw-w64-v13.0.0.tar.bz2': '5afe822af5c4edbf67daaf45eec61d538f49eef6b19524de64897c6b95828caf',
+  'mingw-w64-v14.0.0.tar.bz2': '6eaf921d9eb987d3820b364ea9775bc19b965ec81490b6fdd716526c28e1995c',
 
   'mpc-1.3.1.tar.gz': 'ab642492f5cf882b74aa0cb730cd410a81edcdbec895183ce930e706c1c759b8',
 

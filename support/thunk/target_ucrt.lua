@@ -55,8 +55,7 @@ target('overlay-ucrt')
       'ucrt/stdio/getcwd.cc',
       'ucrt/stdio/open.cc',
       'ucrt/stdio/putc.cc',
-      'ucrt/stdio/puts.cc',
-      'ucrt/time/_ctime64.cc')
+      'ucrt/stdio/puts.cc')
   end
 
 target('alias-long-ucrt')
@@ -112,8 +111,7 @@ target('thunk-ucrt-u')
     'ucrt/stdio/getcwd.cc',
     'ucrt/stdio/open.cc',
     'ucrt/stdio/putc.cc',
-    'ucrt/stdio/puts.cc',
-    'ucrt/time/_ctime64.cc')
+    'ucrt/stdio/puts.cc')
   enable_thunk_options()
   merge_win32_alias()
   skip_install()

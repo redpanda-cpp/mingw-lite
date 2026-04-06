@@ -23,4 +23,7 @@ namespace mingw_thunk
     *fileinfo = internal::w2u(w_file_info);
     return res;
   }
+
+  // upstream added this for old msvcrt32
+  __DECLARE_FORCE_OVERRIDE_MINGW_EMU(_findnext64)
 } // namespace mingw_thunk

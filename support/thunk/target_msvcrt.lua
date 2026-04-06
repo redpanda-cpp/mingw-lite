@@ -45,15 +45,15 @@ function msvcrt_thunk_toolchain_5_0()
   return {
     {'_fstat32i64', v = until_mingw(12)},
     {'_fstat64', v = until_mingw(13)},
-    {'_futime64'},
+    {'_futime64', v = until_mingw(14)},
     {'_gmtime64', v = until_mingw(14)},
-    {'_localtime64'},
+    {'_localtime64', v = until_mingw(14)},
     {'_time64', v = until_mingw(13)},
-    {'_wfindfirst64'},
-    {'_wfindnext64'},
+    {'_wfindfirst64', v = until_mingw(14)},
+    {'_wfindnext64', v = until_mingw(14)},
     {'_wstat32i64', v = until_mingw(12)},
     {'_wstat64', v = until_mingw(13)},
-    {'_wutime64'},
+    {'_wutime64', v = until_mingw(14)},
   }
 end
 
@@ -77,12 +77,12 @@ end
 
 function msvcrt_thunk_toolchain_a_5_0()
   return {
-    {'_ctime64'},
-    {'_findfirst64'},
-    {'_findnext64'},
+    {'_ctime64', v = until_mingw(14)},
+    {'_findfirst64', v = until_mingw(14)},
+    {'_findnext64', v = until_mingw(14)},
     {'_stat32i64', v = until_mingw(12)},
     {'_stat64', v = until_mingw(13)},
-    {'_utime64'},
+    {'_utime64', v = until_mingw(14)},
   }
 end
 
@@ -217,8 +217,7 @@ target('overlay-msvcrt-os')
       'msvcrt/u/stdio/getcwd.cc',
       'msvcrt/u/stdio/open.cc',
       'msvcrt/u/stdio/putc.cc',
-      'msvcrt/u/stdio/puts.cc',
-      'msvcrt/u/time/_ctime64.cc')
+      'msvcrt/u/stdio/puts.cc')
   end
 
   if profile_toolchain() then
@@ -385,8 +384,7 @@ target('thunk-msvcrt-u')
     'msvcrt/u/stdio/getcwd.cc',
     'msvcrt/u/stdio/open.cc',
     'msvcrt/u/stdio/putc.cc',
-    'msvcrt/u/stdio/puts.cc',
-    'msvcrt/u/time/_ctime64.cc')
+    'msvcrt/u/stdio/puts.cc')
   enable_thunk_options()
   merge_win32_alias()
   skip_install()
