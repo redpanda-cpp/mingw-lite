@@ -61,9 +61,9 @@ class BranchProfile(BranchVersions, ProfileInfo):
 
 BRANCHES: Dict[str, BranchVersions] = {
   'next': BranchVersions(
-    gcc = '16-20260329',
+    gcc = '16-20260405',
     rev = '0',
-    display_version = 'next-16-20260329',
+    display_version = 'next-16-20260405',
 
     abi_frozen = False,
     short_import = True,
@@ -86,9 +86,9 @@ BRANCHES: Dict[str, BranchVersions] = {
     z = '1.3.2',
   ),
   'current': BranchVersions(
-    gcc = '15-20260328',
+    gcc = '15-20260404',
     rev = '0',
-    display_version = 'current-15-20260328',
+    display_version = 'current-15-20260404',
 
     abi_frozen = False,
     short_import = True,
@@ -111,7 +111,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     z = '1.3.2',
   ),
   '16': BranchVersions(
-    gcc = '16-20260329',
+    gcc = '16-20260405',
     rev = '0',
 
     abi_frozen = False,
