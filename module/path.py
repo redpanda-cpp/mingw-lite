@@ -148,7 +148,15 @@ class ProjectPaths:
     ver: BranchProfile,
   ):
     self.root_dir = Path.cwd()
-    abi_name = f'mingw{config.profile}-{config.branch}'
+    if config.abi_name:
+      abi_name = config.abi_name
+      if config.pkg_prefix:
+        pkg_id = f'{config.pkg_prefix}+ml-{ver.gcc}-r{ver.rev}'
+      else:
+        pkg_id = f'{config.abi_name}+ml-{ver.gcc}-r{ver.rev}'
+    else:
+      abi_name = f'mingw{config.profile}-{config.branch}'
+      pkg_id = f'mingw{config.profile}-{ver.display_version or ver.gcc}-r{ver.rev}'
     self.abi_name = abi_name
 
     if ver.abi_frozen and ver.thunk_free:
@@ -163,11 +171,10 @@ class ProjectPaths:
 
     self.meson_cross_file = self.root_dir / f'support/meson/{ver.target}.txt'
 
-    pkg_id = f'{config.profile}-{ver.display_version or ver.gcc}-r{ver.rev}'
-    self.test_driver_pkg = self.dist_dir / f'test-driver{pkg_id}.tar.zst'
-    self.mingw_pkg = self.dist_dir / f'mingw{pkg_id}.tar.zst'
-    self.xmake_pkg = self.dist_dir / f'xmake-mingw{pkg_id}.tar.zst'
-    self.cross_pkg = self.dist_dir / f'x-mingw{pkg_id}.tar.zst'
+    self.test_driver_pkg = self.dist_dir / f'test-{pkg_id}.tar.zst'
+    self.mingw_pkg = self.dist_dir / f'{pkg_id}.tar.zst'
+    self.xmake_pkg = self.dist_dir / f'xmake-{pkg_id}.tar.zst'
+    self.cross_pkg = self.dist_dir / f'x-{pkg_id}.tar.zst'
 
     # build phase
 

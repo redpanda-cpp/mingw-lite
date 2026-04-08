@@ -31,6 +31,19 @@ def parse_args() -> argparse.Namespace:
     help = 'MinGW profile to build',
   )
 
+  parser.add_argument(
+    '--abi-name',
+    type = str,
+    required = False,
+    help = 'MinGW directory name',
+  )
+  parser.add_argument(
+    '--pkg-prefix',
+    type = str,
+    required = False,
+    help = 'MinGW package prefix (if ABI name contains special character)'
+  )
+
   gcc_triplet = get_gcc_triplet()
   parser.add_argument(
     '--build',
