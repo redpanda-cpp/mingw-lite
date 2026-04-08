@@ -2,6 +2,8 @@ function ntddi_version()
   local thunk_level = get_config('thunk-level')
   if thunk_level == '10.0.19041' then
     return ntddi_win10_vb()
+  elseif thunk_level == '10.0.16299' then
+    return ntddi_win10_rs3()
   elseif thunk_level == '10.0.10240' then
     return ntddi_win10()
   elseif thunk_level == '6.3' then
@@ -33,6 +35,10 @@ end
 
 function ntddi_win10_vb()
   return 0x0A000008
+end
+
+function ntddi_win10_rs3()
+  return 0x0A000004
 end
 
 function ntddi_win10()
