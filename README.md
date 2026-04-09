@@ -57,13 +57,13 @@
 
 Available branches:
 
-| Branch | GCC version | MinGW | Binutils | GDB |
-| ------ | ----------- | ----- | -------- | --- |
-| current | 15-20260404 | 14.0.0 | 2.46.0 | 17.1 |
-| 16 | 16-20260405 | 14.0.0 | 2.46.0 | 17.1 |
-| 15 ❄️ | 15.2.0 | 13.0.0 | 2.45.1 | 17.1 |
-| 14 ❄️ | 14.3.0 | 12.0.0 | 2.43.1 | 15.2 |
-| 13 ❄️ | 13.4.0 | 11.0.1 | 2.41 | 14.2 |
+| Branch | GCC version | MinGW | Binutils | GDB | Optimize |
+| ------ | ----------- | ----- | -------- | --- | -------- |
+| current | 15-20260404 | 14.0.0 | 2.46.0 | 17.1 | Speed |
+| 16 | 16-20260405 | 14.0.0 | 2.46.0 | 17.1 | Speed |
+| 15 ❄️ | 15.2.0 | 13.0.0 | 2.45.1 | 17.1 | Size |
+| 14 ❄️ | 14.3.0 | 12.0.0 | 2.43.1 | 15.2 | Size |
+| 13 ❄️ | 13.4.0 | 11.0.1 | 2.41 | 14.2 | Size |
 
 A profile is composed of bitness and predefined ABI variant. The combination of CRT, thread model and exception model cannot be freely configured.
 
@@ -78,7 +78,7 @@ A profile is composed of bitness and predefined ABI variant. The combination of 
 
 By default, MinGW Lite is very conservative in micro architecture -- the “64”-bit profiles target the baseline “x86-64” (sse2, 2003); the “32”-bit profiles target “pentium4” (sse2, 2000).
 
-For better performance, there are “64”-bit “x86-64-v2” (sse4.2, 2008) variants: 64_v2-mcf, 64_v2-win32, 64_v2-ucrt, 64_v2-msvcrt. In addition, they are built with `-O2` instead of `-Os`, and have LTO enabled for GCC and Binutils.
+For better performance, there are “64”-bit “x86-64-v2” (sse4.2, 2008) variants: 64_v2-mcf, 64_v2-win32, 64_v2-ucrt, 64_v2-msvcrt. In addition, they have LTO enabled for GCC and Binutils (and thus optimized for speed in old branches).
 
 To work with even older CPUs, there are “32”-bit “i686” (cmov, 1995), “i486” [atomic (bswap, cmpxchg, xadd), 1989] and the baseline “i386” (1985) variants for earlier Windows versions (see below).
 

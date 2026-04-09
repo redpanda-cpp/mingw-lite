@@ -46,7 +46,7 @@ def cflags_B(
   ld_extra: List[str] = [],
   c_extra: List[str] = [],
   cxx_extra: List[str] = [],
-  optimize_for_size: bool = False,
+  optimize_for_speed: bool = False,
   lto: bool = False,
 ) -> List[str]:
   cpp = ['-DNDEBUG']
@@ -57,10 +57,10 @@ def cflags_B(
     common.extend(['-O2', '-flto'])
     ld.extend(['-O2', '-flto'])
   else:
-    if optimize_for_size:
-      common.append('-Os')
-    else:
+    if optimize_for_speed:
       common.append('-O2')
+    else:
+      common.append('-Os')
   return [
     f'CPPFLAGS{suffix}=' + ' '.join(cpp + cpp_extra),
     f'CFLAGS{suffix}=' + ' '.join(common + common_extra + c_extra),
@@ -185,11 +185,11 @@ def meson_flags_B(
   ld_extra: List[str] = [],
   c_extra: List[str] = [],
   cxx_extra: List[str] = [],
-  optimize_for_size: bool = False,
+  optimize_for_speed: bool = False,
 ) -> List[str]:
   cpp = ['-DNDEBUG']
   common = ['-pipe']
-  if optimize_for_size:
+  if optimize_for_speed:
     build_type = 'minsize'
   else:
     build_type = 'release'

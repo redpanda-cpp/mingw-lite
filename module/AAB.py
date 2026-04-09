@@ -98,7 +98,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       *cflags_A(),
       *cflags_B('_FOR_TARGET',
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
     ])
 
@@ -160,7 +160,7 @@ def _crt_base(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       f'--with-default-msvcrt={ver.default_crt}',
       f'--with-default-win32-winnt=0x{ver.win32_winnt:04X}',
       *multilib_flags,
-      *cflags_B(optimize_for_size = ver.optimize_for_size),
+      *cflags_B(optimize_for_speed = ver.opt_speed),
       # create modern (short) import libraries
       # https://github.com/mingw-w64/mingw-w64/issues/149
       'DLLTOOL=llvm-dlltool',
@@ -455,7 +455,7 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
         '--cross-file', cross_file,
         *meson_flags_B(
           cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-          optimize_for_size = ver.optimize_for_size,
+          optimize_for_speed = ver.opt_speed,
         ),
       ],
       build_dir = build_dir,
@@ -493,7 +493,7 @@ def _winpthreads_bootstrap(ver: BranchProfile, paths: ProjectPaths, config: argp
       '--enable-static',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -521,7 +521,7 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
       '--enable-static',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -573,7 +573,7 @@ def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         c_extra = c_extra,
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
       # To determine build system compiler, the configure script will firstly try host
       # compiler (i.e. *-w64-mingw32-gcc) and check whether the output is executable
@@ -602,7 +602,7 @@ def _mpfr(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -626,7 +626,7 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -647,7 +647,7 @@ def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       )
     ])
     make_default(build_dir, config.jobs)
@@ -670,7 +670,7 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-shared',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
     ])
     make_default(build_dir, config.jobs)
@@ -707,7 +707,7 @@ def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       f'AR={ver.target}-ar',
       *cflags_B(
         c_extra = ['-I..', '-DPDC_WIDE'],
-        optimize_for_size = ver.optimize_for_size,
+        optimize_for_speed = ver.opt_speed,
       ),
     ], config.jobs)
 

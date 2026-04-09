@@ -9,6 +9,7 @@ class BranchVersions:
   rev: str
 
   abi_frozen: bool
+  branch_opt_speed: bool
   short_import: bool
   utf8_thunk: bool
 
@@ -40,7 +41,6 @@ class ProfileInfo:
   fpmath: Optional[str]
   march: str
   target: str
-  optimize_for_size: bool
 
   default_crt: str
   exception: str
@@ -48,6 +48,9 @@ class ProfileInfo:
 
   win32_winnt: int
   min_os: Version
+
+  profile_opt_lto: bool
+  profile_opt_speed: bool
   thunk_free: bool
   utf8_user_crt: bool
 
@@ -60,6 +63,10 @@ class BranchProfile(BranchVersions, ProfileInfo):
     else:
       return self.min_os.major * 0x100 + self.min_os.minor
 
+  @property
+  def opt_speed(self) -> bool:
+    return self.branch_opt_speed or self.profile_opt_speed
+
 BRANCHES: Dict[str, BranchVersions] = {
   'next': BranchVersions(
     gcc = '16-20260405',
@@ -67,6 +74,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     display_version = 'next-16-20260405',
 
     abi_frozen = False,
+    branch_opt_speed = True,
     short_import = True,
     utf8_thunk = True,
 
@@ -92,6 +100,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     display_version = 'current-15-20260404',
 
     abi_frozen = False,
+    branch_opt_speed = True,
     short_import = True,
     utf8_thunk = True,
 
@@ -116,6 +125,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '0',
 
     abi_frozen = False,
+    branch_opt_speed = True,
     short_import = True,
     utf8_thunk = True,
 
@@ -140,6 +150,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '7.1',
 
     abi_frozen = True,
+    branch_opt_speed = False,
     short_import = False,
     utf8_thunk = False,
 
@@ -166,6 +177,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '6.1',
 
     abi_frozen = True,
+    branch_opt_speed = False,
     short_import = False,
     utf8_thunk = False,
 
@@ -192,6 +204,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     rev = '6.1',
 
     abi_frozen = True,
+    branch_opt_speed = False,
     short_import = False,
     utf8_thunk = False,
 
@@ -243,21 +256,14 @@ _ARCH_VARIANT_2_FPMATH_MAP: dict[str, Optional[str]] = {
   '32_386': None,
 }
 
-_ARCH_VARIANT_2_OPTIMIZE_FOR_SIZE_MAP: dict[str, bool] = {
-  '64_v2': False,
-  '64': True,
-  'arm64': False,
-  '32': True,
-  '32_686': True,
-  '32_486': True,
-  '32_386': True,
-}
-
 def _create_profile(
   arch: str,
   crt: str,
   thread: str,
   min_os: str,
+
+  opt_lto: bool = False,
+  opt_speed: bool = False,
   stable: bool = True,
   u8crt: bool = False,
 ) -> ProfileInfo:
@@ -266,14 +272,12 @@ def _create_profile(
   triplet = _MINGW_ARCH_2_TRIPLET_MAP[mingw_arch]
   march = _ARCH_VARIANT_2_MARCH_MAP[arch]
   fpmath = _ARCH_VARIANT_2_FPMATH_MAP[arch]
-  optimize_for_size = _ARCH_VARIANT_2_OPTIMIZE_FOR_SIZE_MAP[arch]
 
   return ProfileInfo(
     arch = mingw_arch,
     fpmath = fpmath,
     march = march,
     target = triplet,
-    optimize_for_size = optimize_for_size,
 
     default_crt = crt,
     exception = exception,
@@ -281,6 +285,9 @@ def _create_profile(
 
     win32_winnt = 0x0A00,
     min_os = Version(min_os),
+
+    profile_opt_lto = opt_lto,
+    profile_opt_speed = opt_speed,
     thunk_free = stable,
     utf8_user_crt = u8crt,
   )
@@ -291,9 +298,9 @@ PROFILES: Dict[str, ProfileInfo] = {
   '64-ucrt':   _create_profile('64', 'ucrt',   'posix', '5.2'),
   '64-msvcrt': _create_profile('64', 'msvcrt', 'posix', '5.2'),
 
-  'arm64-mcf':   _create_profile('arm64', 'ucrt', 'mcf',   '10.0.16299'),
-  'arm64-win32': _create_profile('arm64', 'ucrt', 'win32', '10.0.16299'),
-  'arm64-ucrt':  _create_profile('arm64', 'ucrt', 'posix', '10.0.16299'),
+  'arm64-mcf':   _create_profile('arm64', 'ucrt', 'mcf',   '10.0.16299', opt_speed = True),
+  'arm64-win32': _create_profile('arm64', 'ucrt', 'win32', '10.0.16299', opt_speed = True),
+  'arm64-ucrt':  _create_profile('arm64', 'ucrt', 'posix', '10.0.16299', opt_speed = True),
 
   '32-mcf':    _create_profile('32', 'ucrt',   'mcf',   '6.1'),
   '32-win32':  _create_profile('32', 'ucrt',   'win32', '6.0'),
@@ -304,10 +311,10 @@ PROFILES: Dict[str, ProfileInfo] = {
   # profile variants for micro architectures #
   ############################################
 
-  '64_v2-mcf':    _create_profile('64_v2', 'ucrt',   'mcf',   '6.1'),
-  '64_v2-win32':  _create_profile('64_v2', 'ucrt',   'win32', '6.0'),
-  '64_v2-ucrt':   _create_profile('64_v2', 'ucrt',   'posix', '5.2'),
-  '64_v2-msvcrt': _create_profile('64_v2', 'msvcrt', 'posix', '5.2'),
+  '64_v2-mcf':    _create_profile('64_v2', 'ucrt',   'mcf',   '6.1', opt_lto = True, opt_speed = True),
+  '64_v2-win32':  _create_profile('64_v2', 'ucrt',   'win32', '6.0', opt_lto = True, opt_speed = True),
+  '64_v2-ucrt':   _create_profile('64_v2', 'ucrt',   'posix', '5.2', opt_lto = True, opt_speed = True),
+  '64_v2-msvcrt': _create_profile('64_v2', 'msvcrt', 'posix', '5.2', opt_lto = True, opt_speed = True),
 
   #################################################
   # profile variants for earlier Windows versions #
@@ -324,8 +331,8 @@ PROFILES: Dict[str, ProfileInfo] = {
   # beyond MinGW Lite #
   #####################
 
-  '64-u8crt': _create_profile('64', 'ucrt', 'posix', '5.2', stable = False, u8crt = True),
-  '32-u8crt': _create_profile('32', 'ucrt', 'posix', '5.1', stable = False, u8crt = True),
+  '64-u8crt': _create_profile('64', 'ucrt', 'posix', '5.2', opt_speed = True, stable = False, u8crt = True),
+  '32-u8crt': _create_profile('32', 'ucrt', 'posix', '5.1', opt_speed = True, stable = False, u8crt = True),
 }
 
 def _profile_32_msvcrt_win2000(branch: str):
