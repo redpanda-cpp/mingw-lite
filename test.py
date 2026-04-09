@@ -13,6 +13,7 @@ from subprocess import PIPE
 import sys
 from tempfile import TemporaryDirectory
 from traceback import print_exc
+from typing import Dict, List, Union
 
 from module.args import parse_args
 from module.path import ProjectPaths
@@ -68,7 +69,7 @@ def available_port():
     s.bind(('localhost', 0))
     return s.getsockname()[1]
 
-def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
+def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: List[str]):
   rel_mingw_dir = paths.test_mingw_dir.relative_to(paths.test_dir)
   xmake = paths.test_mingw_dir / 'bin/xmake.exe'
   subprocess.check_call([
@@ -79,7 +80,7 @@ def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: list[s
   subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test_dir)
 
-def test_mingw_shared(ver: BranchProfile, paths: ProjectPaths, verbose: list[str]):
+def test_mingw_shared(ver: BranchProfile, paths: ProjectPaths, verbose: List[str]):
   shutil.copytree(paths.test_mingw_dir / paths.shared_dir, paths.test_mingw_dir, dirs_exist_ok = True)
 
   rel_mingw_dir = paths.test_mingw_dir.relative_to(paths.test_dir)

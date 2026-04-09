@@ -11,7 +11,7 @@
   - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` or `$prefix/lib/shared-unstable/*` to `$prefix/`.
   - Do not mix shared runtime libraries from different branches or profiles.
   - If the shared runtime libraries are marked “unstable”, do not mix them from different release versions.
-- Cross toolchain: tools are organized by package. Mount required packages to `/usr/local`:
+- Cross toolchain: tools are built for Ubuntu 20.04 (glibc 2.31) and organized by package. Mount required packages to `/usr/local`:
   ```bash
   layers=(
     /path/to/mingw/AAB/{binutils,crt-target,gcc,gcc-lib,headers,mcfgthread,winpthreads}/usr/local

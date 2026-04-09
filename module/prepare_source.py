@@ -13,20 +13,6 @@ from module.fetch import validate_and_download, check_and_extract, check_and_syn
 from module.path import ProjectPaths
 from module.profile import BranchProfile
 
-def _autoreconf(path: Path):
-  subprocess.run(
-    ['autoreconf', '-fi'],
-    cwd = path,
-    check = True,
-  )
-
-def _automake(path: Path):
-  subprocess.run(
-    ['automake'],
-    cwd = path,
-    check = True,
-  )
-
 def _atomic_bootstrap(ver: BranchProfile, paths: ProjectPaths):
   shutil.copytree(
     paths.in_tree_src_tree.atomic_bootstrap,
@@ -340,33 +326,19 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.mingw, paths.src_arx.mingw):
     v = Version(ver.mingw)
 
-    do_regenerate = False
-
     # CRT: Fix import module name
     if v.major >= 12:
       patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-import-module-name_12.patch')
     else:
       patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-import-module-name_11.patch')
 
-    # CRT: Fix x64 wassert
-    if ver.min_os.major < 6:
-      if v.major >= 13:
-        pass
-      elif v.major >= 12:
-        do_regenerate = True
-        patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-wassert_12.patch')
-      else:
-        do_regenerate = True
-        patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-wassert_11.patch')
-
-    # CRT: Fix x64 difftime64
-    if ver.min_os.major < 6 and v.major == 11:
-      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-x64-difftime64.patch')
-
-    # CRT: Fix i386 strtoi64, strtoui64
-    if ver.min_os < Version('5.1') and v.major == 11:
-      do_regenerate = True
-      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-i386-strtoi64-strtoui64.patch')
+    # CRT: Fix emu
+    if v.major >= 13:
+      pass
+    elif v.major >= 12:
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-emu_12.patch')
+    else:
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-emu_11.patch')
 
     # CRT and winpthreads: migrate i386 sync builtin
     if ver.march == 'i386':
@@ -381,10 +353,6 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Winpthreads: Fix linkage
     if v.major == 13:
       patch(paths.src_dir.mingw, paths.patch_dir / 'winpthreads' / 'fix-linkage.patch')
-
-    if do_regenerate:
-      _autoreconf(paths.src_dir.mingw)
-      _automake(paths.src_dir.mingw)
 
     patch_done(paths.src_dir.mingw)
 

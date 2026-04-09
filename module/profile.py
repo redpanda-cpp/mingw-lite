@@ -229,14 +229,14 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
 }
 
-_MINGW_ARCH_2_TRIPLET_MAP: dict[str, str] = {
+_MINGW_ARCH_2_TRIPLET_MAP: Dict[str, str] = {
   '64': 'x86_64-w64-mingw32',
   'arm64': 'aarch64-w64-mingw32',
   # required by xmake, here we use i686 for -march=i486 and -march=i386
   '32': 'i686-w64-mingw32',
 }
 
-_ARCH_VARIANT_2_MARCH_MAP: dict[str, str] = {
+_ARCH_VARIANT_2_MARCH_MAP: Dict[str, str] = {
   '64_v2': 'x86-64-v2',
   '64': 'x86-64',
   'arm64': 'armv8-a',
@@ -246,7 +246,7 @@ _ARCH_VARIANT_2_MARCH_MAP: dict[str, str] = {
   '32_386': 'i386',
 }
 
-_ARCH_VARIANT_2_FPMATH_MAP: dict[str, Optional[str]] = {
+_ARCH_VARIANT_2_FPMATH_MAP: Dict[str, Optional[str]] = {
   '64_v2': None,
   '64': None,
   'arm64': None,

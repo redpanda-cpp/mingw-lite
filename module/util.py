@@ -214,7 +214,7 @@ def meson_install(
   )
 
 @contextmanager
-def overlayfs_ro(merged: Union[Path, str], lower: list[Path]):
+def overlayfs_ro(merged: Union[Path, str], lower: List[Path]):
   try:
     if len(lower) == 1:
       subprocess.run([

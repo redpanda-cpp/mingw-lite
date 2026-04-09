@@ -9,6 +9,7 @@ import shutil
 import subprocess
 from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
+from typing import Dict, List
 
 from module.args import parse_args
 from module.path import ProjectPaths
@@ -39,7 +40,7 @@ def prepare_dirs(paths: ProjectPaths):
   paths.dist_dir.mkdir(parents = True, exist_ok = True)
 
 def _sort_tarball(root: Path, src: Path):
-  files: map[str, list[str]] = {}
+  files: Dict[Path, List[str]] = {}
   for file in src.glob('**/*'):
     if not file.is_dir():
       dn = file.relative_to(root).parent
@@ -55,7 +56,7 @@ def _sort_tarball(root: Path, src: Path):
       result.append(f'{dn}/{fn}')
   return result
 
-def _package(root: Path, files: list[str], dst: Path):
+def _package(root: Path, files: List[str], dst: Path):
   with NamedTemporaryFile(delete = False) as listfile:
     listname = listfile.name
     for fn in files:
@@ -63,6 +64,7 @@ def _package(root: Path, files: list[str], dst: Path):
 
   tar = Popen([
     'bsdtar', '-c',
+    '-f', '-',
     '-C', root,
     '-T', listname, '-n',
     '--numeric-owner',
@@ -95,9 +97,9 @@ def package_test_driver(paths: ProjectPaths):
 
   _package(paths.layer_ABB.test_driver, files, paths.test_driver_pkg)
 
-def package_layers(pkg_dir: Path, layers: list[Path], dst: Path):
+def package_layers(pkg_dir: Path, layers: List[Path], dst: Path):
   files = []
-  file_to_package_map: map[str, str] = {}
+  file_to_package_map: Dict[str, str] = {}
   for layer in layers:
     sorted_part = _sort_tarball(layer, layer)
     files.extend(map(
