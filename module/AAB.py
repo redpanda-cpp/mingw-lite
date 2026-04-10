@@ -52,6 +52,8 @@ def _headers_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespa
     (include_dir / dummy_header).unlink()
 
 def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v = Version(ver.gcc)
+
   build_dir = paths.src_dir.gcc / 'build-AAB'
   ensure(build_dir)
 
@@ -70,6 +72,8 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       config_flags.append('--with-dwarf2')
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
+    if v.major >= 16:
+      config_flags.append('--enable-tls')
 
     configure(build_dir, [
       f'--prefix=/usr/local',

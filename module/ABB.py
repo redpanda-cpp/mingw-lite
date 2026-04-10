@@ -322,6 +322,8 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     shutil.copy(paths.src_dir.mcfgthread / 'licenses' / file, license_dir / file)
 
 def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v = Version(ver.gcc)
+
   build_dir = paths.src_dir.gcc / 'build-ABB'
   ensure(build_dir)
 
@@ -349,6 +351,8 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       config_flags.append('--disable-win32-utf8-manifest')
     if not ver.utf8_user_crt:
       config_flags.append('--with-libiconv')
+    if v.major >= 16:
+      config_flags.append('--enable-tls')
 
     configure(build_dir, [
       '--prefix=',
