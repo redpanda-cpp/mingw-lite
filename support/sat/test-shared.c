@@ -23,7 +23,7 @@ int wmain(int argc, wchar_t *argv[]) {
 #ifdef ENABLE_UTF8
       is_nt() ? L"--utf8=y" : L"--utf8=n",
 #else
-      L"--utf8=n",
+      is_utf8_acp() ? L"--utf8=y" : L"--utf8=n",
 #endif
       lt_win98() ? L"--ldflags=-fno-lto" : NULL,
       NULL,

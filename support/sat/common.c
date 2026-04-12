@@ -134,6 +134,10 @@ bool is_nt() {
   return osvi.dwPlatformId >= VER_PLATFORM_WIN32_NT;
 }
 
+bool is_utf8_acp() {
+  return GetACP() == 65001;
+}
+
 bool lt_win98() {
   static OSVERSIONINFOA osvi = {sizeof(osvi)};
   if (!osvi.dwMajorVersion)

@@ -9,6 +9,7 @@ void error_exit(const char *msg);
 void flush_console_and_get_char();
 void install_shared_libs();
 bool is_nt();
+bool is_utf8_acp();
 bool lt_win98();
 void mkdir_p(const wchar_t *dir);
 void prepend_to_env_path(const wchar_t *path);

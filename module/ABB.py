@@ -35,6 +35,9 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
     flags.append('-DENABLE_UTF8')
 
   with overlayfs_ro('/usr/local', [
+    # override CRT
+    paths.layer_AAB.utf8 / 'usr/local',
+
     paths.layer_AAB.crt_host / 'usr/local',
     *common_cross_layers(paths),
   ]):

@@ -74,12 +74,19 @@ target("c++23/print")
   add_tests("default", {pass_outputs = "Hello, world!\n"})
 
 target("c++23/import-std")
-  enable_if_cxx_feature("__cpp_lib_modules", 202207, {languages = "c++23", cxxflags = {"-fmodules"}})
   set_languages("c++23")
   set_policy("build.c++.modules", true)
   add_files("c++23/import-std.cc")
   add_links("stdc++exp")
   add_tests("default", {pass_outputs = "Hello, world!\n"})
+
+  enable_if_cxx_feature("__cpp_lib_modules", 202207, {languages = "c++23", cxxflags = {"-fmodules"}})
+
+  -- override previous enable_if_cxx_feature
+  -- xmake parses `gcc -print-file-name=libstdc++.modules.json` and writes module mapper file in UTF-8.
+  if not has_config("utf8") then
+    set_enabled(false)
+  end
 
 includes("cpp/xmake.lua")
 includes("intl/xmake.lua")
