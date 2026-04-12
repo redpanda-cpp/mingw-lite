@@ -133,9 +133,11 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # Allow UTF-8 module name
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-utf8-module-name.patch')
 
-    # Fix __FILE__ macro encoding
+    # Fix preprocessor encoding
+    # - __FILE__ macro encoding
+    # - #include directive encoding
     if not ver.utf8_thunk:
-      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-file-macro-encoding.patch')
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-pp-encoding.patch')
 
     # Fix VT sequence
     patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-vt-seq.patch')

@@ -1,0 +1,166 @@
+diff --git a/gcc/file-prefix-map.cc b/gcc/file-prefix-map.cc
+index 0e6db7c142a..1b601479f29 100644
+--- a/gcc/file-prefix-map.cc
++++ b/gcc/file-prefix-map.cc
+@@ -21,6 +21,10 @@
+ #include "diagnostic.h"
+ #include "file-prefix-map.h"
+ 
++#ifdef _WIN32
++#include <winnls.h>
++#endif
++
+ /* Structure recording the mapping from source file and directory names at
+    compile time to those to be embedded in the compilation result (debug
+    information, the __FILE__ macro expansion, etc).  */
+@@ -163,7 +167,20 @@ add_profile_prefix_map (const char *arg)
+ const char *
+ remap_macro_filename (const char *filename)
+ {
+-  return remap_filename (macro_prefix_maps, filename);
++  const char *fname = remap_filename (macro_prefix_maps, filename);
++#ifdef _WIN32
++  if (GetACP () != CP_UTF8)
++    {
++      int w_len = MultiByteToWideChar (CP_ACP, 0, fname, -1, NULL, 0);
++      wchar_t *w_fname = (wchar_t *) alloca (w_len * sizeof (wchar_t));
++      MultiByteToWideChar (CP_ACP, 0, fname, -1, w_fname, w_len);
++      int u_len = WideCharToMultiByte (CP_UTF8, 0, w_fname, -1, NULL, 0, NULL, NULL);
++      char *u_fname = (char *) ggc_alloc_atomic (u_len);
++      WideCharToMultiByte (CP_UTF8, 0, w_fname, -1, u_fname, u_len, NULL, NULL);
++      fname = u_fname;
++    }
++#endif
++  return fname;
+ }
+ 
+ /* Remap using -fdebug-prefix-map.  Return the GC-allocated new name
+diff --git a/libcpp/directives.cc b/libcpp/directives.cc
+index 1fdd73edcb8..2520339bbbf 100644
+--- a/libcpp/directives.cc
++++ b/libcpp/directives.cc
+@@ -25,6 +25,10 @@ along with this program; see the file COPYING3.  If not see
+ #include "mkdeps.h"
+ #include "obstack.h"
+ 
++#ifdef _WIN32
++#include <winnls.h>
++#endif
++
+ /* Stack of conditionals currently in progress
+    (including both successful and failing conditionals).  */
+ struct if_stack
+@@ -839,6 +843,7 @@ static void
+ do_include_common (cpp_reader *pfile, enum include_type type)
+ {
+   const char *fname;
++  int fname_freed = 0;
+   int angle_brackets;
+   const cpp_token **buf = NULL;
+   location_t location;
+@@ -873,6 +878,21 @@ do_include_common (cpp_reader *pfile, enum include_type type)
+ 	       CPP_OPTION (pfile, max_include_depth));
+   else
+     {
++#ifdef _WIN32
++      if (GetACP () != CP_UTF8)
++        {
++          int w_len = MultiByteToWideChar (CP_UTF8, 0, fname, -1, NULL, 0);
++          wchar_t *w_fname = (wchar_t *) alloca (w_len * sizeof (wchar_t));
++          MultiByteToWideChar (CP_UTF8, 0, fname, -1, w_fname, w_len);
++          int a_len = WideCharToMultiByte (CP_ACP, 0, w_fname, -1, NULL, 0, NULL, NULL);
++          char *a_fname = (char *) alloca (a_len);
++          WideCharToMultiByte (CP_ACP, 0, w_fname, -1, a_fname, a_len, NULL, NULL);
++          XDELETEVEC (fname);
++          fname_freed = 1;
++          fname = a_fname;
++        }
++#endif
++
+       /* Get out of macro context, if we are.  */
+       skip_rest_of_line (pfile);
+ 
+@@ -885,7 +905,8 @@ do_include_common (cpp_reader *pfile, enum include_type type)
+     }
+ 
+  done:
+-  XDELETEVEC (fname);
++  if (!fname_freed)
++    XDELETEVEC (fname);
+   if (buf)
+     XDELETEVEC (buf);
+ }
+@@ -1765,6 +1786,7 @@ static void
+ do_pragma_dependency (cpp_reader *pfile)
+ {
+   const char *fname;
++  int fname_freed = 0;
+   int angle_brackets, ordering;
+   location_t location;
+ 
+@@ -1772,6 +1794,21 @@ do_pragma_dependency (cpp_reader *pfile)
+   if (!fname)
+     return;
+ 
++#ifdef _WIN32
++  if (GetACP () != CP_UTF8)
++    {
++      int w_len = MultiByteToWideChar (CP_UTF8, 0, fname, -1, NULL, 0);
++      wchar_t *w_fname = (wchar_t *) alloca (w_len * sizeof (wchar_t));
++      MultiByteToWideChar (CP_UTF8, 0, fname, -1, w_fname, w_len);
++      int a_len = WideCharToMultiByte (CP_ACP, 0, w_fname, -1, NULL, 0, NULL, NULL);
++      char *a_fname = (char *) alloca (a_len);
++      WideCharToMultiByte (CP_ACP, 0, w_fname, -1, a_fname, a_len, NULL, NULL);
++      free ((void *) fname);
++      fname_freed = 1;
++      fname = a_fname;
++    }
++#endif
++
+   ordering = _cpp_compare_file_date (pfile, fname, angle_brackets);
+   if (ordering < 0)
+     cpp_error (pfile, CPP_DL_WARNING, "cannot find source file %s", fname);
+@@ -1786,7 +1823,8 @@ do_pragma_dependency (cpp_reader *pfile)
+ 	}
+     }
+ 
+-  free ((void *) fname);
++  if (!fname_freed)
++    free ((void *) fname);
+ }
+ 
+ /* Issue a diagnostic with the message taken from the pragma.  If
+diff --git a/libcpp/macro.cc b/libcpp/macro.cc
+index d4238d4f621..ea6d2a4e2d0 100644
+--- a/libcpp/macro.cc
++++ b/libcpp/macro.cc
+@@ -27,6 +27,10 @@ along with this program; see the file COPYING3.  If not see
+ #include "cpplib.h"
+ #include "internal.h"
+ 
++#ifdef _WIN32
++#include <winnls.h>
++#endif
++
+ typedef struct macro_arg macro_arg;
+ /* This structure represents the tokens of a macro argument.  These
+    tokens can be macro themselves, in which case they can be either
+@@ -565,6 +569,18 @@ _cpp_builtin_macro_text (cpp_reader *pfile, cpp_hashnode *node,
+ 	  }
+ 	if (pfile->cb.remap_filename && !pfile->state.in_directive)
+ 	  name = pfile->cb.remap_filename (name);
++#ifdef _WIN32
++        else if (GetACP () != CP_UTF8)
++          {
++            int w_len = MultiByteToWideChar (CP_ACP, 0, name, -1, NULL, 0);
++            wchar_t *w_name = (wchar_t *) alloca (w_len * sizeof (wchar_t));
++            MultiByteToWideChar (CP_ACP, 0, name, -1, w_name, w_len);
++            int u_len = WideCharToMultiByte (CP_UTF8, 0, w_name, -1, NULL, 0, NULL, NULL);
++            char *u_name = (char *) alloca (u_len);
++            WideCharToMultiByte (CP_UTF8, 0, w_name, -1, u_name, u_len, NULL, NULL);
++            name = u_name;
++          }
++#endif
+ 	len = strlen (name);
+ 	buf = _cpp_unaligned_alloc (pfile, len * 2 + 3);
+ 	result = buf;

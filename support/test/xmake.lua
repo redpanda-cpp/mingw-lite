@@ -61,6 +61,11 @@ target("c++17/fstream")
   add_files("c++17/fstream.cc")
   add_tests("default", {pass_outputs = "Hello, world!\n"})
 
+target("c++20/source_location")
+  set_languages("c++20")
+  add_files("c++20/‘source_location’.cc")
+  add_tests("default", {pass_outputs = ".*‘source_location’%.cc\n"})
+
 target("c++23/print")
   enable_if_cxx_header("print")
   set_languages("c++23")
@@ -76,5 +81,6 @@ target("c++23/import-std")
   add_links("stdc++exp")
   add_tests("default", {pass_outputs = "Hello, world!\n"})
 
+includes("cpp/xmake.lua")
 includes("intl/xmake.lua")
 includes("openmp/xmake.lua")
