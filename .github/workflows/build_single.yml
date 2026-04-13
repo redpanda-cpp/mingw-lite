@@ -15,6 +15,10 @@ on:
       branch:
         required: true
         type: string
+      test_cross:
+        required: false
+        type: boolean
+        default: true
       upload_prefix:
         required: false
         type: string
@@ -115,3 +119,34 @@ jobs:
       - name: Test
         run: |
           python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 --verbose
+
+  test_cross:
+    name: Test cross
+    if: ${{ inputs.test_cross }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable multiarch
+        run: |
+          sudo dpkg --add-architecture i386
+
+      - uses: ConorMacBride/install-package@v1
+        with:
+          apt: libarchive-tools wine
+
+      - name: Register wine binfmt
+        run: |
+          echo ':DOSWin:M::MZ::/usr/bin/wine:' | sudo tee /proc/sys/fs/binfmt_misc/register
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
+          path: dist
+
+      - name: Test
+        run: |
+          sudo ./xtest.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --verbose

@@ -108,6 +108,7 @@ jobs:
       runner: ubuntu-24.04-arm
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
+      test_cross: false
       upload_prefix: alt_build_arm-
 
   build_container_wsl:

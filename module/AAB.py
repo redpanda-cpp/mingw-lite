@@ -88,7 +88,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--enable-checking=release',
       '--enable-host-pie',
       '--enable-languages=c,c++,fortran',
-      '--disable-libgomp',
+      '--enable-libgomp',
       '--disable-libmpx',
       '--disable-libstdcxx-pch',
       '--disable-multilib',
@@ -425,6 +425,8 @@ def _atomic_bootstrap(ver: BranchProfile, paths: ProjectPaths, config: argparse.
     xmake_build(src_dir, config.jobs)
 
     xmake_install(src_dir, install_dir)
+
+    shutil.copy(install_dir / 'lib/libatomic-1.dll.a', install_dir / 'lib/libatomic.a')
 
 def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   base_prefix = paths.layer_AAB.mcfgthread / 'usr/local' / ver.target
