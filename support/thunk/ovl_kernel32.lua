@@ -87,11 +87,13 @@ target('overlay-kernel32')
       add_files(
         'kernel32/5.1/AddVectoredExceptionHandler.cc',
         'kernel32/5.1/GetConsoleProcessList.cc',
+        'kernel32/5.1/GetGeoInfoW.cc',
         'kernel32/5.1/GetModuleHandleExW.cc',
         'kernel32/5.1/GetNumaHighestNodeNumber.cc',
         'kernel32/5.1/GetNumaNodeProcessorMask.cc',
         'kernel32/5.1/GetSystemTimes.cc',
         'kernel32/5.1/GetSystemWow64DirectoryW.cc',
+        'kernel32/5.1/GetUserGeoID.cc',
         'kernel32/5.1/GetVolumePathNamesForVolumeNameW.cc',
         'kernel32/5.1/LCMapStringW.cc',
         'kernel32/5.1/RemoveVectoredExceptionHandler.cc')
@@ -158,6 +160,7 @@ target('overlay-kernel32')
       'kernel32/u/GetFinalPathNameByHandleA.cc',
       'kernel32/u/GetFullPathNameA.cc',
       'kernel32/u/GetModuleFileNameA.cc',
+      'kernel32/u/GetModuleHandleExA.cc',
       'kernel32/u/GetOEMCP.cc',
       'kernel32/u/GetSystemWow64DirectoryA.cc',
       'kernel32/u/K32GetModuleFileNameExA.cc',
@@ -195,7 +198,9 @@ target('overlay-kernel32')
       add_files('kernel32/a/5.0/GetCPInfoExA.cc')
     end
     if ntddi_version() < ntddi_winxp() then
-      add_files('kernel32/a/5.1/GetSystemWow64DirectoryA.cc')
+      add_files(
+        'kernel32/a/5.1/GetModuleHandleExA.cc',
+        'kernel32/a/5.1/GetSystemWow64DirectoryA.cc')
     end
     if ntddi_version() < ntddi_ws03() then
       add_files('kernel32/a/5.2/NeedCurrentDirectoryForExePathA.cc')
@@ -246,7 +251,12 @@ target('overlay-kernel32')
     if ntddi_version() < ntddi_winxp() then
       add_files(
         'kernel32/5.1/AddVectoredExceptionHandler.cc',
+        'kernel32/5.1/GetGeoInfoW.cc',
+        'kernel32/5.1/GetModuleHandleExW.cc',
+        'kernel32/5.1/GetUserGeoID.cc',
         'kernel32/5.1/RemoveVectoredExceptionHandler.cc')
+      add_files(
+        'kernel32/a/5.1/GetModuleHandleExA.cc')
     end
   end
 
@@ -329,11 +339,13 @@ target('thunk-kernel32')
       'kernel32/5.0/SetFilePointerEx.cc',
       'kernel32/5.1/AddVectoredExceptionHandler.cc',
       'kernel32/5.1/GetConsoleProcessList.cc',
+      'kernel32/5.1/GetGeoInfoW.cc',
       'kernel32/5.1/GetModuleHandleExW.cc',
       'kernel32/5.1/GetNumaHighestNodeNumber.cc',
       'kernel32/5.1/GetNumaNodeProcessorMask.cc',
       'kernel32/5.1/GetSystemTimes.cc',
       'kernel32/5.1/GetSystemWow64DirectoryW.cc',
+      'kernel32/5.1/GetUserGeoID.cc',
       'kernel32/5.1/GetVolumePathNamesForVolumeNameW.cc',
       'kernel32/5.1/LCMapStringW.cc',
       'kernel32/5.1/RemoveVectoredExceptionHandler.cc',
@@ -377,6 +389,7 @@ target('thunk-kernel32-a')
       'kernel32/a/4.0/CopyFileExA.cc',
       'kernel32/a/4.0/MoveFileExA.cc',
       'kernel32/a/5.0/GetCPInfoExA.cc',
+      'kernel32/a/5.1/GetModuleHandleExA.cc',
       'kernel32/a/5.1/GetSystemWow64DirectoryA.cc',
       'kernel32/a/5.2/NeedCurrentDirectoryForExePathA.cc')
   end
@@ -404,6 +417,7 @@ target('thunk-kernel32-u')
     'kernel32/u/GetFinalPathNameByHandleA.cc',
     'kernel32/u/GetFullPathNameA.cc',
     'kernel32/u/GetModuleFileNameA.cc',
+    'kernel32/u/GetModuleHandleExA.cc',
     'kernel32/u/GetOEMCP.cc',
     'kernel32/u/K32GetModuleFileNameExA.cc',
     'kernel32/u/LoadLibraryA.cc',
