@@ -80,14 +80,23 @@ target('overlay-ucrt')
   enable_thunk_options()
 
   if profile_toolchain_utf8() then
-    add_deps('u8crt.a')
+    add_deps('utf8-musl.a')
+    add_files(table.unpack(ucrt_utf8_files()))
+    add_files(table.unpack(ucrt_utf8_startup_deps()))
     set_policy('build.merge_archive', true)
   end
 
-  if profile_core_utf8() or profile_toolchain_utf8() then
-    add_files(table.unpack(ucrt_utf8_files()))
-    add_files(table.unpack(ucrt_utf8_startup_deps()))
-  end
+target('alias-short-utf8-ucrt')
+  on_build(build_short_import_library('def/api-ms-win-crt-stdio-l1-1-0.def'))
+  set_enabled(has_config('u8crt'))
+  set_kind('static')
+
+target('overlay-utf8-ucrt')
+  add_defines('_UCRT')
+  add_files(table.unpack(ucrt_utf8_files()))
+  add_files(table.unpack(ucrt_utf8_startup_deps()))
+  enable_thunk_options()
+  set_enabled(has_config('u8crt'))
 
 target('alias-long-ucrt')
   on_build(build_long_import_library('def/api-ms-win-crt-stdio-l1-1-0.def'))
@@ -116,9 +125,9 @@ target('test-ucrt-u')
 target('console-ucrt')
   add_cxflags('-fno-builtin')
   add_defines('_UCRT')
-  add_deps('thunk-ucrt-u', 'u8crt.a')
+  add_deps('thunk-ucrt-u', 'utf8-musl.a')
   add_files('test/console.c')
-  add_linkorders('thunk-ucrt-u', 'u8crt.a', 'ucrt')
+  add_linkorders('thunk-ucrt-u', 'utf8-musl.a', 'ucrt')
   add_links('ucrt')
   enable_test_options()
   skip_install()

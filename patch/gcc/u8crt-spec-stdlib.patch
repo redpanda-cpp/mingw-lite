@@ -1,0 +1,75 @@
+diff --git a/gcc/c-family/c.opt b/gcc/c-family/c.opt
+index 3d96a73ecee..bd6a017c8eb 100644
+--- a/gcc/c-family/c.opt
++++ b/gcc/c-family/c.opt
+@@ -2855,8 +2855,8 @@ C ObjC Alias(std=c23)
+ Conform to the ISO 2023 C standard (published in 2024).
+ 
+ stdlib=
+-Driver C++ ObjC++ Common Condition(ENABLE_STDLIB_OPTION) Var(flag_stdlib_kind) Joined Enum(stdlib_kind) RejectNegative Init(1)
+--stdlib=[libstdc++|libc++]	The standard library to be used for C++ headers
++Driver C++ ObjC++ Common Var(flag_stdlib_kind) Joined Enum(stdlib_kind) RejectNegative Init(1)
++-stdlib=[libstdc++|libc++|libutf8-stdc++]	The standard library to be used for C++ headers
+ and runtime.
+ 
+ Enum
+@@ -2868,6 +2868,9 @@ Enum(stdlib_kind) String(libstdc++) Value(1)
+ EnumValue
+ Enum(stdlib_kind) String(libc++) Value(2)
+ 
++EnumValue
++Enum(stdlib_kind) String(libutf8-stdc++) Value(3)
++
+ traditional
+ Driver
+ 
+diff --git a/gcc/cp/g++spec.cc b/gcc/cp/g++spec.cc
+index ab6482d4f5d..a3d2df1a6f9 100644
+--- a/gcc/cp/g++spec.cc
++++ b/gcc/cp/g++spec.cc
+@@ -76,7 +76,8 @@ along with GCC; see the file COPYING3.  If not see
+ enum stdcxxlib_kind
+ {
+   USE_LIBSTDCXX = 1,
+-  USE_LIBCXX = 2
++  USE_LIBCXX = 2,
++  USE_LIBUTF8_STDCXX = 3,
+ };
+ 
+ void
+@@ -441,6 +442,8 @@ lang_specific_driver (struct cl_decoded_option **in_decoded_options,
+ 			       CL_DRIVER, &new_decoded_options[j]);
+ 	    }
+ 	}
++      else if (which_library == USE_LIBUTF8_STDCXX)
++        generate_option (OPT_l, "utf8-stdc++", 1, CL_DRIVER, &new_decoded_options[j]);
+       else
+ 	generate_option (OPT_l,
+ 			 saw_profile_flag ? LIBSTDCXX_PROFILE : LIBSTDCXX, 1,
+diff --git a/gcc/cppdefault.cc b/gcc/cppdefault.cc
+index dccd89c4533..4de601ebd2f 100644
+--- a/gcc/cppdefault.cc
++++ b/gcc/cppdefault.cc
+@@ -44,16 +44,22 @@ const struct default_include cpp_include_defaults[]
+     /* Pick up GNU C++ generic include files.  */
+     { GPLUSPLUS_INCLUDE_DIR, "G++", 1, 1,
+       GPLUSPLUS_INCLUDE_DIR_ADD_SYSROOT, 0 },
++    { GPLUSPLUS_INCLUDE_DIR, "G++", 3, 1,
++      GPLUSPLUS_INCLUDE_DIR_ADD_SYSROOT, 0 },
+ #endif
+ #ifdef GPLUSPLUS_TOOL_INCLUDE_DIR
+     /* Pick up GNU C++ target-dependent include files.  */
+     { GPLUSPLUS_TOOL_INCLUDE_DIR, "G++", 1, 1,
+       GPLUSPLUS_INCLUDE_DIR_ADD_SYSROOT, 1 },
++    { GPLUSPLUS_TOOL_INCLUDE_DIR, "G++", 3, 1,
++      GPLUSPLUS_INCLUDE_DIR_ADD_SYSROOT, 1 },
+ #endif
+ #ifdef GPLUSPLUS_BACKWARD_INCLUDE_DIR
+     /* Pick up GNU C++ backward and deprecated include files.  */
+     { GPLUSPLUS_BACKWARD_INCLUDE_DIR, "G++", 1, 1,
+       GPLUSPLUS_INCLUDE_DIR_ADD_SYSROOT, 0 },
++    { GPLUSPLUS_BACKWARD_INCLUDE_DIR, "G++", 3, 1,
++      GPLUSPLUS_INCLUDE_DIR_ADD_SYSROOT, 0 },
+ #endif
+ #ifdef GPLUSPLUS_LIBCXX_INCLUDE_DIR
+     /* Pick up libc++ include files, if we have -stdlib=libc++.  */

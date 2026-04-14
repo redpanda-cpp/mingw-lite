@@ -1,0 +1,144 @@
+diff --git a/libstdc++-v3/src/Makefile.am b/libstdc++-v3/src/Makefile.am
+index 55a8c88a0e1..ddcf020056c 100644
+--- a/libstdc++-v3/src/Makefile.am
++++ b/libstdc++-v3/src/Makefile.am
+@@ -50,7 +50,7 @@ SUBDIRS = c++98 c++11 c++17 c++20 c++23 c++26 \
+ if VTV_CYGMIN
+ toolexeclib_LTLIBRARIES = libvtv.la libstdc++.la
+ else
+-toolexeclib_LTLIBRARIES = libstdc++.la
++toolexeclib_LTLIBRARIES = libstdc++.la libutf8-stdc++.la
+ endif
+ 
+ if VTV_CYGMIN
+@@ -165,6 +165,16 @@ libstdc___la_LDFLAGS = \
+ 
+ libstdc___la_LINK = $(CXXLINK) $(libstdc___la_LDFLAGS) $(lt_host_flags)
+ 
++libutf8_stdc___la_SOURCES = $(libstdc___la_SOURCES)
++libutf8_stdc___la_LIBADD = $(libstdc___la_LIBADD)
++libutf8_stdc___la_DEPENDENCIES = libtool.utf8 $(libstdc___la_DEPENDENCIES)
++libutf8_stdc___la_LDFLAGS = -avoid-version -lm
++libutf8_stdc___la_LINK = $(CXXLINK_UTF8) $(libutf8_stdc___la_LDFLAGS) $(lt_host_flags)
++
++libtool.utf8: $(top_builddir)/libtool
++	sed -e 's/-lmsvcrt/-lutf8-ucrt -lutf8-musl -lmingwex -lutf8-ucrt/g' $< > $@
++	chmod +x $@
++
+ # Use special rules for compatibility-ldbl.cc compilation, as we need to
+ # pass -mlong-double-64, and not use -mabi={ieee,ibm}longdouble.
+ if GLIBCXX_LDBL_COMPAT
+@@ -309,6 +319,15 @@ CXXLINK = \
+ 	$(LTLDFLAGS) $(LTLIBICONV) \
+ 	-o $@
+ 
++CXXLINK_UTF8 = \
++	$(SHELL) ./libtool.utf8 --tag CXX \
++	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
++	--mode=link $(CXX) \
++	$(VTV_CXXLINKFLAGS) \
++	$(OPT_LDFLAGS) $(SECTION_LDFLAGS) $(AM_CXXFLAGS) \
++	$(LTLDFLAGS) $(LTLIBICONV) \
++	-o $@
++
+ # Symbol versioning for shared libraries.
+ # See configure.host and configure.ac for port_specific_symbol_files.
+ if ENABLE_SYMVERS
+diff --git a/libstdc++-v3/src/Makefile.in b/libstdc++-v3/src/Makefile.in
+index f0ad019a71f..ccb213fc3d7 100644
+--- a/libstdc++-v3/src/Makefile.in
++++ b/libstdc++-v3/src/Makefile.in
+@@ -169,6 +169,17 @@ am__objects_6 = $(am__objects_3) $(am__objects_5)
+ libstdc___la_OBJECTS = $(am_libstdc___la_OBJECTS)
+ @VTV_CYGMIN_FALSE@am_libstdc___la_rpath = -rpath $(toolexeclibdir)
+ @VTV_CYGMIN_TRUE@am_libstdc___la_rpath = -rpath $(toolexeclibdir)
++am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
++	$(top_builddir)/libsupc++/libsupc++convenience.la \
++	$(top_builddir)/src/c++98/libc++98convenience.la \
++	$(top_builddir)/src/c++11/libc++11convenience.la \
++	$(top_builddir)/src/c++17/libc++17convenience.la \
++	$(top_builddir)/src/c++20/libc++20convenience.la
++@GLIBCXX_HOSTED_TRUE@am__objects_7 = $(am__objects_2) $(am__objects_6)
++am_libutf8_stdc___la_OBJECTS = $(am__objects_7)
++libutf8_stdc___la_OBJECTS = $(am_libutf8_stdc___la_OBJECTS)
++@VTV_CYGMIN_FALSE@am_libutf8_stdc___la_rpath = -rpath \
++@VTV_CYGMIN_FALSE@	$(toolexeclibdir)
+ libvtv_la_LIBADD =
+ @VTV_CYGMIN_TRUE@am_libvtv_la_OBJECTS = vtv_stubs.lo
+ libvtv_la_OBJECTS = $(am_libvtv_la_OBJECTS)
+@@ -203,7 +214,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
+ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
+ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
+ am__v_CXXLD_1 = 
+-SOURCES = $(libstdc___la_SOURCES) $(libvtv_la_SOURCES)
++SOURCES = $(libstdc___la_SOURCES) $(libutf8_stdc___la_SOURCES) \
++	$(libvtv_la_SOURCES)
+ RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
+ 	ctags-recursive dvi-recursive html-recursive info-recursive \
+ 	install-data-recursive install-dvi-recursive \
+@@ -443,6 +455,7 @@ prefix = @prefix@
+ program_transform_name = @program_transform_name@
+ psdir = @psdir@
+ python_mod_dir = @python_mod_dir@
++runstatedir = @runstatedir@
+ sbindir = @sbindir@
+ sharedstatedir = @sharedstatedir@
+ srcdir = @srcdir@
+@@ -497,7 +510,7 @@ AM_CPPFLAGS = $(GLIBCXX_INCLUDES) $(CPPFLAGS)
+ SUBDIRS = c++98 c++11 c++17 c++20 c++23 c++26 \
+ 	$(filesystem_dir) $(backtrace_dir) $(experimental_dir)
+ 
+-@VTV_CYGMIN_FALSE@toolexeclib_LTLIBRARIES = libstdc++.la
++@VTV_CYGMIN_FALSE@toolexeclib_LTLIBRARIES = libstdc++.la libutf8-stdc++.la
+ 
+ # Cross compiler support.
+ @VTV_CYGMIN_TRUE@toolexeclib_LTLIBRARIES = libvtv.la libstdc++.la
+@@ -572,6 +585,11 @@ libstdc___la_LDFLAGS = \
+ 	-version-info $(libtool_VERSION) ${version_arg} -lm $(libstdc___darwin_rpath)
+ 
+ libstdc___la_LINK = $(CXXLINK) $(libstdc___la_LDFLAGS) $(lt_host_flags)
++libutf8_stdc___la_SOURCES = $(libstdc___la_SOURCES)
++libutf8_stdc___la_LIBADD = $(libstdc___la_LIBADD)
++libutf8_stdc___la_DEPENDENCIES = libtool.utf8 $(libstdc___la_DEPENDENCIES)
++libutf8_stdc___la_LDFLAGS = -avoid-version -lm
++libutf8_stdc___la_LINK = $(CXXLINK_UTF8) $(libutf8_stdc___la_LDFLAGS) $(lt_host_flags)
+ @GLIBCXX_LDBL_ALT128_COMPAT_FALSE@@GLIBCXX_LDBL_COMPAT_TRUE@LTCXXCOMPILE64 = $(LTCXXCOMPILE)
+ 
+ # Use special rules for compatibility-ldbl.cc compilation, as we need to
+@@ -669,6 +687,15 @@ CXXLINK = \
+ 	$(LTLDFLAGS) $(LTLIBICONV) \
+ 	-o $@
+ 
++CXXLINK_UTF8 = \
++	$(SHELL) ./libtool.utf8 --tag CXX \
++	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
++	--mode=link $(CXX) \
++	$(VTV_CXXLINKFLAGS) \
++	$(OPT_LDFLAGS) $(SECTION_LDFLAGS) $(AM_CXXFLAGS) \
++	$(LTLDFLAGS) $(LTLIBICONV) \
++	-o $@
++
+ @ENABLE_SYMVERS_TRUE@CLEANFILES = libstdc++-symbols.ver $(version_dep)
+ @ENABLE_SYMVERS_DARWIN_TRUE@@ENABLE_SYMVERS_TRUE@version_arg = -Wl,-exported_symbols_list,libstdc++-symbols.explist
+ @ENABLE_SYMVERS_FALSE@version_arg = 
+@@ -766,6 +793,9 @@ clean-toolexeclibLTLIBRARIES:
+ libstdc++.la: $(libstdc___la_OBJECTS) $(libstdc___la_DEPENDENCIES) $(EXTRA_libstdc___la_DEPENDENCIES) 
+ 	$(AM_V_GEN)$(libstdc___la_LINK) $(am_libstdc___la_rpath) $(libstdc___la_OBJECTS) $(libstdc___la_LIBADD) $(LIBS)
+ 
++libutf8-stdc++.la: $(libutf8_stdc___la_OBJECTS) $(libutf8_stdc___la_DEPENDENCIES) $(EXTRA_libutf8_stdc___la_DEPENDENCIES) 
++	$(AM_V_GEN)$(libutf8_stdc___la_LINK) $(am_libutf8_stdc___la_rpath) $(libutf8_stdc___la_OBJECTS) $(libutf8_stdc___la_LIBADD) $(LIBS)
++
+ libvtv.la: $(libvtv_la_OBJECTS) $(libvtv_la_DEPENDENCIES) $(EXTRA_libvtv_la_DEPENDENCIES) 
+ 	$(AM_V_GEN)$(libvtv_la_LINK) $(am_libvtv_la_rpath) $(libvtv_la_OBJECTS) $(libvtv_la_LIBADD) $(LIBS)
+ 
+@@ -1031,6 +1061,10 @@ vpath % $(top_srcdir)/src/c++26
+ @ENABLE_FILESYSTEM_TS_TRUE@vpath % $(top_srcdir)/src/filesystem
+ @ENABLE_BACKTRACE_TRUE@vpath % $(top_srcdir)/src/libbacktrace
+ vpath % $(top_srcdir)/src/experimental
++
++libtool.utf8: $(top_builddir)/libtool
++	sed -e 's/-lmsvcrt/-lutf8-ucrt -lutf8-musl -lmingwex -lutf8-ucrt/g' $< > $@
++	chmod +x $@
+ @GLIBCXX_LDBL_COMPAT_TRUE@compatibility-ldbl.lo: compatibility-ldbl.cc
+ @GLIBCXX_LDBL_COMPAT_TRUE@	$(LTCXXCOMPILE64) $(LONG_DOUBLE_COMPAT_FLAGS) -c $<
+ @GLIBCXX_LDBL_COMPAT_TRUE@compatibility-ldbl.o: compatibility-ldbl.cc

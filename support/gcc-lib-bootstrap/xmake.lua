@@ -33,7 +33,3 @@ target('gcc_s')
 target('pthread')
   add_files('placeholder.c')
   set_kind('static')
-
-target('u8crt')
-  add_files('placeholder.c')
-  set_kind('static')

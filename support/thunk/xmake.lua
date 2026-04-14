@@ -150,10 +150,6 @@ function profile_core()
   return get_config('profile') == 'core'
 end
 
-function profile_core_utf8()
-  return get_config('profile') == 'core-utf8'
-end
-
 function profile_toolchain()
   return get_config('profile') == 'toolchain'
 end
@@ -180,10 +176,13 @@ option('profile')
   set_showmenu(true)
   set_values(
     'core',
-    'core-utf8',
     'qt',
     'toolchain',
     'toolchain-utf8')
+
+option('u8crt')
+  set_default(false)
+  set_showmenu(true)
 
 option('thunk-level')
   set_showmenu(true)
@@ -214,6 +213,8 @@ includes('dep/catch2')
 
 includes('ntddi_version.lua')
 
+includes('utf8-musl.lua')
+
 includes('ovl_advapi32.lua')
 includes('ovl_bcrypt.lua')
 includes('ovl_kernel32.lua')
@@ -223,5 +224,3 @@ includes('ovl_psapi.lua')
 includes('ovl_shell32.lua')
 includes('ovl_ucrt.lua')
 includes('ovl_ws2_32.lua')
-
-includes('ext_u8crt.lua')

@@ -169,11 +169,6 @@ target('overlay-msvcrt-os')
   add_defines('__MSVCRT_VERSION__=0x0600')
   enable_thunk_options()
 
-  if profile_toolchain_utf8() then
-    add_deps('u8crt.a')
-    set_policy('build.merge_archive', true)
-  end
-
   if profile_core() then
     if ntddi_version() < ntddi_win4() then
       add_msvcrt_sources(msvcrt_thunk_core_4_0(), 'msvcrt/4.0')
@@ -247,8 +242,10 @@ target('overlay-msvcrt-os')
   end
 
   if profile_toolchain_utf8() then
+    add_deps('utf8-musl.a')
     add_files(table.unpack(msvcrt_utf8_files()))
     add_files(table.unpack(msvcrt_utf8_startup_deps()))
+    set_policy('build.merge_archive', true)
   end
 
   if profile_toolchain() then
@@ -374,7 +371,7 @@ target('test-msvcrt-a')
 
 target('thunk-msvcrt-u')
   add_defines('__MSVCRT_VERSION__=0x0600')
-  add_deps('alias-long-msvcrt', 'u8crt.a')
+  add_deps('alias-long-msvcrt', 'utf8-musl.a')
   add_files(table.unpack(msvcrt_utf8_files()))
   enable_thunk_options()
   merge_win32_alias()
@@ -394,9 +391,9 @@ target('test-msvcrt-u')
 target('console-msvcrt')
   add_cxflags('-fno-builtin')
   add_defines('__MSVCRT_VERSION__=0x0600')
-  add_deps('thunk-msvcrt-u', 'u8crt.a')
+  add_deps('thunk-msvcrt-u', 'utf8-musl.a')
   add_files('test/console.c')
-  add_linkorders('thunk-msvcrt-u', 'u8crt.a', 'msvcrt-os')
+  add_linkorders('thunk-msvcrt-u', 'utf8-musl.a', 'msvcrt-os')
   add_links('msvcrt-os')
   enable_test_options()
   skip_install()

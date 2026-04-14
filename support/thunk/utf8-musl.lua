@@ -1,0 +1,48 @@
+function utf8_musl_files()
+  return {
+    'utf8-musl/internal/floatscan.cc',
+    'utf8-musl/internal/intscan.cc',
+    'utf8-musl/internal/shgetc.cc',
+    'utf8-musl/multibyte/internal.cc',
+    'utf8-musl/multibyte/mbrtoc16.cc',
+    'utf8-musl/multibyte/mbrtowc.cc',
+    'utf8-musl/multibyte/mbsinit.cc',
+    'utf8-musl/multibyte/wcrtomb.cc',
+    'utf8-musl/multibyte/wctomb.cc',
+    'utf8-musl/stdio/__console_close.cc',
+    'utf8-musl/stdio/__console_read.cc',
+    'utf8-musl/stdio/__console_seek.cc',
+    'utf8-musl/stdio/__console_write.cc',
+    'utf8-musl/stdio/__overflow.cc',
+    'utf8-musl/stdio/__toread.cc',
+    'utf8-musl/stdio/__towrite.cc',
+    'utf8-musl/stdio/__uflow.cc',
+    'utf8-musl/stdio/fflush.cc',
+    'utf8-musl/stdio/fgetc.cc',
+    'utf8-musl/stdio/fgets.cc',
+    'utf8-musl/stdio/fputc.cc',
+    'utf8-musl/stdio/fread.cc',
+    'utf8-musl/stdio/fwrite.cc',
+    'utf8-musl/stdio/stderr.cc',
+    'utf8-musl/stdio/stdin.cc',
+    'utf8-musl/stdio/stdout.cc',
+    'utf8-musl/stdio/ungetc.cc',
+    'utf8-musl/stdio/vfprintf.cc',
+    'utf8-musl/stdio/vfscanf.cc',
+    'utf8-musl/unistd/read.cc',
+    'utf8-musl/unistd/write.cc',
+  }
+end
+
+target('utf8-musl.a')
+  add_files(table.unpack(utf8_musl_files()))
+  add_thunk_flags()
+  set_basename('utf8-musl')
+  set_kind('static')
+
+target('utf8-musl.so')
+  add_files(table.unpack(utf8_musl_files()))
+  add_thunk_flags()
+  set_basename('utf8-musl')
+  set_enabled(has_config('u8crt'))
+  set_kind('shared')

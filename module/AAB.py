@@ -4,6 +4,7 @@ from packaging.version import Version
 from pathlib import Path
 import shutil
 import subprocess
+from typing import List
 
 from module.alt_crt import postprocess_crt_import_libraries
 from module.debug import shell_here
@@ -262,14 +263,6 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     crt_inc_dir = paths.layer_AAB.crt_host / 'usr/local' / ver.target / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
 
-    # to satisfy spec
-    if ver.utf8_user_crt:
-      xmake_install(
-        thunk_src_dir,
-        paths.layer_AAB.crt_host / 'usr/local' / ver.target,
-        ['u8crt.a']
-      )
-
 def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mingw)
 
@@ -284,10 +277,9 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
   ]):
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
+    config_flags: List[str] = []
     if ver.utf8_user_crt:
-      thunk_profile = 'core-utf8'
-    else:
-      thunk_profile = 'core'
+      config_flags.append('--u8crt=y')
 
     xmake_config(thunk_src_dir, [
       '--builddir=build-AAB',
@@ -296,17 +288,29 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
       '--mingw=/usr/local',
       f'--mingw-version={v.major}',
       f'--thunk-level={ver.min_os}',
-      f'--profile={thunk_profile}',
+      '--profile=core',
+      *config_flags,
     ])
     xmake_build(thunk_src_dir, config.jobs)
     xmake_install(thunk_src_dir, paths.layer_AAB.thunk_target / 'usr/local' / ver.target)
 
-    # Post-process import libraries to handle weak symbol aliases
-    # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
-    # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
     thunk_lib_dir = paths.layer_AAB.thunk_target / 'usr/local' / ver.target / 'lib'
     crt0_lib_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'lib'
     crt_lib_dir = paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'lib'
+
+    # u8crt
+    if ver.utf8_user_crt:
+      xmake_install(thunk_src_dir, paths.layer_AAB.crt_target / 'usr/local' / ver.target, ['utf8-musl.a'])
+      xmake_install(thunk_src_dir, paths.layer_AAB.crt_shared / 'usr/local' / ver.target, ['utf8-musl.so'])
+
+      # trigger post-processing import libraries
+      shutil.copy(crt0_lib_dir / 'libucrt.a', crt0_lib_dir / 'libutf8-ucrt.a')
+    else:
+      touch(paths.layer_AAB.crt_shared / 'usr/local/.keep')
+
+    # Post-process import libraries to handle weak symbol aliases
+    # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
+    # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
     postprocess_crt_import_libraries(
       ver,
       thunk_lib_dir,
@@ -325,13 +329,6 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     crt0_inc_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'include'
     crt_inc_dir = paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
-
-    # u8crt
-    if ver.utf8_user_crt:
-      xmake_install(thunk_src_dir, paths.layer_AAB.crt_target / 'usr/local' / ver.target, ['u8crt.a'])
-      xmake_install(thunk_src_dir, paths.layer_AAB.crt_shared / 'usr/local' / ver.target, ['u8crt.so'])
-    else:
-      touch(paths.layer_AAB.crt_shared / 'usr/local/.keep')
 
 def _utf8(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.build_dir / 'utf8'
