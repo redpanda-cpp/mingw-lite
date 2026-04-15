@@ -37,9 +37,15 @@
 #undef wstat64
 
 struct _stat32;
-struct _stat32i64;
 struct _stat64;
 struct _stat64i32;
+
+#ifdef MINGW_THUNK_WORKAROUND_DEFINED_STAT32I64
+#undef MINGW_THUNK_WORKAROUND_DEFINED_STAT32I64
+struct _stat32i64 : _stati64 {};
+#else
+struct _stat32i64;
+#endif
 
 extern "C"
 {
@@ -68,21 +74,3 @@ extern "C"
   __attribute__((__dllimport__)) int _wstat64i32(const wchar_t *path,
                                                  struct _stat64i32 *buffer);
 }
-
-#ifdef MINGW_THUNK_WORKAROUND_DEFINED_STAT32I64
-#undef MINGW_THUNK_WORKAROUND_DEFINED_STAT32I64
-struct _stat32i64
-{
-  _dev_t st_dev;
-  _ino_t st_ino;
-  unsigned short st_mode;
-  short st_nlink;
-  short st_uid;
-  short st_gid;
-  _dev_t st_rdev;
-  __int64 st_size;
-  __time32_t st_atime;
-  __time32_t st_mtime;
-  __time32_t st_ctime;
-};
-#endif

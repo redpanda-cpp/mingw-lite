@@ -12,6 +12,6 @@ namespace mingw_thunk
                  const wchar_t *path,
                  struct _stat32i64 *buffer)
   {
-    return __ms__wstat32i64(path, (struct _stati64 *)buffer);
+    return __ms__wstat32i64(path, buffer);
   }
 } // namespace mingw_thunk
