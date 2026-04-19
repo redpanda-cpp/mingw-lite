@@ -414,6 +414,17 @@ def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.mcfgthread_shared / 'usr/local',
     paths.layer_AAB.winpthreads_shared / 'usr/local',
     *common_cross_layers(paths),
+  ]), overlayfs_ro(f'/{ver.target}/include', [
+    # the build system expects target headers at `/$triplet/include`.
+    # it's generally okay if that directory does not exists,
+    # because cross toolchain is complete and provides all headers.
+
+    # but when building libstdc++ std module,
+    # gcc's <fenv.h> wrapper #include_next <fenv.h>,
+    # and the compiler founds cross gcc's <fenv.h> wrapper,
+    # and that file is omitted because of same include guard,
+    # and thus the real <fenv.h> will never be included.
+    f'/usr/local/{ver.target}/include',
   ]):
     make_custom(build_dir, ['all-target'], config.jobs)
     make_custom(build_dir, [

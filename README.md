@@ -59,8 +59,8 @@ Available branches:
 
 | Branch | GCC version | MinGW | Binutils | GDB | Optimize | TLS |
 | ------ | ----------- | ----- | -------- | --- | -------- | --- |
-| current | 15-20260411 | 14.0.0 | 2.46.0 | 17.1 | Speed | Emulated |
-| 16 | 16-20260412 | 14.0.0 | 2.46.0 | 17.1 | Speed | Native |
+| current | 15-20260418 | 14.0.0 | 2.46.0 | 17.1 | Speed | Emulated |
+| 16 | 16-20260419 | 14.0.0 | 2.46.0 | 17.1 | Speed | Native |
 | 15 ❄️ | 15.2.0 | 13.0.0 | 2.45.1 | 17.1 | Size | Emulated |
 | 14 ❄️ | 14.3.0 | 12.0.0 | 2.43.1 | 15.2 | Size | Emulated |
 | 13 ❄️ | 13.4.0 | 11.0.1 | 2.41 | 14.2 | Size | Emulated |
