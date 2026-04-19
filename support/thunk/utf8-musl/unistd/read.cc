@@ -1,6 +1,6 @@
 #include "../internal/stdio_impl.h"
 #include <thunk/string.h>
-#include <thunk/u8crt/musl.h>
+#include <thunk/utf8-musl.h>
 #include <thunk/unicode.h>
 
 #include <io.h>
@@ -10,7 +10,7 @@ namespace mingw_thunk
 {
   namespace musl
   {
-    int read(int fd, void *buffer, unsigned int count)
+    ssize_t read(int fd, void *buf, size_t count)
     {
       if (count == 0)
         return 0;
@@ -20,7 +20,7 @@ namespace mingw_thunk
         return -1;
 
       FILE *f = g_fp_from_fd(fd);
-      unsigned char *out = (unsigned char *)buffer;
+      unsigned char *out = (unsigned char *)buf;
       unsigned total = 0;
 
       if (f && f->u8_len > 0) {

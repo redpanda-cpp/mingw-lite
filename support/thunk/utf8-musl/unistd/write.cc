@@ -1,6 +1,6 @@
 #include "../internal/stdio_impl.h"
 #include <thunk/string.h>
-#include <thunk/u8crt/musl.h>
+#include <thunk/utf8-musl.h>
 #include <thunk/unicode.h>
 
 #include <io.h>
@@ -50,7 +50,7 @@ namespace mingw_thunk
       }
     } // namespace
 
-    int write(int fd, const void *buffer, unsigned int count)
+    ssize_t write(int fd, const void *buf, size_t count)
     {
       HANDLE h = (HANDLE)_get_osfhandle(fd);
       if (h == INVALID_HANDLE_VALUE)
@@ -71,7 +71,7 @@ namespace mingw_thunk
         f->u8_len = 0;
       }
       if (count > 0)
-        memcpy(merge + plen, buffer, count);
+        memcpy(merge + plen, buf, count);
 
       size_t safe = find_safe_chunk(merge, total);
       if (safe == 0) {

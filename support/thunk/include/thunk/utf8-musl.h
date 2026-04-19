@@ -2,12 +2,14 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <sys/types.h>
 
 namespace mingw_thunk
 {
   namespace musl
   {
     struct FILE;
+    struct iovec;
 
     extern struct FILE *g_stdin;
     extern struct FILE *g_stdout;
@@ -37,7 +39,7 @@ namespace mingw_thunk
     int vfprintf(FILE *f, const char *fmt, va_list ap);
     int vfscanf(FILE *f, const char *fmt, va_list ap);
 
-    int read(int fd, void *buffer, unsigned int count);
-    int write(int fd, const void *buffer, unsigned int count);
+    ssize_t read(int fd, void *buf, size_t count);
+    ssize_t write(int fd, const void *buf, size_t count);
   } // namespace musl
 } // namespace mingw_thunk

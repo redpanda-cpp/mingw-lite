@@ -9,7 +9,7 @@ namespace mingw_thunk
     hidden FILE __stdin_FILE = {
         .flags = F_PERM | F_NOWR,
         .close = __console_close,
-        .read = __console_read,
+        .read = __stdio_read,
         .seek = __console_seek,
         .buf = buf + UNGET,
         .buf_size = sizeof buf - UNGET,

@@ -9,7 +9,7 @@ namespace mingw_thunk
     hidden FILE __stderr_FILE = {
         .flags = F_PERM | F_NORD,
         .close = __console_close,
-        .write = __console_write,
+        .write = __stdio_write,
         .seek = __console_seek,
         .buf = buf + UNGET,
         .buf_size = 0,

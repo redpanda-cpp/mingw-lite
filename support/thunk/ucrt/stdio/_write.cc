@@ -1,6 +1,6 @@
 #include <thunk/_common.h>
 #include <thunk/_no_thunk.h>
-#include <thunk/u8crt/musl.h>
+#include <thunk/utf8-musl.h>
 
 #include "@stdio.h"
 
