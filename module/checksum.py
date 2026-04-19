@@ -56,7 +56,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'setuptools-82.0.1.tar.gz': 'c2e2bc8ab0d2bad5b3cebdf61d071334acc087335ff26406a2ce063c370d8bbd',
 
-  'xmake-3.0.7.tar.gz': 'c9052e4550b8925268540603363d68fa90e4c1b407d0e6e00b735055afbea27f',
+  'xmake-3.0.8.tar.gz': '73da077440d1327e24bc74da2888c418e589dc28966e6e6b5bd6e889721b2d07',
 
   'zlib-1.3.2.tar.gz': 'bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16',
 }

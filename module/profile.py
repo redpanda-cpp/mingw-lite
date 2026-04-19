@@ -33,7 +33,7 @@ class BranchVersions:
 
   meson: str = '1.10.2'
   setuptools: str = '82.0.1'
-  xmake: str = '3.0.7'
+  xmake: str = '3.0.8'
 
 @dataclass
 class ProfileInfo:

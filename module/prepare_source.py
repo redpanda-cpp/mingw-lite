@@ -483,8 +483,8 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     # DOS capital path
     patch(paths.src_dir.xmake, paths.patch_dir / 'xmake/DOS-CAPITAL-PATH.patch')
 
-    # Tbox: fix Windows 7 inherit console handle
-    patch(tbox, paths.patch_dir / 'xmake/tbox-fix-win7-inherit-console-handle.patch')
+    # Fix MinGW link
+    patch(paths.src_dir.xmake, paths.patch_dir / 'xmake/fix-mingw-link.patch')
 
     # Tbox: ignore process group
     patch(tbox, paths.patch_dir / 'xmake/tbox-ignore-process-group.patch')
