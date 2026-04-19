@@ -1,7 +1,8 @@
-#include "../internal/stdio_impl.h"
+#include "../win32/utf8_buffer.h"
+
 #include <thunk/string.h>
-#include <thunk/utf8-musl.h>
 #include <thunk/unicode.h>
+#include <thunk/utf8-musl.h>
 
 #include <io.h>
 #include <string.h>
@@ -56,8 +57,8 @@ namespace mingw_thunk
       if (h == INVALID_HANDLE_VALUE)
         return -1;
 
-      FILE *f = g_fp_from_fd(fd);
-      int plen = f ? f->u8_len : 0;
+      utf8_buffer &u8 = g_utf8_buffer[fd];
+      int plen = u8.len;
       size_t total = (size_t)plen + count;
       if (total == 0)
         return 0;
@@ -67,17 +68,17 @@ namespace mingw_thunk
           total <= sizeof temp_buf ? temp_buf : (unsigned char *)alloca(total);
 
       if (plen > 0) {
-        memcpy(merge, f->u8_buf, plen);
-        f->u8_len = 0;
+        memcpy(merge, u8.buf, plen);
+        u8.len = 0;
       }
       if (count > 0)
         memcpy(merge + plen, buf, count);
 
       size_t safe = find_safe_chunk(merge, total);
       if (safe == 0) {
-        if (total <= 4 && f) {
-          memcpy(f->u8_buf, merge, (size_t)total);
-          f->u8_len = (int)total;
+        if (total <= 4) {
+          memcpy(u8.buf, merge, (size_t)total);
+          u8.len = (int)total;
         }
         return count > 0 ? (int)count : 0;
       }
@@ -91,9 +92,9 @@ namespace mingw_thunk
         return -1;
 
       size_t tail = total - safe;
-      if (tail > 0 && tail <= 4 && f) {
-        memcpy(f->u8_buf, merge + safe, tail);
-        f->u8_len = (int)tail;
+      if (tail > 0 && tail <= 4) {
+        memcpy(u8.buf, merge + safe, tail);
+        u8.len = (int)tail;
       }
 
       return count > 0 ? (int)count : 0;

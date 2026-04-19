@@ -1,7 +1,8 @@
-#include "../internal/stdio_impl.h"
+#include "../win32/utf8_buffer.h"
+
 #include <thunk/string.h>
-#include <thunk/utf8-musl.h>
 #include <thunk/unicode.h>
+#include <thunk/utf8-musl.h>
 
 #include <io.h>
 #include <string.h>
@@ -19,27 +20,27 @@ namespace mingw_thunk
       if (h == INVALID_HANDLE_VALUE)
         return -1;
 
-      FILE *f = g_fp_from_fd(fd);
+      utf8_buffer &u8 = g_utf8_buffer[fd];
       unsigned char *out = (unsigned char *)buf;
       unsigned total = 0;
 
-      if (f && f->u8_len > 0) {
-        int n = f->u8_len;
+      if (u8.len > 0) {
+        int n = u8.len;
         if (n > (int)count)
           n = (int)count;
-        memcpy(out, f->u8_buf, n);
-        f->u8_len -= n;
-        if (f->u8_len > 0)
-          memmove(f->u8_buf, f->u8_buf + n, f->u8_len);
+        memcpy(out, u8.buf, n);
+        u8.len -= n;
+        if (u8.len > 0)
+          memmove(u8.buf, u8.buf + n, u8.len);
         total = (unsigned)n;
         if (total == count)
           return (int)total;
       }
 
       wchar_t wbuf[4096];
-      bool saw_eof = false;
+      bool read_finish = false;
 
-      while (total < count && !saw_eof) {
+      while (total < count && !read_finish) {
         unsigned space = count - total;
         unsigned want = space / 3 + 1;
         if (want > 4096)
@@ -67,10 +68,13 @@ namespace mingw_thunk
         wchar_t *dst = wbuf;
         for (unsigned i = 0; i < wread; i++) {
           if (wbuf[i] == 0x0004) {
-            saw_eof = true;
+            // Ctrl-D
+            read_finish = true;
             break;
           }
           if (wbuf[i] == 0x000D && i + 1 < wread && wbuf[i + 1] == 0x000A) {
+            // CR, LF
+            read_finish = true;
             *dst++ = 0x000A;
             i++;
           } else {
@@ -92,19 +96,18 @@ namespace mingw_thunk
         memcpy(out + total, utf8.data(), to_copy);
         total += to_copy;
 
-        if ((unsigned)utf8.size() > remaining && f) {
+        if ((unsigned)utf8.size() > remaining) {
           unsigned excess = (unsigned)utf8.size() - remaining;
           if (excess <= 4) {
-            memcpy(f->u8_buf,
-                   (const unsigned char *)utf8.data() + to_copy,
-                   excess);
-            f->u8_len = (int)excess;
+            memcpy(
+                u8.buf, (const unsigned char *)utf8.data() + to_copy, excess);
+            u8.len = (int)excess;
           }
           break;
         }
       }
 
-      return (int)total;
+      return total;
     }
   } // namespace musl
 } // namespace mingw_thunk

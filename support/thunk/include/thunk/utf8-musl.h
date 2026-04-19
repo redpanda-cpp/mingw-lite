@@ -40,6 +40,8 @@ namespace mingw_thunk
     int vfscanf(FILE *f, const char *fmt, va_list ap);
 
     ssize_t read(int fd, void *buf, size_t count);
+    ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
     ssize_t write(int fd, const void *buf, size_t count);
+    ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
   } // namespace musl
 } // namespace mingw_thunk

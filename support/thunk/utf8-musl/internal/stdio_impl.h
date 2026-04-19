@@ -51,10 +51,6 @@ namespace mingw_thunk
       off_t shlim, shcnt;
       FILE *prev_locked, *next_locked;
       struct __locale_struct *locale;
-
-      // u8crt addition
-      unsigned char u8_buf[4];
-      int u8_len;
     };
 
     inline void FLOCK(FILE *f) noexcept
@@ -68,8 +64,8 @@ namespace mingw_thunk
       __atomic_clear(&f->lock, __ATOMIC_RELEASE);
     }
 
-    hidden size_t __console_read(FILE *, unsigned char *, size_t);
-    hidden size_t __console_write(FILE *, const unsigned char *, size_t);
+    hidden size_t __stdio_read(FILE *, unsigned char *, size_t);
+    hidden size_t __stdio_write(FILE *, const unsigned char *, size_t);
     hidden off_t __console_seek(FILE *, off_t, int);
     hidden int __console_close(FILE *);
 

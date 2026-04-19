@@ -10,9 +10,9 @@ function utf8_musl_files()
     'utf8-musl/multibyte/wcrtomb.cc',
     'utf8-musl/multibyte/wctomb.cc',
     'utf8-musl/stdio/__console_close.cc',
-    'utf8-musl/stdio/__console_read.cc',
     'utf8-musl/stdio/__console_seek.cc',
-    'utf8-musl/stdio/__console_write.cc',
+    'utf8-musl/stdio/__stdio_read.cc',
+    'utf8-musl/stdio/__stdio_write.cc',
     'utf8-musl/stdio/__overflow.cc',
     'utf8-musl/stdio/__toread.cc',
     'utf8-musl/stdio/__towrite.cc',
@@ -30,7 +30,10 @@ function utf8_musl_files()
     'utf8-musl/stdio/vfprintf.cc',
     'utf8-musl/stdio/vfscanf.cc',
     'utf8-musl/unistd/read.cc',
+    'utf8-musl/unistd/readv.cc',
     'utf8-musl/unistd/write.cc',
+    'utf8-musl/unistd/writev.cc',
+    'utf8-musl/win32/utf8_buffer.cc',
   }
 end
 
