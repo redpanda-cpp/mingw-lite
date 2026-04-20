@@ -3,9 +3,9 @@ from typing import Dict
 CHECKSUMS: Dict[str, str] = {
   'PDCurses-3.9.tar.gz': '590dbe0f5835f66992df096d3602d0271103f90cf8557a5d124f693c2b40d7ec',
 
-  'Python-3.12.12.tar.xz': 'fb85a13414b028c49ba18bbd523c2d055a30b56b18b92ce454ea2c51edc656c4',
-  'Python-3.13.12.tar.xz': '2a84cd31dd8d8ea8aaff75de66fc1b4b0127dd5799aa50a64ae9a313885b4593',
-  'Python-3.14.3.tar.xz': 'a97d5549e9ad81fe17159ed02c68774ad5d266c72f8d9a0b5a9c371fe85d902b',
+  'Python-3.12.13.tar.xz': 'c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684',
+  'Python-3.13.13.tar.xz': '2ab91ff401783ccca64f75d10c882e957bdfd60e2bf5a72f8421793729b78a71',
+  'Python-3.14.4.tar.xz': 'd923c51303e38e249136fc1bdf3568d56ecb03214efdef48516176d3d7faaef8',
 
   'binutils-2.41.tar.xz': 'ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450',
   'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',
@@ -14,7 +14,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'expat-2.5.0.tar.xz': 'ef2420f0232c087801abf705e89ae65f6257df6b7931d37846a193ef2e8cdcbe',
   'expat-2.6.4.tar.xz': 'a695629dae047055b37d50a0ff4776d1d45d0a4c842cf4ccee158441f55ff7ee',
-  'expat-2.7.4.tar.xz': '9e9cabb457c1e09de91db2706d8365645792638eb3be1f94dbb2149301086ac0',
+  'expat-2.7.5.tar.xz': '1032dfef4ff17f70464827daa28369b20f6584d108bc36f17ab1676e1edd2f91',
 
   'gcc-13.4.0.tar.xz': '9c4ce6dbb040568fdc545588ac03c5cbc95a8dbf0c7aa490170843afb59ca8f5',
   'gcc-14.3.0.tar.xz': 'e0dc77297625631ac8e50fa92fffefe899a4eb702592da5c32ef04e2293aca3a',
@@ -30,6 +30,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'libiconv-1.17.tar.gz': '8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313',
   'libiconv-1.18.tar.gz': '3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8',
+  'libiconv-1.19.tar.gz': '88dd96a8c0464eca144fc791ae60cd31cd8ee78321e67397e25fc095c4a19aa6',
 
   'make-4.4.1.tar.lz': '8814ba072182b605d156d7589c19a43b89fc58ea479b9355146160946f8cf6e9',
 
@@ -45,6 +46,7 @@ CHECKSUMS: Dict[str, str] = {
   'mingw-w64-v14.0.0.tar.bz2': '6eaf921d9eb987d3820b364ea9775bc19b965ec81490b6fdd716526c28e1995c',
 
   'mpc-1.3.1.tar.gz': 'ab642492f5cf882b74aa0cb730cd410a81edcdbec895183ce930e706c1c759b8',
+  'mpc-1.4.1.tar.xz': '91204cd32f164bd3b7c992d4a6a8ce6519511aadab30f78b6982d0bf8d73e931',
 
   'mpfr-4.2.2.tar.xz': 'b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01',
 

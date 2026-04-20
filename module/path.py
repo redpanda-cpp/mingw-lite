@@ -242,7 +242,9 @@ class ProjectPaths:
       mcfgthread = self.assets_dir / f'{src_name.mcfgthread}.tar.gz',
       meson = self.assets_dir / f'{src_name.meson}.tar.gz',
       mingw = self.assets_dir / f'{src_name.mingw}.tar.bz2',
-      mpc = self.assets_dir / f'{src_name.mpc}.tar.gz',
+      mpc = self.assets_dir / f'{src_name.mpc}.tar.xz'
+        if Version(ver.mpc) >= Version('1.4.0')
+        else self.assets_dir / f'{src_name.mpc}.tar.gz',
       mpfr = self.assets_dir / f'{src_name.mpfr}.tar.xz',
       pdcurses = self.assets_dir / f'{src_name.pdcurses}.tar.gz',
       python = self.assets_dir / f'{src_name.python}.tar.xz',
