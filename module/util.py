@@ -68,6 +68,60 @@ def cflags_B(
     f'LDFLAGS{suffix}=' + ' '.join(ld + ld_extra),
   ]
 
+def cmake_build(
+  cwd: Path,
+  jobs: int,
+  targets: List[str] = [],
+  build_dir: str = 'build',
+):
+  subprocess.run(
+    ['cmake', '--build', build_dir, '-j', str(jobs), *targets],
+    cwd = cwd,
+    check = True,
+  )
+
+def cmake_config(
+  cwd: Path,
+  extra_args: List[str],
+  build_dir: str = 'build',
+):
+  subprocess.run(
+    ['cmake', '-G', 'Ninja', '-S', '.', '-B', build_dir, *extra_args],
+    cwd = cwd,
+    check = True,
+  )
+
+def cmake_flags_B(
+  optimize_for_speed: bool = False,
+  lto: bool = False,
+) -> List[str]:
+  build_type = ''
+  lto_flag = []
+
+  if optimize_for_speed:
+    build_type = 'Release'
+  else:
+    build_type = 'MinSizeRel'
+  if lto:
+    lto_flag = ['-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON']
+
+  return [
+    f'-DCMAKE_BUILD_TYPE={build_type}',
+    *lto_flag,
+  ]
+
+def cmake_install(
+  cwd: Path,
+  destdir: Path,
+  targets: List[str] = [],
+  build_dir: str = 'build',
+):
+  subprocess.run(
+    ['cmake', '--install', build_dir, '--prefix', destdir, *targets],
+    cwd = cwd,
+    check = True,
+  )
+
 def common_cross_layers(paths: ProjectPaths):
   return [
     paths.layer_AAB.binutils / 'usr/local',
@@ -117,28 +171,6 @@ def extract_shared_libs(
       shutil.move(dll, shared_prefix / 'bin' / dll.name)
     else:
       dll.unlink()
-
-def fix_libtool_absolute_reference(la_path: Path):
-  with open(la_path, 'r') as f:
-    lines = f.readlines()
-  with open(la_path, 'w') as f:
-    for line in lines:
-      if line.startswith('dependency_libs='):
-        libs_pattern = re.compile(r"dependency_libs='(.*)'")
-        libs_value = re.search(libs_pattern, line).group(1)
-        libs = libs_value.split()
-        new_libs = []
-        for lib in libs:
-          if lib.startswith('/'):
-            lib_name = Path(lib).stem
-            if lib_name.startswith('lib'):
-              lib_name = lib_name[3:]
-            new_libs.append('-l' + lib_name)
-          else:
-            new_libs.append(lib)
-        f.write(f"dependency_libs='{' '.join(new_libs)}'\n")
-      else:
-        f.write(line)
 
 def make_custom(cwd: Path, extra_args: List[str], jobs: int):
   subprocess.run(

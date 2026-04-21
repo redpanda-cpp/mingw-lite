@@ -19,6 +19,7 @@ class SourcePaths(NamedTuple):
   mingw: Path
   mpc: Path
   mpfr: Path
+  nowide: Path
   pdcurses: Path
   pkgconf: Path
   python: Path
@@ -95,6 +96,8 @@ class LayerPathsABB(NamedTuple):
   make: Path
   mcfgthread: Path
   mcfgthread_shared: Path
+  nowide: Path
+  nowide_shared: Path
   pkgconf: Path
   thunk: Path
   winpthreads: Path
@@ -110,6 +113,7 @@ class ProjectPaths:
   dist_dir: Path
   patch_dir: Path
 
+  cmake_cross_file: Path
   meson_cross_file: Path
 
   test_driver_pkg: Path
@@ -173,6 +177,7 @@ class ProjectPaths:
     self.dist_dir = self.root_dir / 'dist'
     self.patch_dir = self.root_dir / 'patch'
 
+    self.cmake_cross_file = self.root_dir / f'support/cmake/{ver.target}.cmake'
     self.meson_cross_file = self.root_dir / f'support/meson/{ver.target}.txt'
 
     self.test_driver_pkg = self.dist_dir / f'test-{pkg_id}.tar.zst'
@@ -200,6 +205,7 @@ class ProjectPaths:
       mingw = f'mingw-w64-v{ver.mingw}',
       mpc = f'mpc-{ver.mpc}',
       mpfr = f'mpfr-{ver.mpfr}',
+      nowide = f'nowide_standalone_v{ver.nowide}',
       pdcurses = f'PDCurses-{ver.pdcurses}',
       pkgconf = f'pkgconf-pkgconf-{ver.pkgconf}',
       python = f'Python-{ver.python}',
@@ -221,6 +227,7 @@ class ProjectPaths:
       mingw = self.build_dir / src_name.mingw,
       mpc = self.build_dir / src_name.mpc,
       mpfr = self.build_dir / src_name.mpfr,
+      nowide = self.build_dir / src_name.nowide,
       pdcurses = self.build_dir / src_name.pdcurses,
       pkgconf = self.build_dir / src_name.pkgconf,
       python = self.build_dir / src_name.python,
@@ -246,6 +253,7 @@ class ProjectPaths:
         if Version(ver.mpc) >= Version('1.4.0')
         else self.assets_dir / f'{src_name.mpc}.tar.gz',
       mpfr = self.assets_dir / f'{src_name.mpfr}.tar.xz',
+      nowide = self.assets_dir / f'{src_name.nowide}.tar.gz',
       pdcurses = self.assets_dir / f'{src_name.pdcurses}.tar.gz',
       python = self.assets_dir / f'{src_name.python}.tar.xz',
       pkgconf = self.assets_dir / f'{src_name.pkgconf}.tar.gz',
@@ -337,6 +345,8 @@ class ProjectPaths:
       make = layer_ABB_prefix / 'make',
       mcfgthread = layer_ABB_prefix / 'mcfgthread',
       mcfgthread_shared = layer_ABB_prefix / 'mcfgthread' / shared_dir,
+      nowide = layer_ABB_prefix / 'nowide',
+      nowide_shared = layer_ABB_prefix / 'nowide' / shared_dir,
       pkgconf = layer_ABB_prefix / 'pkgconf',
       thunk = layer_ABB_prefix / 'thunk',
       winpthreads = layer_ABB_prefix / 'winpthreads',

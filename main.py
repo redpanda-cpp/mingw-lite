@@ -129,6 +129,7 @@ def package_mingw(paths: ProjectPaths):
     paths.layer_ABB.headers,
     paths.layer_ABB.make,
     paths.layer_ABB.mcfgthread,
+    paths.layer_ABB.nowide,
     paths.layer_ABB.pkgconf,
     paths.layer_ABB.winpthreads,
   ]

@@ -15,6 +15,7 @@ class BranchVersions:
 
   mcfgthread: str
   mingw: str
+  nowide: str
 
   binutils: str
   expat: str
@@ -80,6 +81,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     mcfgthread = '2.3-ga.1',
     mingw = '14.0.0',
+    nowide = '11.3.1',
 
     binutils = '2.46.0',
     expat = '2.7.5',
@@ -106,6 +108,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     mcfgthread = '2.3-ga.1',
     mingw = '14.0.0',
+    nowide = '11.3.1',
 
     binutils = '2.46.0',
     expat = '2.7.5',
@@ -131,6 +134,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     mcfgthread = '2.3-ga.1',
     mingw = '14.0.0',
+    nowide = '11.3.1',
 
     binutils = '2.46.0',
     expat = '2.7.5',
@@ -157,6 +161,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     # ABI critical: 2025-08-08
     mcfgthread = '2.1-ga.1',
     mingw = '13.0.0',
+    nowide = '11.3.0',  # 11.3.1 is not ABI compatible
 
     # freeze: 2025-12-21
     binutils = '2.45.1',
@@ -184,6 +189,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     # ABI critical: 2024-08-01
     mcfgthread = '1.8-ga.4',
     mingw = '12.0.0',
+    nowide = '11.3.0',  # 11.3.1 is not ABI compatible
 
     # freeze: 2024-12-21
     binutils = '2.43.1',
@@ -222,6 +228,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mingw = '11.0.1',
     mpc = '1.3.1',
     mpfr = '4.2.2',
+    nowide = '11.3.0',  # 11.3.1 is not ABI compatible
     pdcurses = '3.9',
     pkgconf = '2.1.1',
     python = '3.12.13',

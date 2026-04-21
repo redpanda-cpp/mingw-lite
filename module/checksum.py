@@ -50,6 +50,9 @@ CHECKSUMS: Dict[str, str] = {
 
   'mpfr-4.2.2.tar.xz': 'b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01',
 
+  'nowide_standalone_v11.3.0.tar.gz': '153ac93173c8de9c08e7701e471fa750f84c27e51fe329570c5aa06016591f8c',
+  'nowide_standalone_v11.3.1.tar.gz': 'eaec4d331e3961f5eeb10c46a11691d62047900a7a40765b0f23cdd3181e6ca6',
+
   'pkgconf-pkgconf-2.1.1.tar.gz': '6a181e0bf1195e95b7cd535a1854827aedb383b26b1fc24ca13586cb5e8e55af',
   'pkgconf-pkgconf-2.3.0.tar.gz': '0ee103cd390c3ee0e77a7a1c71dcb79a50a426fa2a648f6d07f2678c23adc5e3',
   'pkgconf-pkgconf-2.5.1.tar.gz': '79721badcad1987dead9c3609eb4877ab9b58821c06bdacb824f2c8897c11f2a',

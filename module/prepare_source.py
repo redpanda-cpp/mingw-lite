@@ -379,6 +379,15 @@ def _mpfr(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   check_and_extract(paths.src_dir.mpfr, paths.src_arx.mpfr)
   patch_done(paths.src_dir.mpfr)
 
+def _nowide(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://github.com/boostorg/nowide/releases/download/v{ver.nowide}/{paths.src_arx.nowide.name}'
+  validate_and_download(paths.src_arx.nowide, url)
+  if download_only:
+    return
+
+  check_and_extract(paths.src_dir.nowide, paths.src_arx.nowide)
+  patch_done(paths.src_dir.nowide)
+
 def _pdcurses(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://github.com/wmcbrine/PDCurses/archive/refs/tags/{ver.pdcurses}.tar.gz'
   validate_and_download(paths.src_arx.pdcurses, url)
@@ -526,6 +535,7 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _mingw(ver, paths, download_only)
   _mpc(ver, paths, download_only)
   _mpfr(ver, paths, download_only)
+  _nowide(ver, paths, download_only)
   _pdcurses(ver, paths, download_only)
   _pkgconf(ver, paths, download_only)
   _python(ver, paths, download_only)
