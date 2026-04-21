@@ -218,6 +218,18 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       # trigger post-processing import libraries
       shutil.copy(crt0_lib_dir / 'libucrt.a', crt0_lib_dir / 'libutf8-ucrt.a')
 
+      # -mutf8 addition
+      subprocess.run([
+        f'{ver.target}-gcc', '-std=c11', '-Os', '-c',
+        paths.utf8_src_dir / 'utf8-console.c',
+        '-o', crt_lib_dir / 'utf8-console.o',
+      ], check = True)
+      subprocess.run([
+        f'{ver.target}-windres', '-O', 'coff',
+        paths.utf8_src_dir / 'utf8-manifest.rc',
+        '-o', crt_lib_dir / 'utf8-manifest.o',
+      ], check = True)
+
     # Post-process import libraries to handle weak symbol aliases
     # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
     # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)

@@ -95,6 +95,7 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if ver.utf8_user_crt:
       # U8CRT: spec
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'u8crt-spec-mcrtdll.patch')
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'u8crt-spec-mutf8.patch')
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'u8crt-spec-stdlib.patch')
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'u8crt-build-libutf8-stdc++.patch')
 

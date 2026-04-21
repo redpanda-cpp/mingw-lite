@@ -1,0 +1,25 @@
+diff --git a/gcc/config/i386/mingw-w64.h b/gcc/config/i386/mingw-w64.h
+index 5d71aa5358f..ca365f3b84f 100644
+--- a/gcc/config/i386/mingw-w64.h
++++ b/gcc/config/i386/mingw-w64.h
+@@ -53,6 +53,7 @@ along with GCC; see the file COPYING3.  If not see
+ #define STARTFILE_SPEC "%{shared|mdll:dllcrt2%O%s} \
+   %{!shared:%{!mdll:%{!municode:crt2%O%s}}} \
+   %{!shared:%{!mdll:%{municode:crt2u%O%s}}} \
++  %{!shared:%{!mdll:%{mutf8:utf8-manifest%O%s %{!mwindows:utf8-console%O%s}}}} \
+   %{pg:gcrt2%O%s} \
+   crtbegin.o%s \
+   %{fvtable-verify=none:%s; \
+diff --git a/gcc/config/i386/mingw-w64.opt b/gcc/config/i386/mingw-w64.opt
+index 455f93731f2..9d18129b6b3 100644
+--- a/gcc/config/i386/mingw-w64.opt
++++ b/gcc/config/i386/mingw-w64.opt
+@@ -22,4 +22,8 @@ municode
+ Target
+ Use unicode startup and define UNICODE macro.
+ 
++mutf8
++Target
++Embed UTF-8 manifest and enable console code page (if -mconsole).
++
+ ; Retain blank line above.

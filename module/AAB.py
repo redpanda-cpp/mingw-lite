@@ -305,6 +305,18 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
 
       # trigger post-processing import libraries
       shutil.copy(crt0_lib_dir / 'libucrt.a', crt0_lib_dir / 'libutf8-ucrt.a')
+
+      # -mutf8 addition
+      subprocess.run([
+        f'{ver.target}-gcc', '-std=c11', '-Os', '-c',
+        paths.utf8_src_dir / 'utf8-console.c',
+        '-o', crt_lib_dir / 'utf8-console.o',
+      ], check = True)
+      subprocess.run([
+        f'{ver.target}-windres', '-O', 'coff',
+        paths.utf8_src_dir / 'utf8-manifest.rc',
+        '-o', crt_lib_dir / 'utf8-manifest.o',
+      ], check = True)
     else:
       touch(paths.layer_AAB.crt_shared / 'usr/local/.keep')
 
@@ -364,16 +376,13 @@ def _utf8(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       ensure(obj_dir)
 
       subprocess.run([
-        f'{ver.target}-gcc',
-        '-std=c11',
-        '-Os', '-c',
-        paths.utf8_src_dir / 'console-code-page-hack.c',
-        '-o', build_dir / 'console-code-page-hack.o',
+        f'{ver.target}-gcc', '-std=c11', '-Os', '-c',
+        paths.utf8_src_dir / 'utf8-console.c',
+        '-o', build_dir / 'utf8-console.o',
       ], check = True)
-      startup_adds.append(build_dir / 'console-code-page-hack.o')
+      startup_adds.append(build_dir / 'utf8-console.o')
       subprocess.run([
-        f'{ver.target}-windres',
-        '-O', 'coff',
+        f'{ver.target}-windres', '-O', 'coff',
         paths.utf8_src_dir / 'utf8-manifest.rc',
         '-o', build_dir / 'utf8-manifest.o',
       ], check = True)
