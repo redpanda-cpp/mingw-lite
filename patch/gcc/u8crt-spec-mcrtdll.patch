@@ -1,20 +1,20 @@
 diff --git a/gcc/config/i386/mingw-w64.h b/gcc/config/i386/mingw-w64.h
-index 5d71aa5358f..3bd7dfe58e3 100644
+index 5d71aa5358f..dc59cfbc457 100644
 --- a/gcc/config/i386/mingw-w64.h
 +++ b/gcc/config/i386/mingw-w64.h
-@@ -40,13 +40,13 @@ along with GCC; see the file COPYING3.  If not see
+@@ -40,6 +40,7 @@ along with GCC; see the file COPYING3.  If not see
  		 "%{mcrtdll=msvcr100*:-D__MSVCRT_VERSION__=0xA00} " \
  		 "%{mcrtdll=msvcr110*:-D__MSVCRT_VERSION__=0xB00} " \
  		 "%{mcrtdll=msvcr120*:-D__MSVCRT_VERSION__=0xC00} " \
--		 "%{mcrtdll=ucrt*:-D_UCRT} "
-+		 "%{mcrtdll=ucrt*|mcrtdll=utf8-ucrt:-D_UCRT}"
++		 "%{mcrtdll=utf8-ucrt:-D_UCRT -DUNICODE -D_UNICODE} " \
+ 		 "%{mcrtdll=ucrt*:-D_UCRT} "
  
  #undef REAL_LIBGCC_SPEC
- #define REAL_LIBGCC_SPEC \
+@@ -47,6 +48,7 @@ along with GCC; see the file COPYING3.  If not see
    "%{mthreads:-lmingwthrd} -lmingw32 \
     " SHARED_LIBGCC_SPEC " \
--   -lmingwex %{!mcrtdll=*:-lmsvcrt} %{mcrtdll=*:-l%*} \
-+   -lmingwex %{!mcrtdll=*:-lmsvcrt} %{mcrtdll=*:-l%*} %{mcrtdll=utf8-ucrt:-lutf8-musl -lmingwex -lutf8-ucrt} \
+    -lmingwex %{!mcrtdll=*:-lmsvcrt} %{mcrtdll=*:-l%*} \
++   %{mcrtdll=utf8-ucrt:-lutf8-musl -lmingwex -lutf8-ucrt} \
     -lkernel32 " MCFGTHREAD_SPEC
  
  #undef STARTFILE_SPEC
