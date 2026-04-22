@@ -43,6 +43,7 @@ function msvcrt_utf8_files()
     'msvcrt/u/stdio/fread.cc',
     'msvcrt/u/stdio/fwrite.cc',
     'msvcrt/u/stdio/getc.cc',
+    'msvcrt/u/stdio/getchar.cc',
     'msvcrt/u/stdio/getcwd.cc',
     'msvcrt/u/stdio/open.cc',
     'msvcrt/u/stdio/putc.cc',

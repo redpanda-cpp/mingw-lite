@@ -193,6 +193,7 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(fread)
   __DECLARE_MS_IMPORT(fwrite)
   __DECLARE_MS_IMPORT(getc)
+  __DECLARE_MS_IMPORT(getchar)
   __DECLARE_MS_IMPORT(putc)
   __DECLARE_MS_IMPORT(puts)
   __DECLARE_MS_IMPORT(ungetc)

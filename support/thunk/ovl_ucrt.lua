@@ -49,6 +49,7 @@ function ucrt_utf8_files()
     'ucrt/stdio/fread.cc',
     'ucrt/stdio/fwrite.cc',
     'ucrt/stdio/getc.cc',
+    'ucrt/stdio/getchar.cc',
     'ucrt/stdio/getcwd.cc',
     'ucrt/stdio/open.cc',
     'ucrt/stdio/putc.cc',

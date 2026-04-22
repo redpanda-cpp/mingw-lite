@@ -18,6 +18,27 @@ void puts_w(const wchar_t *s)
   WriteConsoleW(hStdout, L"\n", 1, &written, NULL);
 }
 
+void emu_input(const wchar_t *s)
+{
+  HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+  size_t len = wcslen(s);
+  INPUT_RECORD records[len * 2];
+  for (size_t i = 0; i < len; i++) {
+    BOOL is_enter = (s[i] == L'\n');
+    records[i * 2].EventType = KEY_EVENT;
+    records[i * 2].Event.KeyEvent.bKeyDown = TRUE;
+    records[i * 2].Event.KeyEvent.wRepeatCount = 1;
+    records[i * 2].Event.KeyEvent.wVirtualKeyCode = is_enter ? VK_RETURN : 0;
+    records[i * 2].Event.KeyEvent.wVirtualScanCode = is_enter ? 28 : 0;
+    records[i * 2].Event.KeyEvent.uChar.UnicodeChar = is_enter ? L'\r' : s[i];
+    records[i * 2].Event.KeyEvent.dwControlKeyState = 0;
+    records[i * 2 + 1] = records[i * 2];
+    records[i * 2 + 1].Event.KeyEvent.bKeyDown = FALSE;
+  }
+  DWORD written;
+  WriteConsoleInputW(hStdin, records, len * 2, &written);
+}
+
 int main()
 {
   {
@@ -105,18 +126,21 @@ int main()
     char s[80 + 1];
 
     puts_w(L"fgets(80+1)");
+    emu_input(L"天地玄黄\n");
     fgets(s, sizeof(s), stdin);
     fputs(s, stdout);
 
     puts_w(L"scanf(%80s)");
+    emu_input(L"天地玄黄\n");
     scanf("%80s", s);
+    getchar();
     printf("%s\n", s);
 
     puts_w(L"fread(13)");
+    emu_input(L"天地玄黄\n");
     size_t n = fread(s, 1, 13, stdin);
     s[n] = '\0';
     fwrite(s, 1, n, stdout);
-    fwrite("\n", 1, 1, stdout);
   }
 
   return 0;

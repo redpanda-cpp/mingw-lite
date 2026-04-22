@@ -46,6 +46,7 @@ EXPORTS
   __ms_fread == fread
   __ms_fwrite == fwrite
   __ms_getc == getc
+  __ms_getchar == getchar
   __ms_putc == putc
   __ms_puts == puts
   __ms_ungetc == ungetc
