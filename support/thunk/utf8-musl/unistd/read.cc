@@ -68,18 +68,19 @@ namespace mingw_thunk
         wchar_t *dst = wbuf;
         for (unsigned i = 0; i < wread; i++) {
           if (wbuf[i] == 0x0004) {
-            // Ctrl-D
+            // ^D
             read_finish = true;
             break;
           }
-          if (wbuf[i] == 0x000D && i + 1 < wread && wbuf[i + 1] == 0x000A) {
-            // CR, LF
+          if (wbuf[i] == 0x000a) {
+            // \n
             read_finish = true;
-            *dst++ = 0x000A;
-            i++;
-          } else {
-            *dst++ = wbuf[i];
           }
+          if (wbuf[i] == 0x000d) {
+            // \r
+            continue;
+          }
+          *dst++ = wbuf[i];
         }
         unsigned valid = (unsigned)(dst - wbuf);
         if (valid == 0)
