@@ -103,7 +103,7 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
   # make
   subprocess.check_call([
     paths.test_dir / 'set-path.exe',
-    'mingw32-make.exe', f'DIR={build_dir}', 'SUFFIX=.exe',
+    'mingw32-make.exe', '-f', 'Makefile.debug', f'DIR={build_dir}', 'SUFFIX=.exe',
   ], cwd = paths.test_dir)
 
   # gdb

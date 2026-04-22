@@ -15,8 +15,9 @@ int wmain(int argc, wchar_t *argv[]) {
 
   const wchar_t *make_argv[] = {
       L"mingw32-make",
+      L"-f",
+      L"Makefile.debug",
       (L"DIR=" DEBUG_BUILD_DIR),
-      L"SUFFIX=.exe",
       lt_win98() ? L"LDFLAGS=-fno-lto" : NULL,
       NULL,
   };

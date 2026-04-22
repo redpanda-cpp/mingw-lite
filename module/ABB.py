@@ -24,6 +24,7 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
   mingw_dir = paths.sat_mingw_dir.relative_to(paths.sat_dir)
   xmake_arch = XMAKE_ARCH_MAP[ver.arch]
   debug_build_dir = f'build/mingw/{xmake_arch}/debug'
+  release_build_dir = f'build/mingw/{xmake_arch}/release'
 
   flags = [
     '-std=c11', '-O2', '-municode', '-s',
@@ -31,6 +32,7 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
     f'-DSHARED_DIR=L"{paths.shared_dir}"',
     f'-DXMAKE_ARCH="{xmake_arch}"',
     f'-DDEBUG_BUILD_DIR="{debug_build_dir}"',
+    f'-DRELEASE_BUILD_DIR="{release_build_dir}"',
   ]
   if ver.utf8_thunk:
     flags.append('-DENABLE_UTF8')
@@ -61,6 +63,14 @@ def build_ABB_test_driver(ver: BranchProfile, paths: ProjectPaths, config: argpa
       src_dir / 'test-compiler.c', common_c,
       '-o', pkg_dir / 'test-compiler.exe',
     ], check = True)
+
+    if ver.utf8_user_crt:
+      subprocess.run([
+        gcc_exe,
+        *flags,
+        src_dir / 'test-console.c', common_c,
+        '-o', pkg_dir / 'test-console.exe',
+      ], check = True)
 
     subprocess.run([
       gcc_exe,

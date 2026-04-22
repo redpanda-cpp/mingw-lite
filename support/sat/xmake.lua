@@ -6,6 +6,7 @@ set_languages("c11")
 add_defines('DEBUG_BUILD_DIR="build/debug"')
 add_defines('ENABLE_UTF8')
 add_defines('MINGW_DIR="mingw64"')
+add_defines('RELEASE_BUILD_DIR="build/release"')
 add_defines('SHARED_DIR=L"lib/shared"')
 add_defines('XMAKE_ARCH="x86_64"')
 add_ldflags('-municode', {force = true})
@@ -15,6 +16,9 @@ target("set-path")
 
 target("test-compiler")
   add_files("common.c", "test-compiler.c")
+
+target("test-console")
+  add_files("common.c", "test-console.c")
 
 target("test-make-gdb")
   add_files("common.c", "test-make-gdb.c")
