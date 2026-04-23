@@ -135,6 +135,12 @@ function msvcrt_thunk_toolchain_6_0()
   }
 end
 
+function msvcrt_thunk_toolchain_x64_6_0()
+  return {
+    {'_time32'},
+  }
+end
+
 function msvcrt_thunk_toolchain_a_5_0()
   return {
     {'_findfirst64', v = until_mingw(14)},
@@ -239,6 +245,9 @@ target('overlay-msvcrt-os')
     end
     if ntddi_version() < ntddi_vista() then
       add_msvcrt_sources(msvcrt_thunk_toolchain_6_0(), 'msvcrt/6.0')
+      if is_arch('x86_64') then
+        add_msvcrt_sources(msvcrt_thunk_toolchain_x64_6_0(), 'msvcrt/x64/6.0')
+      end
     end
   end
 
