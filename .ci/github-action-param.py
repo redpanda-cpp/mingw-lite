@@ -9,7 +9,7 @@ parser.add_argument('--ref-name')
 args = parser.parse_args()
 
 all_branch = [
-  'current',
+  'next', 'current',
   '16', '15', '14', '13',
 ]
 
@@ -40,7 +40,7 @@ beyond_profile = [
 exclude_profile_branch = [
   *( # deprecated
     {'profile': '32-msvcrt_win2000', 'branch': b}
-    for b in ['current', '16']
+    for b in ['next', 'current', '16']
   ),
   *( # u8thunk path test
     {'profile': '32_686-msvcrt_winnt40', 'branch': b}
@@ -53,7 +53,7 @@ exclude_profile_branch = [
   ),
 ]
 
-alt_branch = ['15']
+alt_branch = ['current']
 alt_profile = ['64-mcf', '64-ucrt']
 
 sat_group = [
