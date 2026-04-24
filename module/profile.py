@@ -151,7 +151,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '15': BranchVersions(
     gcc = '15.2.0',
-    rev = '8',
+    rev = '8.1',
 
     abi_frozen = True,
     branch_opt_speed = False,
@@ -179,7 +179,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '14': BranchVersions(
     gcc = '14.3.0',
-    rev = '7',
+    rev = '7.1',
 
     abi_frozen = True,
     branch_opt_speed = False,
@@ -207,7 +207,7 @@ BRANCHES: Dict[str, BranchVersions] = {
   ),
   '13': BranchVersions(
     gcc = '13.4.0',
-    rev = '7',
+    rev = '7.1',
 
     abi_frozen = True,
     branch_opt_speed = False,
