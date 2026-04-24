@@ -52,16 +52,22 @@ namespace intl
   public:
     int seek(long offset, int whence)
     {
+      if (!fp)
+        __builtin_unreachable();
       return fseek(fp, offset, whence);
     }
 
     long tell()
     {
+      if (!fp)
+        __builtin_unreachable();
       return ftell(fp);
     }
 
     size_t read(void *ptr, size_t size, size_t count)
     {
+      if (!fp)
+        __builtin_unreachable();
       return fread(ptr, size, count, fp);
     }
 

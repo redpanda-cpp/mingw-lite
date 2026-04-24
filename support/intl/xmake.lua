@@ -9,7 +9,8 @@ target('intl')
   set_kind('static')
   add_cxxflags(
     '-fno-exceptions',
-    '-fno-threadsafe-statics')
+    '-fno-threadsafe-statics',
+    '-nostdinc++')
   add_includedirs('include', {public = true})
   set_exceptions('none')
   if has_config('nested-ns') then
@@ -19,6 +20,8 @@ target('intl')
     add_defines('stl=intl_stl')
   end
   add_defines(
+    'NOMINMAX',
+    'WIN32_LEAN_AND_MEAN',
     'WINVER=0x0600',
     '_WIN32_WINNT=0x0600')
   add_files('src/*.cc')

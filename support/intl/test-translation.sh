@@ -2,6 +2,9 @@
 
 set -euxo pipefail
 
+unset LC_ALL
+unset LANGUAGE
+
 (
   cd test
 
