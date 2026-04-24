@@ -79,25 +79,38 @@ sat_group = [
     'name': '32-unstable',
     'profile': json.dumps(['32-msvcrt_win2000']),
     'pattern': 'mingw32-msvcrt_win2000-*',
-    'dict': '128m',
+    'dict': '512m',
   },
   {
     'name': '32_686-unstable',
     'profile': json.dumps(['32_686-msvcrt_winnt40', '32_686-msvcrt_win98']),
     'pattern': 'mingw32_686-*',
-    'dict': '128m',
+    # may be extracted on 9x, be moderate
+    # tested on 2026-04-24:
+    #   d=256m: 220.2 MiB
+    #   d=288m: 219.1 MiB
+    #   d=320m: 206.4 MiB
+    #   d=320m: 205.9 MiB
+    'dict': '320m',
   },
   {
     'name': '32_486-unstable',
     'profile': json.dumps(['32_486-msvcrt_win98']),
     'pattern': 'mingw32_486-*',
-    'dict': '128m',
+    # may be extracted on 9x, be moderate
+    'dict': '224m',
   },
   {
     'name': '32_386-unstable',
     'profile': json.dumps(['32_386-msvcrt_win95']),
     'pattern': 'mingw32_386-*',
-    'dict': '128m',
+    # may be extracted on 9x, be moderate
+    # tested on 2026-04-24:
+    #   d=192m: 184.9 MiB
+    #   d=224m: 170.1 MiB
+    #   d=256m: 169.8 MiB
+    #   d=320m: 169.5 MiB
+    'dict': '224m',
   },
 
   # beyond mingw lite
@@ -105,7 +118,7 @@ sat_group = [
     'name': 'u8crt',
     'profile': json.dumps(['64-u8crt', '32-u8crt']),
     'pattern': '{mingw64-u8crt-*,mingw32-u8crt-*}',
-    'dict': '128m',
+    'dict': '512m',
   },
 ]
 
