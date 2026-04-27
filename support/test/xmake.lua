@@ -93,6 +93,7 @@ target("c++23/import-std")
   end
 
 includes("cpp/xmake.lua")
-includes("intl/xmake.lua")
+includes("i18n/xmake.lua")
+includes("iconv/xmake.lua")
 includes("lto/xmake.lua")
 includes("openmp/xmake.lua")

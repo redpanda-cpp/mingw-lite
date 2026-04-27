@@ -10,6 +10,7 @@ class BranchVersions:
 
   abi_frozen: bool
   branch_opt_speed: bool
+  iconv_win32: bool
   short_import: bool
   utf8_thunk: bool
 
@@ -76,6 +77,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     abi_frozen = False,
     branch_opt_speed = True,
+    iconv_win32 = True,
     short_import = True,
     utf8_thunk = True,
 
@@ -103,6 +105,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     abi_frozen = False,
     branch_opt_speed = True,
+    iconv_win32 = True,
     short_import = True,
     utf8_thunk = True,
 
@@ -129,6 +132,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     abi_frozen = False,
     branch_opt_speed = True,
+    iconv_win32 = True,
     short_import = True,
     utf8_thunk = True,
 
@@ -155,6 +159,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     abi_frozen = True,
     branch_opt_speed = False,
+    iconv_win32 = False,
     short_import = False,
     utf8_thunk = False,
 
@@ -183,6 +188,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     abi_frozen = True,
     branch_opt_speed = False,
+    iconv_win32 = False,
     short_import = False,
     utf8_thunk = False,
 
@@ -211,6 +217,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     abi_frozen = True,
     branch_opt_speed = False,
+    iconv_win32 = False,
     short_import = False,
     utf8_thunk = False,
 

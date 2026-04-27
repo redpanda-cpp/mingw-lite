@@ -271,7 +271,7 @@ def _gmp(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   check_and_extract(paths.src_dir.gmp, paths.src_arx.gmp)
   patch_done(paths.src_dir.gmp)
 
-def _iconv(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+def _iconv_gnu(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/libiconv/{paths.src_arx.iconv.name}'
   validate_and_download(paths.src_arx.iconv, url)
   if download_only:
@@ -282,6 +282,20 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     patch(paths.src_dir.iconv, paths.patch_dir / 'iconv' / 'fix-rc-naming-convention.patch')
 
     patch_done(paths.src_dir.iconv)
+
+def _iconv_win32(ver: BranchProfile, paths: ProjectPaths):
+  shutil.copytree(
+    paths.in_tree_src_tree.iconv,
+    paths.in_tree_src_dir.iconv,
+    ignore = shutil.ignore_patterns(
+      '.cache',
+      '.vscode',
+      '.xmake',
+      'build',
+      'pkg',
+    ),
+    dirs_exist_ok = True,
+  )
 
 def _intl(ver: BranchProfile, paths: ProjectPaths):
   shutil.copytree(
@@ -536,7 +550,11 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _gcc_lib_bootstrap(ver, paths)
   _gdb(ver, paths, download_only)
   _gmp(ver, paths, download_only)
-  _iconv(ver, paths, download_only)
+  if ver.iconv_win32:
+    if not download_only:
+      _iconv_win32(ver, paths)
+  else:
+    _iconv_gnu(ver, paths, download_only)
   _intl(ver, paths)
   _make(ver, paths, download_only)
   _mcfgthread(ver, paths, download_only)

@@ -30,6 +30,7 @@ class SourcePaths(NamedTuple):
 class InTreeSourcePaths(NamedTuple):
   atomic_bootstrap: Path
   gcc_lib_bootstrap: Path
+  iconv: Path
   intl: Path
   sync: Path
   thunk: Path
@@ -265,6 +266,7 @@ class ProjectPaths:
     self.in_tree_src_dir = InTreeSourcePaths(
       atomic_bootstrap = self.build_dir / 'atomic-bootstrap',
       gcc_lib_bootstrap = self.build_dir / 'gcc-lib-bootstrap',
+      iconv = self.build_dir / 'iconv',
       intl = self.build_dir / 'intl',
       sync = self.build_dir / 'sync',
       thunk = self.build_dir / 'thunk',
@@ -273,6 +275,7 @@ class ProjectPaths:
     self.in_tree_src_tree = InTreeSourcePaths(
       atomic_bootstrap = self.root_dir / 'support/atomic-bootstrap',
       gcc_lib_bootstrap = self.root_dir / 'support/gcc-lib-bootstrap',
+      iconv = self.root_dir / 'support/iconv',
       intl = self.root_dir / 'support/intl',
       sync = self.root_dir / 'support/sync',
       thunk = self.root_dir / 'support/thunk',

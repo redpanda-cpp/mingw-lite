@@ -1,0 +1,21 @@
+---
+BasedOnStyle: LLVM
+
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping:
+  AfterClass: true
+  AfterEnum: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterExternBlock: true
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: BeforeComma
+IndentPPDirectives: BeforeHash
+NamespaceIndentation: All
+PackConstructorInitializers: NextLine

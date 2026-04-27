@@ -666,7 +666,7 @@ def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAB.expat)
 
-def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+def _iconv_gnu(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.crt_host / 'usr/local',
     *common_cross_layers(paths),
@@ -688,6 +688,25 @@ def _iconv(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     ])
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAB.iconv)
+
+def _iconv_win32(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
+    paths.layer_AAB.crt_host / 'usr/local',
+    *common_cross_layers(paths),
+  ]):
+    src_dir = paths.in_tree_src_dir.iconv
+
+    xmake_config(src_dir, [
+      '--plat=mingw',
+      f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
+      '--mingw=/usr/local',
+    ])
+    xmake_build(src_dir, config.jobs)
+
+    install_dir = paths.layer_AAB.iconv / 'usr/local' / ver.target
+    xmake_install(src_dir, install_dir)
 
 def _intl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
@@ -787,7 +806,10 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
   _mpfr(ver, paths, config)
   _mpc(ver, paths, config)
   _expat(ver, paths, config)
-  _iconv(ver, paths, config)
+  if ver.iconv_win32:
+    _iconv_win32(ver, paths, config)
+  else:
+    _iconv_gnu(ver, paths, config)
   _intl(ver, paths, config)
   _pdcurses(ver, paths, config)
   _python(ver, paths, config)
