@@ -124,7 +124,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     z = '1.3.2',
   ),
   '16': BranchVersions(
-    gcc = '16.1.0-RC-20260424',
+    gcc = '16.1.0',
     rev = '0',
 
     abi_frozen = False,
