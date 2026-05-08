@@ -1,0 +1,5 @@
+LIBRARY api-ms-win-crt-runtime-l1-1-0.dll
+EXPORTS
+  __ms___p___argv == __p___argv
+  __ms__configure_narrow_argv == _configure_narrow_argv
+  __ms__initialize_narrow_environment == _initialize_narrow_environment

@@ -72,8 +72,26 @@ function ucrt_utf8_startup_deps()
   }
 end
 
+function ucrt_def_files()
+  local result = {
+    'def/api-ms-win-crt-environment-l1-1-0.def',
+    'def/api-ms-win-crt-runtime-l1-1-0.def',
+    'def/api-ms-win-crt-stdio-l1-1-0.def',
+  }
+
+  if is_arch('i386', 'i686') then
+    table.insert(result,
+      'def/lib32/api-ms-win-crt-filesystem-l1-1-0.def')
+  else
+    table.insert(result,
+      'def/api-ms-win-crt-filesystem-l1-1-0.def')
+  end
+
+  return result
+end
+
 target('alias-short-ucrt')
-  on_build(build_short_import_library('def/api-ms-win-crt-stdio-l1-1-0.def'))
+  on_build(build_short_import_library(ucrt_def_files()))
   set_kind('static')
 
 target('overlay-ucrt')
@@ -88,7 +106,7 @@ target('overlay-ucrt')
   end
 
 target('alias-short-utf8-ucrt')
-  on_build(build_short_import_library('def/api-ms-win-crt-stdio-l1-1-0.def'))
+  on_build(build_short_import_library(ucrt_def_files()))
   set_enabled(has_config('u8crt'))
   set_kind('static')
 
@@ -100,7 +118,7 @@ target('overlay-utf8-ucrt')
   set_enabled(has_config('u8crt'))
 
 target('alias-long-ucrt')
-  on_build(build_long_import_library('def/api-ms-win-crt-stdio-l1-1-0.def'))
+  on_build(build_long_import_library(ucrt_def_files()))
   set_kind('static')
   skip_install()
 

@@ -8,25 +8,37 @@ EXPORTS
   __ms__chmod == _chmod
   __ms__fstat32 == _fstat
   __ms__fstat32i64 == _fstati64
+  __ms__fstat64 == _fstat64
   __ms__mkdir == _mkdir
   __ms__stat32 == _stat
   __ms__stat32i64 == _stati64
   __ms__unlink == _unlink
   __ms__wchdir == _wchdir
   __ms__wchmod == _wchmod
+  __ms__wfindfirst == _wfindfirst
   __ms__wfindfirst32 == _wfindfirst
   __ms__wfindfirst32i64 == _wfindfirsti64
+  __ms__wfindfirsti64 == _wfindfirsti64
+  __ms__wfindnext == _wfindnext
   __ms__wfindnext32 == _wfindnext
   __ms__wfindnext32i64 == _wfindnexti64
+  __ms__wfindnexti64 == _wfindnexti64
   __ms__wfullpath == _wfullpath
   __ms__wmkdir == _wmkdir
   __ms__wrename == _wrename
   __ms__wremove == _wremove
   __ms__wstat32 == _wstat
   __ms__wstat32i64 == _wstati64
+  __ms__wstat64 == _wstat64
+  __ms__wstati64 == _wstati64
   __ms__wunlink == _wunlink
+  __ms__wutime == _wutime
   __ms_rename == rename
   __ms_remove == remove
+
+  ; heap
+  __ms__aligned_free == _aligned_free
+  __ms__aligned_malloc == _aligned_malloc
 
   ; runtime
   __ms__beginthreadex == _beginthreadex

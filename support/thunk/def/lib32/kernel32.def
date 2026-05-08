@@ -1,5 +1,6 @@
 LIBRARY kernel32.dll
 EXPORTS
+  __ms_AddVectoredExceptionHandler@8 == AddVectoredExceptionHandler
   __ms_CopyFileA@12 == CopyFileA
   __ms_CopyFileExA@24 == CopyFileExA
   __ms_CopyFileExW@24 == CopyFileExW
@@ -10,6 +11,7 @@ EXPORTS
   __ms_CreateEventW@16 == CreateEventW
   __ms_CreateFileA@28 == CreateFileA
   __ms_CreateFileW@28 == CreateFileW
+  __ms_CreateHardLinkW@12 == CreateHardLinkW
   __ms_CreateProcessA@40 == CreateProcessA
   __ms_CreateProcessW@40 == CreateProcessW
   __ms_CreateSemaphoreA@16 == CreateSemaphoreA
@@ -21,8 +23,11 @@ EXPORTS
   __ms_DeleteFileW@4 == DeleteFileW
   __ms_FindFirstFileA@8 == FindFirstFileA
   __ms_FindFirstFileW@8 == FindFirstFileW
+  __ms_FindFirstVolumeW@8 == FindFirstVolumeW
   __ms_FindNextFileA@8 == FindNextFileA
   __ms_FindNextFileW@8 == FindNextFileW
+  __ms_FindNextVolumeW@12 == FindNextVolumeW
+  __ms_FindVolumeClose@4 == FindVolumeClose
   __ms_FreeEnvironmentStringsA@4 == FreeEnvironmentStringsA
   __ms_FreeEnvironmentStringsW@4 == FreeEnvironmentStringsW
   __ms_GetCurrentDirectoryA@8 == GetCurrentDirectoryA
@@ -35,13 +40,19 @@ EXPORTS
   __ms_GetFileAttributesExA@12 == GetFileAttributesExA
   __ms_GetFileAttributesExW@12 == GetFileAttributesExW
   __ms_GetFileAttributesW@4 == GetFileAttributesW
+  __ms_GetFileSizeEx@8 == GetFileSizeEx
   __ms_GetFullPathNameA@16 == GetFullPathNameA
   __ms_GetFullPathNameW@16 == GetFullPathNameW
+  __ms_GetGeoInfoW@20 == GetGeoInfoW
   __ms_GetHandleInformation@8 == GetHandleInformation
   __ms_GetModuleFileNameA@12 == GetModuleFileNameA
   __ms_GetModuleFileNameW@12 == GetModuleFileNameW
+  __ms_GetModuleHandleExA@12 == GetModuleHandleExA
+  __ms_GetModuleHandleExW@12 == GetModuleHandleExW
   __ms_GetTempPathA@8 == GetTempPathA
   __ms_GetTempPathW@8 == GetTempPathW
+  __ms_GetUserGeoID@4 == GetUserGeoID
+  __ms_IsDebuggerPresent@0 == IsDebuggerPresent
   __ms_LCMapStringW@24 == LCMapStringW
   __ms_LoadLibraryA@4 == LoadLibraryA
   __ms_LoadLibraryW@4 == LoadLibraryW
@@ -53,6 +64,7 @@ EXPORTS
   __ms_MultiByteToWideChar@24 == MultiByteToWideChar
   __ms_RemoveDirectoryA@4 == RemoveDirectoryA
   __ms_RemoveDirectoryW@4 == RemoveDirectoryW
+  __ms_RemoveVectoredExceptionHandler@4 == RemoveVectoredExceptionHandler
   __ms_SearchPathA@24 == SearchPathA
   __ms_SearchPathW@24 == SearchPathW
   __ms_SetCurrentDirectoryA@4 == SetCurrentDirectoryA
@@ -60,6 +72,7 @@ EXPORTS
   __ms_SetEnvironmentVariableA@8 == SetEnvironmentVariableA
   __ms_SetEnvironmentVariableW@8 == SetEnvironmentVariableW
   __ms_SetHandleInformation@12 == SetHandleInformation
+  __ms_SetProcessAffinityMask@8 == SetProcessAffinityMask
   __ms_TryEnterCriticalSection@4 == TryEnterCriticalSection
   __ms_UnlockFileEx@20 == UnlockFileEx
   __ms_WideCharToMultiByte@32 == WideCharToMultiByte

@@ -1,0 +1,6 @@
+LIBRARY api-ms-win-crt-environment-l1-1-0.dll
+EXPORTS
+  __ms___p__environ == __p__environ
+  __ms__putenv == _putenv
+  __ms_getenv == getenv
+  __ms_putenv == _putenv

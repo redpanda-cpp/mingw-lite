@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 import io
+import json
 import libarchive
 import logging
 import struct
@@ -188,12 +189,16 @@ def process_single_import_library(
   imp0: Path,
   imp: Path,
   assert_thunk_free: bool,
-):
+  assert_thunk_revertible: bool,
+) -> Dict[str, str]:
   dynamic: Dict[str, ImportSymbols] = {}
-  static = set()
+  static: Set[str] = set()
 
-  overlay_symbols = set()
-  overlay_force_override = set()
+  overlay_symbols: Set[str] = set()
+  overlay_force_override: Set[str] = set()
+
+  # target CRT: `__ms_` symbols to revert thunks
+  revert_symbols: Set[str] = set()
 
   if overlay:
     with libarchive.file_reader(str(overlay.static)) as archive:
@@ -243,10 +248,17 @@ def process_single_import_library(
                 if dll not in dynamic:
                   dynamic[dll] = ImportSymbols(set(), set())
                 dynamic[dll].alias.add(AliasImportSymbol(n, ImportKind.CODE, t))
+                if n.startswith('__ms_'):
+                  revert_symbols.add(n[5:])
 
     if assert_thunk_free:
       if overlay_symbols:
-        raise AssertionError('ABI stability broken')
+        raise AssertionError(f'ABI stability broken: {overlay_symbols}')
+
+    if assert_thunk_revertible:
+      non_revertible = overlay_symbols - revert_symbols
+      if non_revertible:
+        raise AssertionError(f'Non-revertible thunks: {non_revertible}')
 
     if not overlay_symbols:
       overlay = None
@@ -408,18 +420,24 @@ def process_single_import_library(
         stdin = f,
       )
 
+  return {name: f'__ms_{name}' for name in sorted(overlay_symbols)}
+
 def postprocess_crt_import_libraries(
   ver: BranchProfile,
   thunk_lib_dir: Path,
   crt0_lib_dir: Path,
   crt_lib_dir: Path,
   assert_thunk_free: bool,
+  assert_thunk_revertible: bool,
   jobs: int,
-):
+) -> Dict[str, Dict[str, str]]:
   ensure(crt_lib_dir)
+
+  thunk_map: Dict[str, Dict[str, str]] = {}
 
   with ThreadPoolExecutor(max_workers = jobs) as executor:
     futures = []
+    lib_names = []
 
     for imp0 in crt0_lib_dir.glob('*'):
       assert(imp0.is_file())
@@ -439,10 +457,23 @@ def postprocess_crt_import_libraries(
         imp = crt_lib_dir / file_name
         futures.append(executor.submit(
           process_single_import_library,
-          ver, overlay, imp0, imp, assert_thunk_free,
+          ver, overlay, imp0, imp, assert_thunk_free, assert_thunk_revertible,
         ))
+        lib_names.append(lib_name)
       else:
         shutil.copy2(imp0, crt_lib_dir / file_name)
 
-    for future in futures:
-      future.result()
+    for lib_name, future in zip(lib_names, futures):
+      result = future.result()
+      if result:
+        thunk_map[lib_name] = result
+
+  return thunk_map
+
+def generate_thunk_revert_map(thunk_map: Dict[str, Dict[str, str]], output_path: Path):
+  if not thunk_map:
+    return
+  ensure(output_path.parent)
+  with open(output_path, 'w') as f:
+    json.dump(thunk_map, f, indent=2, sort_keys=True)
+    f.write('\n')

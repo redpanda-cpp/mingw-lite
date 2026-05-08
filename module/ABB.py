@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from typing import List, Optional
 
-from module.alt_crt import postprocess_crt_import_libraries
+from module.alt_crt import generate_thunk_revert_map, postprocess_crt_import_libraries
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
@@ -248,12 +248,13 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     # Post-process import libraries to handle weak symbol aliases
     # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
     # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
-    postprocess_crt_import_libraries(
+    thunk_map = postprocess_crt_import_libraries(
       ver,
       thunk_lib_dir,
       crt0_lib_dir,
       crt_lib_dir,
       assert_thunk_free = ver.thunk_free,
+      assert_thunk_revertible = True,
       jobs = config.jobs,
     )
 
@@ -266,6 +267,11 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     crt0_inc_dir = paths.layer_ABB.crt0 / 'include'
     crt_inc_dir = paths.layer_ABB.crt / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
+
+  generate_thunk_revert_map(
+    thunk_map,
+    paths.layer_ABB.crt / 'share/doc/crt/thunk-revert-map.json',
+  )
 
   license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
   ensure(license_dir)

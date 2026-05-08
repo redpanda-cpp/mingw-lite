@@ -10,7 +10,7 @@
   - The toolchain provides optional shared runtime libraries.
   - To opt-in shared runtime libraries, copy `$prefix/lib/shared/*` or `$prefix/lib/shared-unstable/*` to `$prefix/`.
   - Do not mix shared runtime libraries from different branches or profiles.
-  - If the shared runtime libraries are marked “unstable”, do not mix them from different release versions.
+  - If the shared runtime libraries are marked “unstable” (i.e. branch is not frozen, or [thunks](./doc/thunk.md) are applied to target CRT), do not mix them from different release versions.
 - Cross toolchain: tools are built for Ubuntu 20.04 (glibc 2.31) and organized by package. Mount required packages to `/usr/local`:
   ```bash
   layers=(
@@ -87,7 +87,7 @@ To work with even older CPUs, there are “32”-bit “i686” (cmov, 1995), �
 
 The default `_WIN32_WINNT` value for each branch is based on the earliest Windows version that is supported at the freeze point, the winter solstice after GCC’s release. (Currently 0x0A00 for all branches.)
 
-Python (GDB scripting engine) often limits the toolchain’s minimum supported OS. However, Python is sometimes a bit aggressive, so we use some thunks to bring back support for earlier Windows versions. The minimum supported OS is the one where the shared runtime libraries are thunk-free.
+Python (GDB scripting engine) often limits the toolchain’s minimum supported OS. However, Python is sometimes a bit aggressive, so we use some [thunks](./doc/thunk.md) to bring back support for earlier Windows versions. The minimum supported OS is the one where the shared runtime libraries are thunk-free.
 
 | Profile | Minimum supported OS |
 | ------- | -------------------- |
@@ -110,8 +110,6 @@ Limitations on Windows 95:
 - Prerequisite: Windows socket 2 update (for `msvcrt.dll` and `ws2_32.dll`).
 - GCC needs `-fno-lto` to prevent dynamically loading the DLL that has static TLS. ([KB118816](./doc/kb-118816.md))
 - Atomic operations will introduce observable overhead by calling libatomic subroutines.
-
-**Technical notes**: inspired by [YY-Thunks](https://github.com/Chuyu-Team/YY-Thunks), our legacy OS support is achieved by thunks. A thunk is small piece of code that wrap the original Win32 or CRT function, providing alternative implementation when the function is not available on the target OS. Absolutely necessary thunks that support C++ standard library are built into import libraries. No extra operation is required.
 
 ## Beyond MinGW Lite
 

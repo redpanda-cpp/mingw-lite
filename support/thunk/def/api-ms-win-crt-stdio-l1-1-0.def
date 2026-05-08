@@ -2,17 +2,24 @@ LIBRARY api-ms-win-crt-stdio-l1-1-0.dll
 EXPORTS
   __ms___stdio_common_vfprintf == __stdio_common_vfprintf
   __ms___stdio_common_vfscanf == __stdio_common_vfscanf
+  __ms__getcwd == _getcwd
+  __ms__open == _open
   __ms__read == _read
   __ms__write == _write
   __ms_fflush == fflush
   __ms_fgetc == fgetc
   __ms_fgets == fgets
+  __ms_fopen == fopen
   __ms_fputc == fputc
   __ms_fputs == fputs
   __ms_fread == fread
   __ms_fwrite == fwrite
   __ms_getc == getc
   __ms_getchar == getchar
+  __ms_getcwd == _getcwd
+  __ms_open == _open
   __ms_putc == putc
   __ms_puts == puts
+  __ms_read == _read
   __ms_ungetc == ungetc
+  __ms_write == _write

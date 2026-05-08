@@ -6,7 +6,7 @@ import shutil
 import subprocess
 from typing import List
 
-from module.alt_crt import postprocess_crt_import_libraries
+from module.alt_crt import generate_thunk_revert_map, postprocess_crt_import_libraries
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
@@ -314,6 +314,7 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       crt0_lib_dir,
       crt_lib_dir,
       assert_thunk_free = False,
+      assert_thunk_revertible = False,
       jobs = config.jobs,
     )
 
@@ -387,12 +388,13 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     # Post-process import libraries to handle weak symbol aliases
     # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
     # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
-    postprocess_crt_import_libraries(
+    thunk_map = postprocess_crt_import_libraries(
       ver,
       thunk_lib_dir,
       crt0_lib_dir,
       crt_lib_dir,
       assert_thunk_free = ver.thunk_free,
+      assert_thunk_revertible = True,
       jobs = config.jobs,
     )
 
@@ -405,6 +407,11 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     crt0_inc_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'include'
     crt_inc_dir = paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
+
+  generate_thunk_revert_map(
+    thunk_map,
+    paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'share/doc/crt/thunk-revert-map.json',
+  )
 
 def _utf8(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.build_dir / 'utf8'
