@@ -12,27 +12,34 @@ from module.path import ProjectPaths
 from module.profile import BranchProfile
 from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, ensure, extract_shared_libs, overlayfs_ro, touch
 from module.util import cflags_A, cflags_B, configure, make_custom, make_default, make_destdir_install
+from module.util import cmake_build, cmake_config, cmake_flags_B, cmake_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
 from module.util import xmake_build, xmake_config, xmake_install
 
 def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.binutils / 'build-AAB'
   ensure(build_dir)
-  configure(build_dir, [
-    f'--prefix=/usr/local',
-    f'--target={ver.target}',
-    f'--build={config.build}',
-    # prefer static
-    '--disable-shared',
-    '--enable-static',
-    # features
-    '--disable-install-libbfd',
-    '--disable-multilib',
-    '--disable-nls',
-    *cflags_A(),
-  ])
-  make_default(build_dir, config.jobs)
-  make_destdir_install(build_dir, paths.layer_AAB.binutils)
+
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.zlib / 'usr/local',
+  ]):
+    configure(build_dir, [
+      f'--prefix=/usr/local',
+      f'--target={ver.target}',
+      f'--build={config.build}',
+      # prefer static
+      '--disable-shared',
+      '--enable-static',
+      # features
+      '--disable-install-libbfd',
+      '--disable-multilib',
+      '--disable-nls',
+      # packages
+      '--with-system-zlib',
+      *cflags_A(),
+    ])
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.binutils)
 
 def _headers_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.mingw / 'mingw-w64-headers' / 'build-AAB'
@@ -62,6 +69,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAA.gmp / 'usr/local',
     paths.layer_AAA.mpc / 'usr/local',
     paths.layer_AAA.mpfr / 'usr/local',
+    paths.layer_AAA.zlib / 'usr/local',
 
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
@@ -98,6 +106,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       # packages
       f'--with-arch={ver.march}',
       '--without-libcc1',
+      '--with-system-zlib',
       '--with-tune=generic',
       *config_flags,
       *cflags_A(),
@@ -751,6 +760,39 @@ def _pdcurses(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     ensure(include_dir)
     shutil.copy(paths.src_dir.pdcurses / 'curses.h', include_dir / 'curses.h')
 
+def _zlib_net(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.crt_host / 'usr/local',
+    *common_cross_layers(paths),
+  ]):
+    build_dir = 'build-AAB'
+    cmake_config(
+      paths.src_dir.zlib_net,
+      extra_args = [
+        f'-DCMAKE_TOOLCHAIN_FILE={paths.cmake_cross_file}',
+        f'-DCMAKE_INSTALL_PREFIX=/usr/local/{ver.target}',
+        '-DZLIB_BUILD_TESTING=OFF',
+        '-DZLIB_BUILD_SHARED=OFF',
+        *cmake_flags_B(
+          optimize_for_speed = ver.opt_speed,
+        ),
+      ],
+      build_dir = build_dir,
+    )
+    cmake_build(
+      paths.src_dir.zlib_net,
+      jobs = config.jobs,
+      build_dir = build_dir,
+    )
+    cmake_install(
+      paths.src_dir.zlib_net,
+      destdir = paths.layer_AAB.zlib,
+      build_dir = build_dir,
+    )
+
+  lib_dir = paths.layer_AAB.zlib / 'usr/local' / ver.target / 'lib'
+  shutil.move(lib_dir / 'libzs.a', lib_dir / 'libz.a')
+
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v_gcc = Version(ver.gcc)
 
@@ -760,6 +802,8 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
 
     paths.layer_AAB.crt_host / 'usr/local',
     *common_cross_layers(paths),
+
+    paths.layer_AAB.zlib / 'usr/local',
   ]):
     src_dir = paths.src_dir.python
 
@@ -812,4 +856,5 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
     _iconv_gnu(ver, paths, config)
   _intl(ver, paths, config)
   _pdcurses(ver, paths, config)
+  _zlib_net(ver, paths, config)
   _python(ver, paths, config)

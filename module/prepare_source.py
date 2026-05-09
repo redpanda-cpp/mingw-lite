@@ -444,29 +444,28 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     return
 
   if check_and_extract(paths.src_dir.python, paths.src_arx.python):
-    ver = Version(ver.python)
+    v = Version(ver.python)
 
     # Fix static build
-    if ver >= Version('3.14'):
-      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-static-build.patch')
+    if v >= Version('3.14'):
+      patch(paths.src_dir.python, paths.patch_dir / 'python/fix-static-build.patch')
 
     # Fix thread touch last error
     # https://github.com/python/cpython/pull/104531
-    if ver >= Version('3.12') and ver < Version('3.13'):
-      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-thread-touch-last-error_3.12.patch')
+    if v >= Version('3.12') and v < Version('3.13'):
+      patch(paths.src_dir.python, paths.patch_dir / 'python/fix-thread-touch-last-error_3.12.patch')
 
     # Alternative build system
-    os.symlink(paths.src_dir.z, paths.src_dir.python / 'zlib', target_is_directory = True)
-    if ver >= Version('3.14'):
-      shutil.copy(paths.patch_dir / 'python' / 'xmake_3.14.lua', paths.src_dir.python / 'xmake.lua')
-      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.14.patch')
-    elif ver >= Version('3.13'):
-      shutil.copy(paths.patch_dir / 'python' / 'xmake_3.13.lua', paths.src_dir.python / 'xmake.lua')
-      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.13.patch')
+    if v >= Version('3.14'):
+      shutil.copy(paths.patch_dir / 'python/xmake_3.14.lua', paths.src_dir.python / 'xmake.lua')
+      patch(paths.src_dir.python, paths.patch_dir / 'python/fix-mingw-build_3.14.patch')
+    elif v >= Version('3.13'):
+      shutil.copy(paths.patch_dir / 'python/xmake_3.13.lua', paths.src_dir.python / 'xmake.lua')
+      patch(paths.src_dir.python, paths.patch_dir / 'python/fix-mingw-build_3.13.patch')
     else:
-      shutil.copy(paths.patch_dir / 'python' / 'xmake_3.12.lua', paths.src_dir.python / 'xmake.lua')
-      patch(paths.src_dir.python, paths.patch_dir / 'python' / 'fix-mingw-build_3.12.patch')
-    shutil.copy(paths.patch_dir / 'python' / 'python-config.sh', paths.src_dir.python / 'python-config.sh')
+      shutil.copy(paths.patch_dir / 'python/xmake_3.12.lua', paths.src_dir.python / 'xmake.lua')
+      patch(paths.src_dir.python, paths.patch_dir / 'python/fix-mingw-build_3.12.patch')
+    shutil.copy(paths.patch_dir / 'python/python-config.sh', paths.src_dir.python / 'python-config.sh')
 
     patch_done(paths.src_dir.python)
 
@@ -533,14 +532,14 @@ def _xmake(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
 
     patch_done(paths.src_dir.xmake)
 
-def _z(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  url = f'https://github.com/madler/zlib/releases/download/v{ver.z}/{paths.src_arx.z.name}'
-  validate_and_download(paths.src_arx.z, url)
+def _zlib_net(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://github.com/madler/zlib/releases/download/v{ver.zlib_net}/{paths.src_arx.zlib_net.name}'
+  validate_and_download(paths.src_arx.zlib_net, url)
   if download_only:
     return
 
-  check_and_extract(paths.src_dir.z, paths.src_arx.z)
-  patch_done(paths.src_dir.z)
+  check_and_extract(paths.src_dir.zlib_net, paths.src_arx.zlib_net)
+  patch_done(paths.src_dir.zlib_net)
 
 def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   _atomic_bootstrap(ver, paths)
@@ -569,4 +568,4 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _setuptools(ver, paths, download_only)
   _thunk(ver, paths)
   _xmake(ver, paths, download_only)
-  _z(ver, paths, download_only)
+  _zlib_net(ver, paths, download_only)

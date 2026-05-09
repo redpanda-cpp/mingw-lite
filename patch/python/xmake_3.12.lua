@@ -8,7 +8,6 @@ add_defines(
   '_UNICODE',
   '_WIN32_WINNT=0x0602')
 add_includedirs(
-  '$(buildir)',
   'Include',
   'PC')
 
@@ -34,16 +33,15 @@ target('pythoncore')
     'bcrypt',
     'pathcch',
     'version',
-    'ws2_32')
+    'ws2_32',
+    'z')
   add_defines(
     'Py_BUILD_CORE',
     'Py_BUILD_CORE_BUILTIN',
     '_Py_HAVE_ZLIB')
   add_includedirs(
     'Include/internal',
-    'Include/internal/mimalloc',
-    'Modules/_hacl/include',
-    'zlib')
+    'Modules/_hacl/include')
   add_headerfiles(
     'PC/pyconfig.h',
     'Include/*.h',
@@ -261,20 +259,8 @@ target('pythoncore')
   add_files(
     'Python/thread.c',
     'Python/traceback.c',
-    'Python/tracemalloc.c')
-  add_files(
-    'Modules/zlibmodule.c',
-    'zlib/adler32.c',
-    'zlib/compress.c',
-    'zlib/crc32.c',
-    'zlib/deflate.c',
-    'zlib/infback.c',
-    'zlib/inffast.c',
-    'zlib/inflate.c',
-    'zlib/inftrees.c',
-    'zlib/trees.c',
-    'zlib/uncompr.c',
-    'zlib/zutil.c')
+    'Python/tracemalloc.c',
+    'Modules/zlibmodule.c')
 
   on_config(function (target)
     local deepfreeze_modules = {

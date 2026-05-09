@@ -1,3 +1,41 @@
+diff --git a/Include/internal/pycore_condvar.h b/Include/internal/pycore_condvar.h
+index 2177bed31fc..7ad87da9b02 100644
+--- a/Include/internal/pycore_condvar.h
++++ b/Include/internal/pycore_condvar.h
+@@ -5,6 +5,10 @@
+ #  error "this header requires Py_BUILD_CORE define"
+ #endif
+ 
++#ifdef NT_THREADS
++#  undef _POSIX_THREADS
++#endif
++
+ #ifndef _POSIX_THREADS
+ /* This means pthreads are not implemented in libc headers, hence the macro
+    not present in unistd.h. But they still can be implemented as an external
+@@ -41,6 +45,7 @@
+ #  define WIN32_LEAN_AND_MEAN
+ #endif
+ #include <windows.h>              // CRITICAL_SECTION
++#undef _POSIX_THREADS
+ 
+ /* options */
+ /* non-emulated condition variables are provided for those that want
+diff --git a/Include/pythread.h b/Include/pythread.h
+index 63714437c49..42bd2adfe44 100644
+--- a/Include/pythread.h
++++ b/Include/pythread.h
+@@ -7,6 +7,10 @@ typedef void *PyThread_type_lock;
+ extern "C" {
+ #endif
+ 
++#ifdef NT_THREADS
++#  undef _POSIX_THREADS
++#endif
++
+ /* Return status codes for Python lock acquisition.  Chosen for maximum
+  * backwards compatibility, ie failure -> 0, success -> 1.  */
+ typedef enum PyLockStatus {
 diff --git a/Modules/_winapi.c b/Modules/_winapi.c
 index ac3ee113ffd..c28c01db120 100644
 --- a/Modules/_winapi.c
@@ -33,10 +71,10 @@ index c21c6f06c72..a8f388706d0 100644
      if (FAILED(ret)) {
          result = Py_BuildValue("sO", "", path->object);
 diff --git a/Python/sysmodule.c b/Python/sysmodule.c
-index 1f7cc655c45..89eb72b1774 100644
+index 6ed28ec5fbd..ea4c09155dc 100644
 --- a/Python/sysmodule.c
 +++ b/Python/sysmodule.c
-@@ -3319,6 +3319,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
+@@ -3432,6 +3432,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
  #ifdef MS_COREDLL
      SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
      SET_SYS_FROM_STRING("winver", PyWin_DLLVersionString);

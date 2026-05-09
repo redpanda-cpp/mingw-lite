@@ -25,7 +25,7 @@ class SourcePaths(NamedTuple):
   python: Path
   setuptools: Path
   xmake: Path
-  z: Path
+  zlib_net: Path
 
 class InTreeSourcePaths(NamedTuple):
   atomic_bootstrap: Path
@@ -41,7 +41,7 @@ class LayerPathsAAA(NamedTuple):
   gmp: Path
   mpc: Path
   mpfr: Path
-  z: Path
+  zlib: Path
 
   meson: Path
   python: Path
@@ -70,6 +70,7 @@ class LayerPathsAAB(NamedTuple):
   winpthreads_bootstrap: Path
   winpthreads: Path
   winpthreads_shared: Path
+  zlib: Path
 
   expat: Path
   gmp: Path
@@ -212,7 +213,7 @@ class ProjectPaths:
       python = f'Python-{ver.python}',
       setuptools = f'setuptools-{ver.setuptools}',
       xmake = f'xmake-{ver.xmake}',
-      z = f'zlib-{ver.z}',
+      zlib_net = f'zlib-{ver.zlib_net}',
     )
 
     self.src_dir = SourcePaths(
@@ -234,7 +235,7 @@ class ProjectPaths:
       python = self.build_dir / src_name.python,
       setuptools = self.build_dir / src_name.setuptools,
       xmake = self.build_dir / src_name.xmake,
-      z = self.build_dir / src_name.z,
+      zlib_net = self.build_dir / src_name.zlib_net,
     )
 
     self.src_arx = SourcePaths(
@@ -260,7 +261,7 @@ class ProjectPaths:
       pkgconf = self.assets_dir / f'{src_name.pkgconf}.tar.gz',
       setuptools = self.assets_dir / f'{src_name.setuptools}.tar.gz',
       xmake = self.assets_dir / f'{src_name.xmake}.tar.gz',
-      z = self.assets_dir / f'{src_name.z}.tar.gz',
+      zlib_net = self.assets_dir / f'{src_name.zlib_net}.tar.gz',
     )
 
     self.in_tree_src_dir = InTreeSourcePaths(
@@ -288,7 +289,7 @@ class ProjectPaths:
       gmp = layer_AAA_prefix / 'gmp',
       mpc = layer_AAA_prefix / 'mpc',
       mpfr = layer_AAA_prefix / 'mpfr',
-      z = layer_AAA_prefix / 'z',
+      zlib = layer_AAA_prefix / 'zlib',
 
       meson = layer_AAA_prefix / 'meson',
       python = layer_AAA_prefix / 'python',
@@ -319,6 +320,7 @@ class ProjectPaths:
       winpthreads_bootstrap = layer_AAB_prefix / 'winpthreads-bootstrap',
       winpthreads = layer_AAB_prefix / 'winpthreads',
       winpthreads_shared = layer_AAB_prefix / 'winpthreads-shared',
+      zlib = layer_AAB_prefix / 'zlib',
 
       expat = layer_AAB_prefix / 'expat',
       gmp = layer_AAB_prefix / 'gmp',

@@ -1,3 +1,30 @@
+diff --git a/Include/internal/pycore_condvar.h b/Include/internal/pycore_condvar.h
+index 55271f0a411..5815a5233c7 100644
+--- a/Include/internal/pycore_condvar.h
++++ b/Include/internal/pycore_condvar.h
+@@ -35,6 +35,7 @@
+ #  define WIN32_LEAN_AND_MEAN
+ #endif
+ #include <windows.h>              // CRITICAL_SECTION
++#undef _POSIX_THREADS
+ 
+ /* options */
+ /* emulated condition variables are provided for those that want
+diff --git a/Include/internal/pycore_pythread.h b/Include/internal/pycore_pythread.h
+index bc389a05e94..a01d8870b95 100644
+--- a/Include/internal/pycore_pythread.h
++++ b/Include/internal/pycore_pythread.h
+@@ -16,6 +16,10 @@ extern "C" {
+                             && !defined(_POSIX_SEMAPHORES))
+ #  include <unistd.h>             // _POSIX_THREADS, _POSIX_SEMAPHORES
+ #endif
++#ifdef NT_THREADS
++#  undef _POSIX_THREADS
++#endif
++
+ #if (defined(HAVE_PTHREAD_H) && !defined(_POSIX_THREADS) \
+                              && !defined(_POSIX_SEMAPHORES))
+    // This means pthreads are not implemented in libc headers, hence the macro
 diff --git a/Include/internal/pycore_time.h b/Include/internal/pycore_time.h
 index 205ac5d3781..c30e07f4b4a 100644
 --- a/Include/internal/pycore_time.h
@@ -26,7 +53,7 @@ index d51586e6025..c5a1ff1c01d 100644
      }
  
 diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
-index 40d0f86e6ae..88b1dcf3856 100644
+index 78a8776c1ca..29ade575560 100644
 --- a/Modules/posixmodule.c
 +++ b/Modules/posixmodule.c
 @@ -43,6 +43,7 @@
@@ -37,7 +64,7 @@ index 40d0f86e6ae..88b1dcf3856 100644
  #endif
  
  #ifndef MS_WINDOWS
-@@ -5144,7 +5145,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
+@@ -5141,7 +5142,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
      }
  
      Py_BEGIN_ALLOW_THREADS
@@ -46,11 +73,19 @@ index 40d0f86e6ae..88b1dcf3856 100644
      Py_END_ALLOW_THREADS
      if (FAILED(ret)) {
          result = Py_BuildValue("sO", "", path->object);
+diff --git a/PC/pyconfig.h b/PC/pyconfig.h
+new file mode 120000
+index 00000000000..43b36d7a6ad
+--- /dev/null
++++ b/PC/pyconfig.h
+@@ -0,0 +1 @@
++pyconfig.h.in
+\ No newline at end of file
 diff --git a/Python/sysmodule.c b/Python/sysmodule.c
-index 9cf4a580d44..106661305a7 100644
+index 8d47177340d..f41f25aa693 100644
 --- a/Python/sysmodule.c
 +++ b/Python/sysmodule.c
-@@ -3522,6 +3522,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
+@@ -3636,6 +3636,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
  #ifdef MS_COREDLL
      SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
      SET_SYS_FROM_STRING("winver", PyWin_DLLVersionString);

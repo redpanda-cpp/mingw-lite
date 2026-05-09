@@ -1,3 +1,30 @@
+diff --git a/Include/internal/pycore_condvar.h b/Include/internal/pycore_condvar.h
+index 55271f0a411..5815a5233c7 100644
+--- a/Include/internal/pycore_condvar.h
++++ b/Include/internal/pycore_condvar.h
+@@ -35,6 +35,7 @@
+ #  define WIN32_LEAN_AND_MEAN
+ #endif
+ #include <windows.h>              // CRITICAL_SECTION
++#undef _POSIX_THREADS
+ 
+ /* options */
+ /* emulated condition variables are provided for those that want
+diff --git a/Include/internal/pycore_pythread.h b/Include/internal/pycore_pythread.h
+index 8457b07340f..d3e48fd706c 100644
+--- a/Include/internal/pycore_pythread.h
++++ b/Include/internal/pycore_pythread.h
+@@ -16,6 +16,10 @@ extern "C" {
+                             && !defined(_POSIX_SEMAPHORES))
+ #  include <unistd.h>             // _POSIX_THREADS, _POSIX_SEMAPHORES
+ #endif
++#ifdef NT_THREADS
++#  undef _POSIX_THREADS
++#endif
++
+ #if (defined(HAVE_PTHREAD_H) && !defined(_POSIX_THREADS) \
+                              && !defined(_POSIX_SEMAPHORES))
+    // This means pthreads are not implemented in libc headers, hence the macro
 diff --git a/Include/internal/pycore_time.h b/Include/internal/pycore_time.h
 index 23312471c65..50ef661fa32 100644
 --- a/Include/internal/pycore_time.h
@@ -13,10 +40,10 @@ index 23312471c65..50ef661fa32 100644
  #define _SIZEOF_PYTIME_T 8
  
 diff --git a/Modules/_threadmodule.c b/Modules/_threadmodule.c
-index 1389a1ef2c1..75daa3a8542 100644
+index 32110090feb..09f339eda65 100644
 --- a/Modules/_threadmodule.c
 +++ b/Modules/_threadmodule.c
-@@ -2485,7 +2485,7 @@ _thread__get_name_impl(PyObject *module)
+@@ -2486,7 +2486,7 @@ _thread__get_name_impl(PyObject *module)
      assert(pGetThreadDescription != NULL);
  
      wchar_t *name;
@@ -26,7 +53,7 @@ index 1389a1ef2c1..75daa3a8542 100644
          PyErr_SetFromWindowsErr(0);
          return NULL;
 diff --git a/Modules/blake2module.c b/Modules/blake2module.c
-index ae37e2d3383..4a3c319684b 100644
+index e31fa8131f1..dadafb76c43 100644
 --- a/Modules/blake2module.c
 +++ b/Modules/blake2module.c
 @@ -33,10 +33,10 @@
@@ -66,7 +93,7 @@ index ae37e2d3383..4a3c319684b 100644
      (void) eax1; (void) ebx1; (void) ecx1; (void) edx1;
      (void) eax7; (void) ebx7; (void) ecx7; (void) edx7;
 diff --git a/Modules/hmacmodule.c b/Modules/hmacmodule.c
-index 8cd470f4f80..619862a5c35 100644
+index 8a0b3496b1a..d645867e8ec 100644
 --- a/Modules/hmacmodule.c
 +++ b/Modules/hmacmodule.c
 @@ -24,10 +24,10 @@
@@ -84,7 +111,7 @@ index 8cd470f4f80..619862a5c35 100644
  #endif
  
  #if defined(__APPLE__) && defined(__arm64__)
-@@ -1714,10 +1714,7 @@ hmacmodule_init_cpu_features(hmacmodule_state *state)
+@@ -1717,10 +1717,7 @@ hmacmodule_init_cpu_features(hmacmodule_state *state)
  {
      int eax1 = 0, ebx1 = 0, ecx1 = 0, edx1 = 0;
      int eax7 = 0, ebx7 = 0, ecx7 = 0, edx7 = 0;
@@ -96,7 +123,7 @@ index 8cd470f4f80..619862a5c35 100644
      int info1[4] = { 0 };
      __cpuidex(info1, 1, 0);
      eax1 = info1[0], ebx1 = info1[1], ecx1 = info1[2], edx1 = info1[3];
-@@ -1725,6 +1722,9 @@ hmacmodule_init_cpu_features(hmacmodule_state *state)
+@@ -1728,6 +1725,9 @@ hmacmodule_init_cpu_features(hmacmodule_state *state)
      int info7[4] = { 0 };
      __cpuidex(info7, 7, 0);
      eax7 = info7[0], ebx7 = info7[1], ecx7 = info7[2], edx7 = info7[3];
@@ -107,7 +134,7 @@ index 8cd470f4f80..619862a5c35 100644
      // fmt: off
      (void)eax1; (void)ebx1; (void)ecx1; (void)edx1;
 diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
-index 6e878e3de37..b26104ad928 100644
+index 31b2d28200c..1e36047631d 100644
 --- a/Modules/posixmodule.c
 +++ b/Modules/posixmodule.c
 @@ -219,6 +219,7 @@
@@ -118,7 +145,7 @@ index 6e878e3de37..b26104ad928 100644
  #endif
  
  
-@@ -5239,7 +5240,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
+@@ -5245,7 +5246,7 @@ os__path_splitroot_impl(PyObject *module, path_t *path)
      }
  
      Py_BEGIN_ALLOW_THREADS
@@ -128,10 +155,10 @@ index 6e878e3de37..b26104ad928 100644
      if (FAILED(ret)) {
          result = Py_BuildValue("sO", "", path->object);
 diff --git a/Python/sysmodule.c b/Python/sysmodule.c
-index a7280c0da2e..261b14340eb 100644
+index c97042c99fa..717880b06a7 100644
 --- a/Python/sysmodule.c
 +++ b/Python/sysmodule.c
-@@ -3856,6 +3856,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
+@@ -3867,6 +3867,8 @@ _PySys_InitCore(PyThreadState *tstate, PyObject *sysdict)
  #ifdef MS_COREDLL
      SET_SYS("dllhandle", PyLong_FromVoidPtr(PyWin_DLLhModule));
      SET_SYS_FROM_STRING("winver", PyWin_DLLVersionString);
@@ -141,10 +168,10 @@ index a7280c0da2e..261b14340eb 100644
  #ifdef ABIFLAGS
      SET_SYS_FROM_STRING("abiflags", ABIFLAGS);
 diff --git a/Python/traceback.c b/Python/traceback.c
-index 86273da3c8a..e1d709918c3 100644
+index c8c13d16d4c..d3f4f9e6628 100644
 --- a/Python/traceback.c
 +++ b/Python/traceback.c
-@@ -1218,7 +1218,7 @@ write_thread_name(int fd, PyThreadState *tstate)
+@@ -1221,7 +1221,7 @@ write_thread_name(int fd, PyThreadState *tstate)
      }
  
      wchar_t *name;

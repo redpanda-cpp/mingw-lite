@@ -9,6 +9,7 @@ from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
 from module.util import cflags_A, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro
+from module.util import cmake_build, cmake_config, cmake_flags_A, cmake_install
 
 def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.gmp / 'build-AAA'
@@ -60,25 +61,38 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAA.mpc)
 
-def _z(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  build_dir = paths.src_dir.z / 'build-AAA'
-  ensure(build_dir)
-  configure(build_dir, [
-    '--prefix=/usr/local',
-    '--static',
-  ])
-  make_default(build_dir, config.jobs)
-  make_destdir_install(build_dir, paths.layer_AAA.z)
+def _zlib_net(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  build_dir = 'build-AAA'
+  cmake_config(
+    paths.src_dir.zlib_net,
+    extra_args = [
+      '-DCMAKE_INSTALL_PREFIX=/usr/local',
+      '-DZLIB_BUILD_TESTING=OFF',
+      '-DZLIB_BUILD_SHARED=OFF',
+      *cmake_flags_A(),
+    ],
+    build_dir = build_dir,
+  )
+  cmake_build(
+    paths.src_dir.zlib_net,
+    jobs = config.jobs,
+    build_dir = build_dir,
+  )
+  cmake_install(
+    paths.src_dir.zlib_net,
+    destdir = paths.layer_AAA.zlib,
+    build_dir = build_dir,
+  )
 
 def build_AAA_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _gmp(ver, paths, config)
   _mpfr(ver, paths, config)
   _mpc(ver, paths, config)
-  _z(ver, paths, config)
+  _zlib_net(ver, paths, config)
 
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
-    paths.layer_AAA.z / 'usr/local',
+    paths.layer_AAA.zlib / 'usr/local',
   ]):
     build_dir = paths.src_dir.python / 'build-AAA'
     ensure(build_dir)
@@ -98,7 +112,7 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
 
 def _setuptools(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
-    paths.layer_AAA.z / 'usr/local',
+    paths.layer_AAA.zlib / 'usr/local',
     paths.layer_AAA.python / 'usr/local',
   ]):
     subprocess.run([
@@ -111,7 +125,7 @@ def _setuptools(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
 
 def _meson(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
-    paths.layer_AAA.z / 'usr/local',
+    paths.layer_AAA.zlib / 'usr/local',
     paths.layer_AAA.python / 'usr/local',
     paths.layer_AAA.setuptools / 'usr/local',
   ]):

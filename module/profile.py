@@ -29,7 +29,7 @@ class BranchVersions:
   pdcurses: str
   pkgconf: str
   python: str
-  z: str
+  zlib_net: str
 
   display_version: Optional[str] = None
 
@@ -96,7 +96,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     pkgconf = '2.5.1',
     python = '3.14.4',
-    z = '1.3.2',
+    zlib_net = '1.3.2',
   ),
   'current': BranchVersions(
     gcc = '16-20260502',
@@ -124,7 +124,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     pkgconf = '2.5.1',
     python = '3.14.4',
-    z = '1.3.2',
+    zlib_net = '1.3.2',
   ),
   '16': BranchVersions(
     gcc = '16.1.0',
@@ -151,7 +151,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     pkgconf = '2.5.1',
     python = '3.14.4',
-    z = '1.3.2',
+    zlib_net = '1.3.2',
   ),
   '15': BranchVersions(
     gcc = '15.2.0',
@@ -180,7 +180,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     pkgconf = '2.5.1',
     python = '3.14.4',
-    z = '1.3.2',
+    zlib_net = '1.3.2',
   ),
   '14': BranchVersions(
     gcc = '14.3.0',
@@ -209,7 +209,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     pkgconf = '2.3.0',
     python = '3.13.13',
-    z = '1.3.2',
+    zlib_net = '1.3.2',
   ),
   '13': BranchVersions(
     gcc = '13.4.0',
@@ -239,7 +239,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pdcurses = '3.9',
     pkgconf = '2.1.1',
     python = '3.12.13',
-    z = '1.3.2',
+    zlib_net = '1.3.2',
   ),
 }
 

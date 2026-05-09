@@ -92,6 +92,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     paths.layer_AAB.utf8 / 'usr/local',
 
     paths.layer_AAB.crt_host / 'usr/local',
+    paths.layer_AAB.zlib / 'usr/local',
     *common_cross_layers(paths),
 
     paths.layer_AAB.intl / 'usr/local',
@@ -111,6 +112,8 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       '--disable-install-libbfd',
       '--disable-multilib',
       '--enable-nls',
+      # packages
+      '--with-system-zlib',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
         optimize_for_speed = ver.opt_speed,
@@ -443,6 +446,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.mpc / 'usr/local',
     paths.layer_AAB.iconv / 'usr/local',
     paths.layer_AAB.intl / 'usr/local',
+    paths.layer_AAB.zlib / 'usr/local',
   ]):
     config_flags: List[str] = []
 
@@ -480,6 +484,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       f'--with-arch={ver.march}',
       '--without-libcc1',
       '--with-libiconv',
+      '--with-system-zlib',
       '--with-tune=generic',
       *config_flags,
       *cflags_B(
@@ -565,6 +570,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.iconv / 'usr/local',
     paths.layer_AAB.pdcurses / 'usr/local',
     paths.layer_AAB.python / 'usr/local',
+    paths.layer_AAB.zlib / 'usr/local',
   ]):
     build_dir = paths.src_dir.gdb / 'build-ABB'
     ensure(build_dir)
@@ -593,7 +599,8 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--enable-tui',
       # packages
       f'--with-python=/usr/local/{ver.target}/python-config.sh',
-      f'--with-system-gdbinit=/share/gdb/gdbinit',
+      '--with-system-gdbinit=/share/gdb/gdbinit',
+      '--with-system-zlib',
       *cflags,
     ])
 

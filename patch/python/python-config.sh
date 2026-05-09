@@ -9,7 +9,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     --ldflags)
-      echo "-L$prefix/lib -lpythoncore -lbcrypt -lpathcch -lversion -lws2_32"
+      echo "-L$prefix/lib -lpythoncore -lbcrypt -lpathcch -lversion -lws2_32 -lz"
       shift
       ;;
     --exec-prefix)

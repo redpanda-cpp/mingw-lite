@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import logging
+import os
 from pathlib import Path
 import re
 import shutil
@@ -91,6 +92,11 @@ def cmake_config(
     check = True,
   )
 
+def cmake_flags_A() -> List[str]:
+  return [
+    '-DCMAKE_BUILD_TYPE=Release',
+  ]
+
 def cmake_flags_B(
   optimize_for_speed: bool = False,
   lto: bool = False,
@@ -117,9 +123,13 @@ def cmake_install(
   build_dir: str = 'build',
 ):
   subprocess.run(
-    ['cmake', '--install', build_dir, '--prefix', destdir, *targets],
+    ['cmake', '--install', build_dir, *targets],
     cwd = cwd,
     check = True,
+    env = {
+      **os.environ,
+      'DESTDIR': destdir,
+    },
   )
 
 def common_cross_layers(paths: ProjectPaths):
