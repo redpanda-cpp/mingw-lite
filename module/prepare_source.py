@@ -368,6 +368,10 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     else:
       patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-emu_11.patch')
 
+    # CRT: Fix SSP guard type
+    if v.major < 15:
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-ssp-guard-type.patch')
+
     # CRT and winpthreads: migrate i386 sync builtin
     if ver.march == 'i386':
       if v.major >= 13:
