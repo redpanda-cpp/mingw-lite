@@ -794,8 +794,6 @@ def _zlib_net(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   shutil.move(lib_dir / 'libzs.a', lib_dir / 'libz.a')
 
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  v_gcc = Version(ver.gcc)
-
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.python / 'usr/local',
     paths.layer_AAA.xmake / 'usr/local',
@@ -823,11 +821,9 @@ def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace)
     xmake_install(src_dir, install_dir, ['pythoncore'])
 
     stdlib_package_dir = src_dir / 'build/stdlib-package'
-    ensure(stdlib_package_dir)
     xmake_install(src_dir, stdlib_package_dir, ['stdlib'])
 
     python_lib = stdlib_package_dir / 'Lib'
-    shutil.copytree(f'/usr/local/share/gcc-{v_gcc.major}/python', python_lib, dirs_exist_ok = True)
     subprocess.run([
       'python3', '-m', 'compileall',
       '-b',

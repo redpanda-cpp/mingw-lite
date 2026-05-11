@@ -556,7 +556,11 @@ def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     shutil.copy(paths.src_dir.gcc / file, license_dir / file)
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v_gcc = Version(ver.gcc)
+
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.python / 'usr/local',
+
     # override CRT
     paths.layer_AAB.utf8 / 'usr/local',
 
@@ -617,16 +621,27 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
     gdbinit = paths.layer_ABB.gdb / 'share/gdb/gdbinit'
     with open(gdbinit, 'w') as f:
-      pass
-
-    shutil.copy(f'/usr/local/{ver.target}/lib/python.zip', paths.layer_ABB.gdb / 'lib/python.zip')
-    with open(paths.layer_ABB.gdb / 'bin/gdb._pth', 'w') as f:
-      f.write('../lib/python.zip\n')
-    with open(gdbinit, 'a') as f:
       f.write('python\n')
       f.write('from libstdcxx.v6.printers import register_libstdcxx_printers\n')
       f.write('register_libstdcxx_printers(None)\n')
       f.write('end\n')
+
+    # python standard library
+    shutil.copy(f'/usr/local/{ver.target}/lib/python.zip', paths.layer_ABB.gdb / 'lib/python.zip')
+    with open(paths.layer_ABB.gdb / 'bin/gdb._pth', 'w') as f:
+      f.write('../lib/python.zip\n')
+
+    # libstdc++ pretty printer
+    gcc_python_dir = f'/usr/local/share/gcc-{v_gcc.major}/python'
+    gdb_python_dir = paths.layer_ABB.gdb / 'share/gdb/python'
+    shutil.copytree(gcc_python_dir, gdb_python_dir, dirs_exist_ok = True)
+    subprocess.run([
+      'python3', '-m', 'compileall',
+      '-o', '0',
+      '-o', '1',
+      '-o', '2',
+      '.',
+    ], check = True, cwd = gdb_python_dir)
 
   remove_info_main_menu(paths.layer_ABB.gdb)
 
