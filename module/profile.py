@@ -306,7 +306,7 @@ def _create_profile(
     utf8_user_crt = u8crt,
   )
 
-PROFILES: Dict[str, ProfileInfo] = {
+PROFILES: Dict[str, Optional[ProfileInfo]] = {
   '64-mcf':    _create_profile('64', 'ucrt',   'mcf',   '6.1'),
   '64-win32':  _create_profile('64', 'ucrt',   'win32', '6.0'),
   '64-ucrt':   _create_profile('64', 'ucrt',   'posix', '5.2'),

@@ -13,19 +13,6 @@ from module.fetch import validate_and_download, check_and_extract, check_and_syn
 from module.path import ProjectPaths
 from module.profile import BranchProfile
 
-def _atomic_bootstrap(ver: BranchProfile, paths: ProjectPaths):
-  shutil.copytree(
-    paths.in_tree_src_tree.atomic_bootstrap,
-    paths.in_tree_src_dir.atomic_bootstrap,
-    ignore = shutil.ignore_patterns(
-      '.cache',
-      '.vscode',
-      '.xmake',
-      'build',
-    ),
-    dirs_exist_ok = True,
-  )
-
 def _binutils(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/binutils/{paths.src_arx.binutils.name}'
   validate_and_download(paths.src_arx.binutils, url)
@@ -194,19 +181,6 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     ], check = True)
 
     patch_done(paths.src_dir.gcc)
-
-def _gcc_lib_bootstrap(ver: BranchProfile, paths: ProjectPaths):
-  shutil.copytree(
-    paths.in_tree_src_tree.gcc_lib_bootstrap,
-    paths.in_tree_src_dir.gcc_lib_bootstrap,
-    ignore = shutil.ignore_patterns(
-      '.cache',
-      '.vscode',
-      '.xmake',
-      'build',
-    ),
-    dirs_exist_ok = True,
-  )
 
 def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/gdb/{paths.src_arx.gdb.name}'
@@ -546,11 +520,9 @@ def _zlib_net(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   patch_done(paths.src_dir.zlib_net)
 
 def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
-  _atomic_bootstrap(ver, paths)
   _binutils(ver, paths, download_only)
   _expat(ver, paths, download_only)
   _gcc(ver, paths, download_only)
-  _gcc_lib_bootstrap(ver, paths)
   _gdb(ver, paths, download_only)
   _gmp(ver, paths, download_only)
   if ver.iconv_win32:

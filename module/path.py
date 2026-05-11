@@ -28,8 +28,6 @@ class SourcePaths(NamedTuple):
   zlib_net: Path
 
 class InTreeSourcePaths(NamedTuple):
-  atomic_bootstrap: Path
-  gcc_lib_bootstrap: Path
   iconv: Path
   intl: Path
   sync: Path
@@ -51,14 +49,13 @@ class LayerPathsAAA(NamedTuple):
 class LayerPathsAAB(NamedTuple):
   prefix: Path
 
-  atomic_bootstrap: Path
   binutils: Path
+  bootstrap: Path
   crt_base: Path
   crt_host: Path
   crt_target: Path
   crt_shared: Path
   gcc: Path
-  gcc_lib_bootstrap: Path
   gcc_lib: Path
   gcc_lib_shared: Path
   headers: Path
@@ -67,7 +64,6 @@ class LayerPathsAAB(NamedTuple):
   thunk_host: Path
   thunk_target: Path
   utf8: Path
-  winpthreads_bootstrap: Path
   winpthreads: Path
   winpthreads_shared: Path
   zlib: Path
@@ -125,6 +121,7 @@ class ProjectPaths:
 
   # build phase
 
+  bootstrap_src_dir: Path
   utf8_src_dir: Path
   build_dir: Path
   layer_dir: Path
@@ -189,31 +186,32 @@ class ProjectPaths:
 
     # build phase
 
+    self.bootstrap_src_dir = self.root_dir / 'support/bootstrap'
     self.utf8_src_dir = self.root_dir / 'support/utf8'
     self.build_dir = Path(f'/tmp/build/{abi_name}')
     self.layer_dir = Path(f'/tmp/layer/{abi_name}')
     self.pkg_dir = Path(f'/tmp/pkg/{abi_name}')
 
     src_name = SourcePaths(
-      binutils = f'binutils-{ver.binutils}',
-      expat = f'expat-{ver.expat}',
-      gcc = f'gcc-{ver.gcc}',
-      gdb = f'gdb-{ver.gdb}',
-      gmp = f'gmp-{ver.gmp}',
-      iconv = f'libiconv-{ver.iconv}',
-      make = f'make-{ver.make}',
-      mcfgthread = f'mcfgthread-{ver.mcfgthread}',
-      meson = f'meson-{ver.meson}',
-      mingw = f'mingw-w64-v{ver.mingw}',
-      mpc = f'mpc-{ver.mpc}',
-      mpfr = f'mpfr-{ver.mpfr}',
-      nowide = f'nowide_standalone_v{ver.nowide}',
-      pdcurses = f'PDCurses-{ver.pdcurses}',
-      pkgconf = f'pkgconf-pkgconf-{ver.pkgconf}',
-      python = f'Python-{ver.python}',
-      setuptools = f'setuptools-{ver.setuptools}',
-      xmake = f'xmake-{ver.xmake}',
-      zlib_net = f'zlib-{ver.zlib_net}',
+      binutils = Path(f'binutils-{ver.binutils}'),
+      expat = Path(f'expat-{ver.expat}'),
+      gcc = Path(f'gcc-{ver.gcc}'),
+      gdb = Path(f'gdb-{ver.gdb}'),
+      gmp = Path(f'gmp-{ver.gmp}'),
+      iconv = Path(f'libiconv-{ver.iconv}'),
+      make = Path(f'make-{ver.make}'),
+      mcfgthread = Path(f'mcfgthread-{ver.mcfgthread}'),
+      meson = Path(f'meson-{ver.meson}'),
+      mingw = Path(f'mingw-w64-v{ver.mingw}'),
+      mpc = Path(f'mpc-{ver.mpc}'),
+      mpfr = Path(f'mpfr-{ver.mpfr}'),
+      nowide = Path(f'nowide_standalone_v{ver.nowide}'),
+      pdcurses = Path(f'PDCurses-{ver.pdcurses}'),
+      pkgconf = Path(f'pkgconf-pkgconf-{ver.pkgconf}'),
+      python = Path(f'Python-{ver.python}'),
+      setuptools = Path(f'setuptools-{ver.setuptools}'),
+      xmake = Path(f'xmake-{ver.xmake}'),
+      zlib_net = Path(f'zlib-{ver.zlib_net}'),
     )
 
     self.src_dir = SourcePaths(
@@ -265,8 +263,6 @@ class ProjectPaths:
     )
 
     self.in_tree_src_dir = InTreeSourcePaths(
-      atomic_bootstrap = self.build_dir / 'atomic-bootstrap',
-      gcc_lib_bootstrap = self.build_dir / 'gcc-lib-bootstrap',
       iconv = self.build_dir / 'iconv',
       intl = self.build_dir / 'intl',
       sync = self.build_dir / 'sync',
@@ -274,8 +270,6 @@ class ProjectPaths:
     )
 
     self.in_tree_src_tree = InTreeSourcePaths(
-      atomic_bootstrap = self.root_dir / 'support/atomic-bootstrap',
-      gcc_lib_bootstrap = self.root_dir / 'support/gcc-lib-bootstrap',
       iconv = self.root_dir / 'support/iconv',
       intl = self.root_dir / 'support/intl',
       sync = self.root_dir / 'support/sync',
@@ -301,14 +295,13 @@ class ProjectPaths:
     self.layer_AAB = LayerPathsAAB(
       prefix = layer_AAB_prefix,
 
-      atomic_bootstrap = layer_AAB_prefix / 'atomic-bootstrap',
       binutils = layer_AAB_prefix / 'binutils',
+      bootstrap = layer_AAB_prefix / 'bootstrap',
       crt_base = layer_AAB_prefix / 'crt-base',
       crt_host = layer_AAB_prefix / 'crt-host',
       crt_target = layer_AAB_prefix / 'crt-target',
       crt_shared = layer_AAB_prefix / 'crt-shared',
       gcc = layer_AAB_prefix / 'gcc',
-      gcc_lib_bootstrap = layer_AAB_prefix / 'gcc-lib-bootstrap',
       gcc_lib = layer_AAB_prefix / 'gcc-lib',
       gcc_lib_shared = layer_AAB_prefix / 'gcc-lib-shared',
       mcfgthread = layer_AAB_prefix / 'mcfgthread',
@@ -317,7 +310,6 @@ class ProjectPaths:
       thunk_host = layer_AAB_prefix / 'thunk-host',
       thunk_target = layer_AAB_prefix / 'thunk-target',
       utf8 = layer_AAB_prefix / 'utf8',
-      winpthreads_bootstrap = layer_AAB_prefix / 'winpthreads-bootstrap',
       winpthreads = layer_AAB_prefix / 'winpthreads',
       winpthreads_shared = layer_AAB_prefix / 'winpthreads-shared',
       zlib = layer_AAB_prefix / 'zlib',

@@ -48,16 +48,15 @@ Internally named “AAB”, build = host = x86_64-linux-gnu, target = x86_64-w64
   - mingw-w64-headers
   - gcc (compiler)
   - mingw-w64-crt (unmodified)
-  - u8crt bootstrap helper (libgcc, pthread, etc.)
+  - bootstrap helper (libgcc, pthread, etc.)
   - mingw-w64-crt (apply host thunks)
   - mingw-w64-crt (apply target thunks)
   - host UTF-8 manifest for old branches
-  - i386 atomic bootstrap helper (libatomic)
   - mcfgthreads
-  - winpthreads (bootstrap)
-  - mingw-w64-headers (cleanup pthread dummy header)
-  - gcc (runtime)
   - winpthreads
+  - mingw-w64-headers (cleanup pthread dummy header)
+  - gcc (libgcc, libatomic)
+  - gcc (runtime)
 - `build_AAB_library`
   - gmp
   - mpfr
@@ -80,6 +79,7 @@ Internally named “ABB”, build = x86_64-linux-gnu, host = target = x86_64-w64
   - mingw-w64-crt
   - winpthreads
   - mcfgthreads
+  - nowide (for u8crt)
   - gcc (compiler)
   - gcc (runtime)
   - gdb

@@ -92,6 +92,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     paths.layer_AAB.utf8 / 'usr/local',
 
     paths.layer_AAB.crt_host / 'usr/local',
+    paths.layer_AAB.gcc_lib_shared / 'usr/local',
     paths.layer_AAB.zlib / 'usr/local',
     *common_cross_layers(paths),
 
@@ -271,6 +272,8 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   shutil.copy(paths.src_dir.mingw / 'COPYING', license_dir / 'COPYING')
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v_gcc = Version(ver.gcc)
+
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.crt_target / 'usr/local',
     paths.layer_AAB.mcfgthread_shared / 'usr/local',
@@ -294,7 +297,20 @@ def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Names
 
   base_prefix = paths.layer_ABB.winpthreads
   shared_prefix = paths.layer_ABB.winpthreads_shared
-  extract_shared_libs(base_prefix, shared_prefix)
+  shared_exclude: List[str] = []
+  if ver.march == 'i386':
+    shared_exclude.append('bin/libwinpthread-1.dll')
+
+  extract_shared_libs(
+    base_prefix,
+    shared_prefix,
+    exclude = shared_exclude,
+  )
+
+  if ver.march == 'i386':
+    gcc_libexec_dir = paths.layer_ABB.gcc / 'lib/gcc' / ver.target / str(v_gcc.major)
+    ensure(gcc_libexec_dir)
+    shutil.copy(base_prefix / 'bin/libwinpthread-1.dll', gcc_libexec_dir / 'libwinpthread-1.dll')
 
   license_dir = paths.layer_ABB.winpthreads / 'share/licenses/winpthreads'
   ensure(license_dir)
@@ -439,6 +455,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     paths.layer_AAB.utf8 / 'usr/local',
 
     paths.layer_AAB.crt_host / 'usr/local',
+    paths.layer_AAB.gcc_lib_shared / 'usr/local',
     *common_cross_layers(paths),
 
     paths.layer_AAB.gmp / 'usr/local',
@@ -544,9 +561,23 @@ def _gcc_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   base_prefix = paths.layer_ABB.gcc_lib
   shared_prefix = paths.layer_ABB.gcc_lib_shared
-  extract_shared_libs(base_prefix, shared_prefix, [
-    'lib/libgcc_s.a',  # shared libgcc
-  ])
+  shared_exclude: List[str] = []
+  if ver.march == 'i386':
+    shared_exclude.append('bin/libatomic-1.dll')
+
+  extract_shared_libs(
+    base_prefix,
+    shared_prefix,
+    include = [
+      'lib/libgcc_s.a',  # shared libgcc
+    ],
+    exclude = shared_exclude,
+  )
+
+  if ver.march == 'i386':
+    gcc_libexec_dir = paths.layer_ABB.gcc / 'lib/gcc' / ver.target / str(v.major)
+    ensure(gcc_libexec_dir)
+    shutil.copy(base_prefix / 'bin/libatomic-1.dll', gcc_libexec_dir / 'libatomic-1.dll')
 
   remove_info_main_menu(paths.layer_ABB.gcc)
 

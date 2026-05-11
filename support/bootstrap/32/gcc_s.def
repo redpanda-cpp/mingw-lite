@@ -1,0 +1,3 @@
+LIBRARY libgcc_s_dw2-1.dll
+EXPORTS
+  __udivmoddi4

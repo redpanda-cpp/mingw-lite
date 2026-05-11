@@ -6,7 +6,7 @@ import re
 import shutil
 import subprocess
 from tempfile import TemporaryDirectory
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional, Sequence, Union
 
 from module.path import ProjectPaths
 
@@ -155,16 +155,20 @@ def ensure(path: Path):
 def extract_shared_libs(
   base_prefix: Path,
   shared_prefix: Optional[Path],
-  special_files: List[Path] = [],
+  include: Sequence[Union[str, Path]] = [],
+  exclude: Sequence[Union[str, Path]] = [],
 ):
   bin_dir = base_prefix / 'bin'
   lib_dir = base_prefix / 'lib'
 
-  files = [
+  # part 1: normal (dll + dll.a + extra .a)
+  all_files = [
     *bin_dir.glob('*.dll'),
     *lib_dir.glob('*.dll.a'),
-    *map(lambda p: base_prefix / p, special_files),
+    *map(lambda p: base_prefix / p, include),
   ]
+  exclude_files = [*map(lambda p: base_prefix / p, exclude)]
+  files = [f for f in all_files if f not in exclude_files]
 
   for file in files:
     if shared_prefix:
@@ -256,7 +260,7 @@ def meson_install(
   )
 
 @contextmanager
-def overlayfs_ro(merged: Union[Path, str], lower: List[Path]):
+def overlayfs_ro(merged: Union[Path, str], lower: Sequence[Union[Path, str]]):
   if type(merged) is not Path:
     merged = Path(merged)
   ensure(merged)

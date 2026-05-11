@@ -1,0 +1,3 @@
+LIBRARY libatomic-1.dll
+EXPORTS
+  __atomic_compare_exchange_4
