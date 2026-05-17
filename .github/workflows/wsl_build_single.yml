@@ -65,4 +65,4 @@ jobs:
       - name: Test
         timeout-minutes: 15
         run: |
-          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --build x86_64-w64-mingw32 --verbose
+          python test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --verbose

@@ -14,7 +14,15 @@ def get_gcc_triplet():
     logging.error(f'Failed to get GCC triplet: {e}')
     return None
 
-def parse_args() -> argparse.Namespace:
+def get_gcc_version():
+  try:
+    result = subprocess.run(['gcc', '-dumpversion'], stdout = PIPE, stderr = PIPE, check = True)
+    return result.stdout.decode('utf-8').strip()
+  except Exception as e:
+    logging.error(f'Failed to get GCC version: {e}')
+    return None
+
+def parse_args(require_build_compiler: bool = False) -> argparse.Namespace:
   parser = argparse.ArgumentParser()
   parser.add_argument(
     '-b', '--branch',
@@ -49,8 +57,15 @@ def parse_args() -> argparse.Namespace:
     '--build',
     type = str,
     default = gcc_triplet,
-    required = not gcc_triplet,
+    required = require_build_compiler and not gcc_triplet,
     help = 'Build system triplet',
+  )
+  gcc_version = get_gcc_version()
+  parser.add_argument(
+    '--build-gcc-version',
+    type = str,
+    default = gcc_version,
+    required = require_build_compiler and not gcc_version,
   )
 
   parser.add_argument(

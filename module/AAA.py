@@ -12,8 +12,17 @@ from module.util import cflags_A, configure, ensure, make_custom, make_default, 
 from module.util import cmake_build, cmake_config, cmake_flags_A, cmake_install
 
 def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  v = Version(ver.gmp)
+  v_gcc = Version(config.build_gcc_version)
   build_dir = paths.src_dir.gmp / 'build-AAA'
   ensure(build_dir)
+
+  c_extra = []
+
+  # GCC 15 defaults to C23, in which `foo()` means `foo(void)` instead of `foo(...)`.
+  if v_gcc.major >= 15 and v < Version('6.4.0'):
+    c_extra.append('-std=gnu11')
+
   configure(build_dir, [
     f'--prefix=/usr/local',
     f'--host={config.build}',
@@ -21,7 +30,9 @@ def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     '--disable-assembly',
     '--enable-static',
     '--disable-shared',
-    *cflags_A(),
+    *cflags_A(
+      c_extra = c_extra,
+    ),
   ])
   make_default(build_dir, config.jobs)
   make_destdir_install(build_dir, paths.layer_AAA.gmp)

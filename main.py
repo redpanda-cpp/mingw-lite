@@ -144,7 +144,7 @@ def package_xmake(paths: ProjectPaths):
   package_layers(paths.pkg_dir, layers, paths.xmake_pkg)
 
 def main():
-  config = parse_args()
+  config = parse_args(require_build_compiler = True)
 
   if config.verbose >= 2:
     logging.basicConfig(level = logging.DEBUG)
