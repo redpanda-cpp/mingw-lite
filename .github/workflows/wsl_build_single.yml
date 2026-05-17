@@ -9,6 +9,9 @@ on:
       branch:
         required: true
         type: string
+      wsl_version:
+        required: true
+        type: number
 
 jobs:
   build:
@@ -44,8 +47,9 @@ jobs:
         run: |
           Copy-Item -Path support/wsl/.wslconfig -Destination "$env:USERPROFILE/.wslconfig"
 
-          wsl --import mingw-lite-buildenv . assets/buildenv.tar.zst
-          Remove-Item -Path assets/buildenv.tar.zst
+          zstd -d assets/buildenv.tar.zst -o assets/buildenv.tar
+          wsl --import mingw-lite-buildenv . assets/buildenv.tar --version ${{ inputs.wsl_version }}
+          Remove-Item -Path assets/buildenv.tar , assets/buildenv.tar.zst
 
           wsl --distribution mingw-lite-buildenv --exec `
             ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
@@ -55,7 +59,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: alt_build_wsl-mingw${{ inputs.profile }}-${{ inputs.branch }}
+          name: alt_build_wsl${{ inputs.wsl_version }}-mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
       - name: Test

@@ -1,6 +1,6 @@
 # Prepare WSL Build Environment
 
-The build scripts make use of overlayfs and require root privileges, so AN EXCLUSIVE WSL 2 DISTRO is required.
+The build scripts make use of overlayfs and require root privileges, so AN EXCLUSIVE WSL DISTRO is required. WSL 2 is strongly recommended for better performance.
 
 ## Install WSL
 

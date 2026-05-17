@@ -264,7 +264,24 @@ def overlayfs_ro(merged: Union[Path, str], lower: Sequence[Union[Path, str]]):
   if type(merged) is not Path:
     merged = Path(merged)
   ensure(merged)
-  try:
+  # https://github.com/systemd/systemd/blob/v260.1/src/basic/virt.c#L656
+  # https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364
+  # here we only detect WSL 1 (WSL 2 is considered “genuine Linux”)
+  #   WSL 1: 4.4.0-19041-Microsoft
+  #   WSL 2: 6.6.87.2-microsoft-standard-WSL2
+  if os.uname().release.endswith('-Microsoft'):
+    subprocess.run(['mount', '-t', 'tmpfs', 'none', merged], check = True)
+    try:
+      # https://www.kernel.org/doc/html/v6.18/filesystems/overlayfs.html
+      #   The specified lower directories will be stacked
+      #   beginning from the rightmost one and going left.
+      # so we copy from right to left.
+      for layer in reversed(lower):
+        shutil.copytree(layer, merged, dirs_exist_ok = True)
+      yield
+    finally:
+      subprocess.run(['umount', merged], check = False)
+  else:
     if len(lower) == 1:
       subprocess.run([
         'mount',
@@ -282,9 +299,10 @@ def overlayfs_ro(merged: Union[Path, str], lower: Sequence[Union[Path, str]]):
         merged,
         '-o', f'lowerdir={lowerdir}',
       ], check = True)
-    yield
-  finally:
-    subprocess.run(['umount', merged], check = False)
+    try:
+      yield
+    finally:
+      subprocess.run(['umount', merged], check = False)
 
 def remove_info_main_menu(prefix: Path):
   info_main_menu = prefix / 'share/info/dir'

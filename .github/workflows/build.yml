@@ -158,10 +158,12 @@ jobs:
       matrix:
         branch: ${{ fromJson(needs.param.outputs.alt_branch) }}
         profile: ${{ fromJson(needs.param.outputs.alt_profile) }}
+        wsl_version: [1, 2]
     uses: ./.github/workflows/wsl_build_single.yml
     with:
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
+      wsl_version: ${{ matrix.wsl_version }}
 
   release:
     name: Release
