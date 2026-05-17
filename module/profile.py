@@ -71,9 +71,9 @@ class BranchProfile(BranchVersions, ProfileInfo):
 
 BRANCHES: Dict[str, BranchVersions] = {
   'next': BranchVersions(
-    gcc = '17-20260510',
+    gcc = '17-20260517',
     rev = '0',
-    display_version = 'next-17-20260510',
+    display_version = 'next-17-20260517',
 
     abi_frozen = False,
     branch_opt_speed = True,
@@ -91,7 +91,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gmp = '6.3.0',
     iconv = '1.19',
     make = '4.4.1',
-    mpc = '1.3.1',
+    mpc = '1.4.1',
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
@@ -99,9 +99,9 @@ BRANCHES: Dict[str, BranchVersions] = {
     zlib_net = '1.3.2',
   ),
   'current': BranchVersions(
-    gcc = '16-20260509',
+    gcc = '16-20260516',
     rev = '0',
-    display_version = 'current-16-20260509',
+    display_version = 'current-16-20260516',
 
     abi_frozen = False,
     branch_opt_speed = True,
