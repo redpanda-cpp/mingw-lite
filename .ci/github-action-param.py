@@ -133,9 +133,9 @@ if args.ref_type == 'tag':
   profile = [
     p for p in (common_profile + release_old_profile)
     if not any(
-      p == x['profile'] and branch == x['branch']
+      p == x['profile'] and current_branch == x['branch']
       for x in exclude_profile_branch)]
-  execlude_profile_branch = []
+  exclude_profile_branch = []
   release = True
   prerelease = not current_branch.isdigit() or int(current_branch) >= 16
 else:
