@@ -5,6 +5,12 @@
 extern "C"
 {
   NTSYSCALLAPI NTSTATUS NTAPI
+  NtOpenThread(_Out_ PHANDLE ThreadHandle,
+               _In_ ACCESS_MASK DesiredAccess,
+               _In_ POBJECT_ATTRIBUTES ObjectAttributes,
+               _In_ PCLIENT_ID ClientId);
+
+  NTSYSCALLAPI NTSTATUS NTAPI
   NtQueryDirectoryFile(_In_ HANDLE FileHandle,
                        _In_opt_ HANDLE Event OPTIONAL,
                        _In_opt_ PIO_APC_ROUTINE ApcRoutine OPTIONAL,

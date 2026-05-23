@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 from pprint import pprint
 import sys
-from typing import List
+from typing import Dict, List, Union
 
 from module.args import parse_args
 from module.path import ProjectPaths
@@ -45,7 +45,7 @@ def extract(path: Path, arx: Path):
 def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
   extract(paths.layer_dir.parent, paths.cross_pkg)
 
-def test_corss_compiler(ver, paths: ProjectPaths, verbose: List[str]):
+def test_corss_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: List[str]):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.xmake / 'usr/local',
 
@@ -56,11 +56,12 @@ def test_corss_compiler(ver, paths: ProjectPaths, verbose: List[str]):
       'xmake', 'f', *verbose,
       '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
       '--mingw=/usr/local',
+      '--dlopen=n', '--lto=y', '--utf8=y',
     ], cwd = paths.test_dir)
     subprocess.check_call(['xmake', 'b', *verbose], cwd = paths.test_dir)
     subprocess.check_call(['xmake', 'test', *verbose], cwd = paths.test_dir)
 
-def test_cross_shared(ver, paths: ProjectPaths, verbose: List[str]):
+def test_cross_shared(ver: BranchProfile, paths: ProjectPaths, verbose: List[str]):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.xmake / 'usr/local',
 
@@ -76,6 +77,7 @@ def test_cross_shared(ver, paths: ProjectPaths, verbose: List[str]):
       '--builddir=build-shared',
       '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
       '--mingw=/usr/local',
+      '--dlopen=y', '--lto=y', '--utf8=y',
     ], cwd = paths.test_dir)
     subprocess.check_call(['xmake', 'b', *verbose], cwd = paths.test_dir)
     subprocess.check_call(
@@ -112,7 +114,7 @@ def main():
 
   prepare_test_binary(ver, paths)
 
-  test_report = {
+  test_report: Dict[str, Union[bool, str]] = {
     'fail': False,
   }
 

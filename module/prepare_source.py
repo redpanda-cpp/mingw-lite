@@ -346,6 +346,10 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if v.major < 15:
       patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-ssp-guard-type.patch')
 
+    # CRT: Fix LoadLibrary TLS data
+    if ver.native_tls and ver.min_os.major < 6:
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt/fix-loadlibrary-tls-data.patch')
+
     # CRT and winpthreads: migrate i386 sync builtin
     if ver.march == 'i386':
       if v.major >= 13:

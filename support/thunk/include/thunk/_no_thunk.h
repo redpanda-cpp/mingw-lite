@@ -35,6 +35,7 @@ namespace mingw_thunk
     __DECLARE_NON_THUNK_FUNCTION(kernel32, GetFileAttributesExA)
     __DECLARE_NON_THUNK_FUNCTION(kernel32, GetLongPathNameA)
 
+    __DECLARE_NON_THUNK_FUNCTION(ntdll, NtOpenThread)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, NtQueryDirectoryFile)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, NtQueryInformationFile)
     __DECLARE_NON_THUNK_FUNCTION(ntdll, NtSetInformationFile)
@@ -120,6 +121,7 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(WriteFile)
 
   // ntdll
+  __DECLARE_MS_IMPORT(NtOpenThread)
   __DECLARE_MS_IMPORT(NtQueryDirectoryFile)
   __DECLARE_MS_IMPORT(NtQueryInformationFile)
   __DECLARE_MS_IMPORT(NtSetInformationFile)

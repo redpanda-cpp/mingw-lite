@@ -171,6 +171,10 @@ option('mingw-version')
   set_showmenu(true)
   set_values(11, 12, 13, 14)
 
+option('native-tls')
+  set_default(false)
+  set_showmenu(true)
+
 option('profile')
   set_default('toolchain-utf8')
   set_showmenu(true)

@@ -3,6 +3,10 @@ set_policy("build.c++.modules.gcc.cxx11abi", true)
 
 includes("enable_if.lua")
 
+option("dlopen")
+  set_default(true)
+  set_showmenu(true)
+
 option("lto")
   set_default(true)
   set_showmenu(true)
@@ -97,3 +101,4 @@ includes("i18n/xmake.lua")
 includes("iconv/xmake.lua")
 includes("lto/xmake.lua")
 includes("openmp/xmake.lua")
+includes("tls/xmake.lua")

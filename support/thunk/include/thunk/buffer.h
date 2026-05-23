@@ -10,6 +10,8 @@ namespace mingw_thunk
     template <size_t static_size, typename T = char>
     class buffer
     {
+      static_assert(static_size > 0);
+
     private:
       T *data_;
       size_t size_;

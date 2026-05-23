@@ -47,5 +47,6 @@ target('utf8-musl.so')
   add_files(table.unpack(utf8_musl_files()))
   add_thunk_flags()
   set_basename('utf8-musl')
+  set_default(false)  -- avoid dependency cycle during bootstrap
   set_enabled(has_config('u8crt'))
   set_kind('shared')

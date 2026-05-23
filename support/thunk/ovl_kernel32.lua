@@ -246,7 +246,8 @@ target('overlay-kernel32')
         'kernel32/5.0/FindFirstVolumeW.cc',
         'kernel32/5.0/FindNextVolumeW.cc',
         'kernel32/5.0/FindVolumeClose.cc',
-        'kernel32/5.0/GetFileSizeEx.cc')
+        'kernel32/5.0/GetFileSizeEx.cc',
+        'kernel32/5.0/OpenThread.cc')
     end
     if ntddi_version() < ntddi_winxp() then
       add_files(
@@ -258,6 +259,10 @@ target('overlay-kernel32')
       add_files(
         'kernel32/a/5.1/GetModuleHandleExA.cc')
     end
+  end
+
+  if has_config('native-tls') and ntddi_version() < ntddi_vista() then
+    add_files('kernel32/6.0/__mingw_thunk_fix_loadlibrary_tls_data.cc')
   end
 
 target('alias-long-kernel32')
@@ -301,7 +306,8 @@ target('thunk-kernel32')
     'kernel32/6.2/CopyFile2.cc',
     'kernel32/6.2/GetCurrentThreadStackLimits.cc',
     'kernel32/6.2/GetSystemTimePreciseAsFileTime.cc',
-    'kernel32/6.2/RemoveDllDirectory.cc')
+    'kernel32/6.2/RemoveDllDirectory.cc',
+    'kernel32/6.0/__mingw_thunk_fix_loadlibrary_tls_data.cc')
   enable_if_x86()
   enable_thunk_options()
   merge_win32_alias()

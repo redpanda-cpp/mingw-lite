@@ -89,26 +89,32 @@ The default `_WIN32_WINNT` value for each branch is based on the earliest Window
 
 Python (GDB scripting engine) often limits the toolchain’s minimum supported OS. However, Python is sometimes a bit aggressive, so we use some [thunks](./doc/thunk.md) to bring back support for earlier Windows versions. The minimum supported OS is the one where the shared runtime libraries are thunk-free.
 
-| Profile | Minimum supported OS |
-| ------- | -------------------- |
-| *-mcf | NT 6.1 (7) |
-| *-win32 | NT 6.0 (Vista) |
-| {64,64_v2}-{ucrt,msvcrt} | NT 5.2 (Server 2003) |
-| 32-{ucrt,msvcrt} | NT 5.1 (XP) |
+| Profile | Min OS 16+ | Min OS 15, 14, 13 |
+| ------- | ---------- | ----------------- |
+| *-mcf | NT 6.1 (7) | NT 6.1 (7) |
+| *-win32 | NT 6.0 (Vista) | NT 6.0 (Vista) |
+| {64,64_v2}-{ucrt,msvcrt} | NT 6.0 (Vista) | NT 5.2 (Server 2003) |
+| 32-{ucrt,msvcrt} | NT 6.0 (Vista) | NT 5.1 (XP) |
 
 Some profiles have variants for even earlier Windows versions (and possibly older CPUs), as follows.
 
-| Profile variant | Branch 16 | Branch 15, 14, 13 |
-| --------------- | --------- | ----------------- |
-| 32-msvcrt_win2000 | | NT 5.0 (2000) |
-| 32_686-msvcrt_win98 | NT 4.0, 4.10 (98) | NT 4.0, 4.10 (98) |
-| 32_486-msvcrt_win98 | NT 4.0, 4.10 (98) | NT 4.0, 4.10 (98) |
-| 32_386-msvcrt_win95 | NT 4.0, 4.10 (98)<br>4.00 (95, limited) | NT 4.0, 4.10 (98)<br>4.00 (95, limited) |
+| Profile variant | Min OS 16+ | Min OS 15, 14, 13 |
+| --------------- | ---------- | ----------------- |
+| 64-ucrt_ws2003        | NT 5.2 (Server 2003) | |
+| 64-msvcrt_ws2003      | NT 5.2 (Server 2003) | |
+| 32-ucrt_winxp         | NT 5.1 (XP) | |
+| 32-msvcrt_win2000     | NT 5.0 (2000) | NT 5.0 (2000) |
+| 32_686-msvcrt_win98   | NT 4.0, 4.10 (98) | NT 4.0, 4.10 (98) |
+| 32_486-msvcrt_win98   | NT 4.0, 4.10 (98) | NT 4.0, 4.10 (98) |
+| 32_386-msvcrt_win95   | | NT 4.0, 4.10 (98)<br>4.00 (95, limited) |
 
 Limitations on Windows 95:
 
 - Prerequisite: Windows socket 2 update (for `msvcrt.dll` and `ws2_32.dll`).
-- GCC needs `-fno-lto` to prevent dynamically loading the DLL that has static TLS. ([KB118816](./doc/kb-118816.md))
+- Loading a dll that has static TLS is impossible. ([KB118816](./doc/kb-118816.md))
+  - Unfortunately, GNU toolchain always add static TLS without checking necessity.
+  - GCC needs `-fno-lto` to prevent the linker from dynamically loading the LTO plugin.
+  - The profile is no longer available since branch 16 as we are switching to native TLS.
 - Atomic operations will introduce observable overhead by calling libatomic subroutines.
 
 ## Beyond MinGW Lite

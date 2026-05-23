@@ -1,5 +1,6 @@
 LIBRARY ntdll.dll
 EXPORTS
+  __ms_NtOpenThread@16 == NtOpenThread
   __ms_NtQueryDirectoryFile@44 == NtQueryDirectoryFile
   __ms_NtQueryInformationFile@20 == NtQueryInformationFile
   __ms_NtSetInformationFile@20 == NtSetInformationFile

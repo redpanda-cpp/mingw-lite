@@ -62,6 +62,7 @@ EXPORTS
   __ms_MoveFileExW@12 == MoveFileExW
   __ms_MoveFileW@8 == MoveFileW
   __ms_MultiByteToWideChar@24 == MultiByteToWideChar
+  __ms_OpenThread@12 == OpenThread
   __ms_RemoveDirectoryA@4 == RemoveDirectoryA
   __ms_RemoveDirectoryW@4 == RemoveDirectoryW
   __ms_RemoveVectoredExceptionHandler@4 == RemoveVectoredExceptionHandler

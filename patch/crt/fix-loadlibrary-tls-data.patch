@@ -1,0 +1,32 @@
+diff --git a/mingw-w64-crt/crt/crtdll.c b/mingw-w64-crt/crt/crtdll.c
+index 18e831ef9..49edcb42b 100644
+--- a/mingw-w64-crt/crt/crtdll.c
++++ b/mingw-w64-crt/crt/crtdll.c
+@@ -134,6 +134,8 @@ i__leave:
+ }
+ 
+ WINBOOL WINAPI DllMainCRTStartup (HANDLE, DWORD, LPVOID);
++int __mingw_thunk_fix_loadlibrary_tls_data_pre(HINSTANCE instance, DWORD reason, LPVOID reserved);
++void __mingw_thunk_fix_loadlibrary_tls_data_post(HINSTANCE instance, DWORD reason, LPVOID reserved);
+ 
+ #if defined(__i386__) || defined(_X86_)
+ /* We need to make sure that we align the stack to 16 bytes for the sake of SSE
+@@ -144,6 +146,9 @@ __attribute__((used)) /* required due to GNU LD bug: https://sourceware.org/bugz
+ WINBOOL WINAPI
+ DllMainCRTStartup (HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved)
+ {
++  if (!__mingw_thunk_fix_loadlibrary_tls_data_pre ((HINSTANCE)hDllHandle, dwReason, lpreserved))
++      return FALSE;
++
+   WINBOOL retcode = TRUE;
+ 
+   if (dwReason == DLL_PROCESS_ATTACH)
+@@ -174,6 +179,8 @@ DllMainCRTStartup (HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved)
+     }
+ i__leave:
+   __native_dllmain_reason = UINT_MAX;
++
++  __mingw_thunk_fix_loadlibrary_tls_data_post ((HINSTANCE)hDllHandle, dwReason, lpreserved);
+   return retcode ;
+ }
+ 

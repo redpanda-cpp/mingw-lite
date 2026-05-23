@@ -83,7 +83,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       config_flags.append('--with-dwarf2')
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
-    if v.major >= 16:
+    if ver.native_tls:
       config_flags.append('--enable-tls')
 
     configure(build_dir, [
@@ -285,10 +285,13 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   ]):
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
+    config_flags: List[str] = []
+    if ver.native_tls:
+      config_flags.append('--native-tls=y')
     if ver.utf8_thunk:
-      thunk_profile = 'toolchain-utf8'
+      config_flags.append('--profile=toolchain-utf8')
     else:
-      thunk_profile = 'toolchain'
+      config_flags.append('--profile=toolchain')
 
     xmake_config(thunk_src_dir, [
       '--builddir=build-AAB',
@@ -297,7 +300,7 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       '--mingw=/usr/local',
       f'--mingw-version={v.major}',
       f'--thunk-level={ver.min_os}',
-      f'--profile={thunk_profile}',
+      *config_flags,
     ])
     xmake_build(thunk_src_dir, config.jobs)
     xmake_install(thunk_src_dir, paths.layer_AAB.thunk_host / 'usr/local' / ver.target)
@@ -328,7 +331,7 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     crt_inc_dir = paths.layer_AAB.crt_host / 'usr/local' / ver.target / 'include'
     shutil.copytree(crt0_inc_dir, crt_inc_dir, dirs_exist_ok = True)
 
-def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+def _crt_target_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mingw)
 
   with overlayfs_ro('/usr/local', [
@@ -343,6 +346,8 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
     config_flags: List[str] = []
+    if ver.native_tls:
+      config_flags.append('--native-tls=y')
     if ver.utf8_user_crt:
       config_flags.append('--u8crt=y')
 
@@ -362,12 +367,10 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     thunk_lib_dir = paths.layer_AAB.thunk_target / 'usr/local' / ver.target / 'lib'
     crt0_lib_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'lib'
     crt_lib_dir = paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'lib'
+    ensure(crt_lib_dir)
 
     # u8crt
     if ver.utf8_user_crt:
-      xmake_install(thunk_src_dir, paths.layer_AAB.crt_target / 'usr/local' / ver.target, ['utf8-musl.a'])
-      xmake_install(thunk_src_dir, paths.layer_AAB.crt_shared / 'usr/local' / ver.target, ['utf8-musl.so'])
-
       # trigger post-processing import libraries
       shutil.copy(crt0_lib_dir / 'libucrt.a', crt0_lib_dir / 'libutf8-ucrt.a')
 
@@ -412,6 +415,25 @@ def _crt_target(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
     thunk_map,
     paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'share/doc/crt/thunk-revert-map.json',
   )
+
+def _crt_target_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
+    paths.layer_AAB.binutils / 'usr/local',
+    paths.layer_AAB.bootstrap / 'usr/local',
+    paths.layer_AAB.crt_target / 'usr/local',
+    paths.layer_AAB.gcc / 'usr/local',
+    paths.layer_AAB.headers / 'usr/local',
+  ]):
+    thunk_src_dir = paths.in_tree_src_dir.thunk
+
+    # u8crt
+    if ver.utf8_user_crt:
+      xmake_build(thunk_src_dir, config.jobs, ['utf8-musl.so'])
+
+      xmake_install(thunk_src_dir, paths.layer_AAB.crt_target / 'usr/local' / ver.target, ['utf8-musl.a'])
+      xmake_install(thunk_src_dir, paths.layer_AAB.crt_shared / 'usr/local' / ver.target, ['utf8-musl.so'])
 
 def _utf8(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.build_dir / 'utf8'
@@ -557,7 +579,8 @@ def build_AAB_compiler(ver: BranchProfile, paths: ProjectPaths, config: argparse
   _bootstrap(ver, paths, config)
   _crt_base(ver, paths, config)
   _crt_host(ver, paths, config)
-  _crt_target(ver, paths, config)
+  _crt_target_1(ver, paths, config)
+  _crt_target_2(ver, paths, config)
   _utf8(ver, paths, config)
   _mcfgthread(ver, paths, config)
   _winpthreads(ver, paths, config)

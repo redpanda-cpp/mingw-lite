@@ -313,9 +313,9 @@ def touch(path: Path):
   ensure(path.parent)
   path.touch(exist_ok = True)
 
-def xmake_build(cwd: Path, jobs: int):
+def xmake_build(cwd: Path, jobs: int, targets: List[str] = []):
   subprocess.run(
-    ['xmake', 'build', '-j', str(jobs)],
+    ['xmake', 'build', '-j', str(jobs), *targets],
     cwd = cwd,
     check = True,
   )

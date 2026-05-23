@@ -55,6 +55,23 @@ namespace mingw_thunk::internal
     return result;
   }
 
+  static PVOID __fastcall YY_ImageDirectoryEntryToData(_In_ PVOID pBaseAddress,
+                                                       _In_ ULONG dwDirectory,
+                                                       _Out_ PULONG pSize)
+  {
+    auto _pDosHeader = (PIMAGE_DOS_HEADER)pBaseAddress;
+    auto _pNtHerder = reinterpret_cast<PIMAGE_NT_HEADERS>(
+        PBYTE(pBaseAddress) + _pDosHeader->e_lfanew);
+    auto &_DataDirectory =
+        _pNtHerder->OptionalHeader.DataDirectory[dwDirectory];
+
+    *pSize = _DataDirectory.Size;
+    if (_DataDirectory.Size == 0 || _DataDirectory.VirtualAddress == 0)
+      return nullptr;
+
+    return PBYTE(pBaseAddress) + _DataDirectory.VirtualAddress;
+  }
+
   static DWORD __fastcall NtStatusToDosError(_In_ NTSTATUS Status)
   {
     if (STATUS_TIMEOUT == Status) {

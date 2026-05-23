@@ -60,6 +60,7 @@ namespace mingw_thunk
   namespace g
   {
     constexpr d::win32_version win32_win98 = {1, 4, 10};
+    constexpr d::win32_version win32_win2k = {2, 5, 0};
     constexpr d::win32_version win32_winxp = {2, 5, 1};
     constexpr d::win32_version win32_vista = {2, 6, 0};
   } // namespace g
@@ -86,6 +87,13 @@ namespace mingw_thunk
     inline bool is_nt() noexcept
     {
       return os_version().platform >= VER_PLATFORM_WIN32_NT;
+    }
+
+    inline uintptr_t win9x_obfuscator() noexcept
+    {
+      static uintptr_t pid = GetCurrentProcessId();
+      static uintptr_t pdb = (uintptr_t)NtCurrentTeb()->ProcessEnvironmentBlock;
+      return pid ^ pdb;
     }
   } // namespace i
 } // namespace mingw_thunk

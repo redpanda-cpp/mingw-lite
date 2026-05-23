@@ -81,6 +81,7 @@ def test_mingw_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: List[s
     xmake, 'f', *verbose,
     '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
     f'--mingw={rel_mingw_dir}',
+    '--dlopen=n', '--lto=y', '--utf8=y',
   ], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test_dir)
@@ -95,6 +96,7 @@ def test_mingw_shared(ver: BranchProfile, paths: ProjectPaths, verbose: List[str
     f'--builddir=build-shared',
     '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
     f'--mingw={rel_mingw_dir}',
+    '--dlopen=y', '--lto=y', '--utf8=y',
   ], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'b', *verbose], cwd = paths.test_dir)
   subprocess.check_call([xmake, 'test', *verbose], cwd = paths.test_dir)
@@ -194,7 +196,7 @@ def main():
 
   prepare_test_binary(ver, paths)
 
-  test_report = {
+  test_report: Dict[str, Union[bool, str]] = {
     'fail': False,
   }
 

@@ -21,8 +21,8 @@ common_profile = [
   '64_v2-mcf', '64_v2-win32', '64_v2-ucrt', '64_v2-msvcrt',
 ]
 all_old_profile = [
-  '32-msvcrt_win2000',
-  '32_686-msvcrt_winnt40',
+  '64-ucrt_ws2003', '64-msvcrt_ws2003',
+  '32-ucrt_winxp',  '32-msvcrt_win2000',
   '32_686-msvcrt_win98',
   '32_486-msvcrt_win98',
   '32_386-msvcrt_win95',
@@ -38,12 +38,31 @@ beyond_profile = [
 ]
 
 exclude_profile_branch = [
-  *( # deprecated
-    {'profile': '32-msvcrt_win2000', 'branch': b}
+  *( # native TLS removal
+    {'profile': '32_386-msvcrt_win95', 'branch': b}
     for b in ['next', 'current', '16']
   ),
-  *( # u8thunk path test
-    {'profile': '32_686-msvcrt_winnt40', 'branch': b}
+  *( # native TLS
+    {'profile': p, 'branch': b}
+    # 32-msvcrt_win2000 was initially added because gcc was mislead by Microsoft docs
+    # and its UTF-8 manifest was not compatible with Windows XP.
+    # Windows 2000 is the first NT version that guarantees SSE support,
+    # and is so close to Windows XP, so we support it without difficulty.
+
+    # 32-msvcrt_win2000 was deprecated since we fixed the manifest conformance.
+    # Windows XP was the oldest NT version supported by upstream at that time,
+    # so we set it as the new baseline (more specifically, thunk-free).
+    # 32-msvcrt_win2000 was planned to be removed in branch 16.
+
+    # as GCC 16 introduces native TLS, and some newer APIs are called by standard library,
+    # the baseline is raised to Windows Vista. Windows XP is still supported for its usage.
+    # for the same reason we initially supported Windows 2000, 32-msvcrt_win2000 is de-deprecated.
+
+    # it's a coincidence that 32-msvcrt_win2000 by any branch is not excluded.
+    for p in [
+      '64-ucrt_ws2003', '64-msvcrt_ws2003',
+      '32-ucrt_winxp',
+    ]
     for b in ['15', '14', '13']
   ),
   *( # u8crt
@@ -76,22 +95,28 @@ sat_group = [
     'dict': '512m',
   },
   {
+    'name': '64-unstable',
+    'profile': json.dumps(['64-ucrt_ws2003', '64-msvcrt_ws2003']),
+    'pattern': '{mingw64-ucrt_ws2003-*,mingw64-msvcrt_ws2003-*}',
+    'dict': '512m',
+  },
+  {
     'name': '32-unstable',
-    'profile': json.dumps(['32-msvcrt_win2000']),
-    'pattern': 'mingw32-msvcrt_win2000-*',
+    'profile': json.dumps(['32-ucrt_winxp', '32-msvcrt_win2000']),
+    'pattern': '{mingw32-ucrt_winxp-*,mingw32-msvcrt_win2000-*}',
     'dict': '512m',
   },
   {
     'name': '32_686-unstable',
-    'profile': json.dumps(['32_686-msvcrt_winnt40', '32_686-msvcrt_win98']),
+    'profile': json.dumps(['32_686-msvcrt_win98']),
     'pattern': 'mingw32_686-*',
     # may be extracted on 9x, be moderate
-    # tested on 2026-04-24:
-    #   d=256m: 220.2 MiB
-    #   d=288m: 219.1 MiB
-    #   d=320m: 206.4 MiB
-    #   d=320m: 205.9 MiB
-    'dict': '320m',
+    # 32_386-msvcrt_win95, with all 6 branches, tested on 2026-04-24:
+    #   d=192m: 184.9 MiB
+    #   d=224m: 170.1 MiB
+    #   d=256m: 169.8 MiB
+    #   d=320m: 169.5 MiB
+    'dict': '224m',
   },
   {
     'name': '32_486-unstable',
@@ -105,7 +130,7 @@ sat_group = [
     'profile': json.dumps(['32_386-msvcrt_win95']),
     'pattern': 'mingw32_386-*',
     # may be extracted on 9x, be moderate
-    # tested on 2026-04-24:
+    # outdated, tested on 2026-04-24:
     #   d=192m: 184.9 MiB
     #   d=224m: 170.1 MiB
     #   d=256m: 169.8 MiB

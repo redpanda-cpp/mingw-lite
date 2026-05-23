@@ -188,7 +188,7 @@ def _crt0(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_ABB.crt0)
 
-def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+def _crt_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mingw)
 
   with overlayfs_ro('/usr/local', [
@@ -196,15 +196,12 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
     paths.layer_AAB.crt_base / 'usr/local',
     *common_cross_layers(paths),
-
-    # u8crt
-    paths.layer_AAB.crt_shared / 'usr/local',
-    paths.layer_AAB.gcc_lib_shared / 'usr/local',
-    paths.layer_AAB.winpthreads_shared / 'usr/local',
   ]):
     thunk_src_dir = paths.in_tree_src_dir.thunk
 
     config_flags: List[str] = []
+    if ver.native_tls:
+      config_flags.append('--native-tls=y')
     if ver.utf8_user_crt:
       config_flags.append('--u8crt=y')
 
@@ -224,12 +221,10 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     thunk_lib_dir = paths.layer_ABB.thunk / 'lib'
     crt0_lib_dir = paths.layer_ABB.crt0 / 'lib'
     crt_lib_dir = paths.layer_ABB.crt / 'lib'
+    ensure(crt_lib_dir)
 
     # u8crt
     if ver.utf8_user_crt:
-      xmake_install(thunk_src_dir, paths.layer_ABB.crt, ['utf8-musl.a'])
-      xmake_install(thunk_src_dir, paths.layer_ABB.crt_shared, ['utf8-musl.so'])
-
       # trigger post-processing import libraries
       shutil.copy(crt0_lib_dir / 'libucrt.a', crt0_lib_dir / 'libutf8-ucrt.a')
 
@@ -276,6 +271,24 @@ def _crt(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   license_dir = paths.layer_ABB.crt / 'share/licenses/crt'
   ensure(license_dir)
   shutil.copy(paths.src_dir.mingw / 'COPYING', license_dir / 'COPYING')
+
+def _crt_2(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.xmake / 'usr/local',
+
+    paths.layer_AAB.crt_target / 'usr/local',
+    paths.layer_AAB.gcc_lib_shared / 'usr/local',
+    paths.layer_AAB.winpthreads_shared / 'usr/local',
+    *common_cross_layers(paths),
+  ]):
+    thunk_src_dir = paths.in_tree_src_dir.thunk
+
+    # u8crt
+    if ver.utf8_user_crt:
+      xmake_build(thunk_src_dir, config.jobs, ['utf8-musl.so'])
+
+      xmake_install(thunk_src_dir, paths.layer_ABB.crt, ['utf8-musl.a'])
+      xmake_install(thunk_src_dir, paths.layer_ABB.crt_shared, ['utf8-musl.so'])
 
 def _winpthreads(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v_gcc = Version(ver.gcc)
@@ -480,7 +493,7 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       config_flags.append(f'--with-fpmath={ver.fpmath}')
     if ver.utf8_thunk:
       config_flags.append('--disable-win32-utf8-manifest')
-    if v.major >= 16:
+    if ver.native_tls:
       config_flags.append('--enable-tls')
 
     configure(build_dir, [
@@ -781,7 +794,8 @@ def build_ABB_toolchain(ver: BranchProfile, paths: ProjectPaths, config: argpars
   _binutils(ver, paths, config)
   _headers(ver, paths, config)
   _crt0(ver, paths, config)
-  _crt(ver, paths, config)
+  _crt_1(ver, paths, config)
+  _crt_2(ver, paths, config)
   _winpthreads(ver, paths, config)
   _mcfgthread(ver, paths, config)
   _nowide(ver, paths, config)
