@@ -213,6 +213,10 @@ option('thunk-level')
     set_default('10.0.19041')
   end
 
+option('thunk-xp')
+  set_default(true)
+  set_showmenu(true)
+
 includes('dep/catch2')
 
 includes('ntddi_version.lua')

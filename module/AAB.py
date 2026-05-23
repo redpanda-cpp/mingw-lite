@@ -348,6 +348,11 @@ def _crt_target_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Name
     config_flags: List[str] = []
     if ver.native_tls:
       config_flags.append('--native-tls=y')
+    if ver.min_os.major < 6:
+      if ver.thunk_free:
+        config_flags.append('--thunk-xp=n')
+      else:
+        config_flags.append('--thunk-xp=y')
     if ver.utf8_user_crt:
       config_flags.append('--u8crt=y')
 

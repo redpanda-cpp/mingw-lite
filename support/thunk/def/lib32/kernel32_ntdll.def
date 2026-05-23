@@ -3,6 +3,8 @@ EXPORTS
   __ms_NtOpenThread@16 == NtOpenThread
   __ms_NtQueryDirectoryFile@44 == NtQueryDirectoryFile
   __ms_NtQueryInformationFile@20 == NtQueryInformationFile
+  __ms_NtQueryInformationThread@20 == NtQueryInformationThread
+  __ms_NtQuerySystemInformation@16 == NtQuerySystemInformation
   __ms_NtSetInformationFile@20 == NtSetInformationFile
   __ms_RtlDosPathNameToNtPathName_U@16 == RtlDosPathNameToNtPathName_U
   __ms_RtlFreeUnicodeString@4 == RtlFreeUnicodeString

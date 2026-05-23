@@ -155,13 +155,9 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     else:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-ostream-left-shift-operator-call-frame_13.patch')
 
-    # Dynamically load tzdb
+    # Fix _WIN32_WINNT protected declaration
     if v.major >= 16:
-      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'dynamic-load-tzdb.patch')
-
-    # Fix NUMA unaware build
-    if v.major >= 16:
-      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'fix-numa-unaware-build.patch')
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc/fix-win32-winnt-protected-declaration.patch')
 
     # Disable vectorized lexer
     if ver.min_os.major < 5:

@@ -116,12 +116,14 @@ target('overlay-kernel32')
         'kernel32/6.0/CreateSymbolicLinkW.cc',
         'kernel32/6.0/CreateWaitableTimerExW.cc',
         'kernel32/6.0/DeleteProcThreadAttributeList.cc',
+        'kernel32/6.0/GetDynamicTimeZoneInformation.cc',
         'kernel32/6.0/GetFileInformationByHandleEx.cc',
         'kernel32/6.0/GetFinalPathNameByHandleW.cc',
         'kernel32/6.0/GetTickCount64.cc',
         'kernel32/6.0/InitializeProcThreadAttributeList.cc',
         'kernel32/6.0/LCMapStringEx.cc',
         'kernel32/6.0/LocaleNameToLCID.cc',
+        'kernel32/6.0/MapViewOfFileExNuma.cc',
         'kernel32/6.0/SetFileInformationByHandle.cc',
         'kernel32/6.0/UpdateProcThreadAttribute.cc')
     end
@@ -259,6 +261,11 @@ target('overlay-kernel32')
       add_files(
         'kernel32/a/5.1/GetModuleHandleExA.cc')
     end
+    if ntddi_version() < ntddi_vista() and has_config('thunk-xp') then
+      add_files(
+        'kernel32/6.0/GetDynamicTimeZoneInformation.cc',
+        'kernel32/6.0/MapViewOfFileExNuma.cc')
+    end
   end
 
   if has_config('native-tls') and ntddi_version() < ntddi_vista() then
@@ -288,12 +295,14 @@ target('thunk-kernel32')
     'kernel32/6.0/CreateSymbolicLinkW.cc',
     'kernel32/6.0/CreateWaitableTimerExW.cc',
     'kernel32/6.0/DeleteProcThreadAttributeList.cc',
+    'kernel32/6.0/GetDynamicTimeZoneInformation.cc',
     'kernel32/6.0/GetFileInformationByHandleEx.cc',
     'kernel32/6.0/GetFinalPathNameByHandleW.cc',
     'kernel32/6.0/GetTickCount64.cc',
     'kernel32/6.0/InitializeProcThreadAttributeList.cc',
     'kernel32/6.0/LCMapStringEx.cc',
     'kernel32/6.0/LocaleNameToLCID.cc',
+    'kernel32/6.0/MapViewOfFileExNuma.cc',
     'kernel32/6.0/SetFileInformationByHandle.cc',
     'kernel32/6.0/UpdateProcThreadAttribute.cc',
     'kernel32/6.1/GetActiveProcessorCount.cc',

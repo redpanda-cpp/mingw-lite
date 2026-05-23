@@ -32,6 +32,7 @@ EXPORTS
   __ms_FreeEnvironmentStringsW@4 == FreeEnvironmentStringsW
   __ms_GetCurrentDirectoryA@8 == GetCurrentDirectoryA
   __ms_GetCurrentDirectoryW@8 == GetCurrentDirectoryW
+  __ms_GetDynamicTimeZoneInformation@4 == GetDynamicTimeZoneInformation
   __ms_GetEnvironmentStrings@0 == GetEnvironmentStrings
   __ms_GetEnvironmentStringsW@0 == GetEnvironmentStringsW
   __ms_GetEnvironmentVariableA@12 == GetEnvironmentVariableA
@@ -57,6 +58,7 @@ EXPORTS
   __ms_LoadLibraryA@4 == LoadLibraryA
   __ms_LoadLibraryW@4 == LoadLibraryW
   __ms_LockFileEx@24 == LockFileEx
+  __ms_MapViewOfFileExNuma@28 == MapViewOfFileExNuma
   __ms_MoveFileA@8 == MoveFileA
   __ms_MoveFileExA@12 == MoveFileExA
   __ms_MoveFileExW@12 == MoveFileExW

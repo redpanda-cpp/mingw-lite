@@ -1,6 +1,8 @@
 LIBRARY kernel32.dll
 EXPORTS
+  __ms_GetDynamicTimeZoneInformation == GetDynamicTimeZoneInformation
   __ms_LoadLibraryA == LoadLibraryA
+  __ms_MapViewOfFileExNuma == MapViewOfFileExNuma
   __ms_MultiByteToWideChar == MultiByteToWideChar
   __ms_WideCharToMultiByte == WideCharToMultiByte
   __ms_WriteFile == WriteFile
