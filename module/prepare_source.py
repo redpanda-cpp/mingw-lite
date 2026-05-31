@@ -126,7 +126,8 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'migrate-i386-sync-builtin.patch')
 
     # Allow UTF-8 module name
-    patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-utf8-module-name.patch')
+    if v.major < 17:
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-utf8-module-name.patch')
 
     # Fix preprocessor encoding
     # - __FILE__ macro encoding
