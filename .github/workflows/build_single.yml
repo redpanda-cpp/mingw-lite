@@ -3,9 +3,10 @@ name: Build single
 on:
   workflow_call:
     inputs:
-      build_arch:
-        required: true
+      buildenv:
+        required: false
         type: string
+        default: ''
       runner:
         required: true
         type: string
@@ -40,7 +41,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: buildenv-${{ inputs.build_arch }}
+          name: buildenv-${{ inputs.buildenv }}
           path: assets
 
       - name: Build
@@ -123,7 +124,7 @@ jobs:
   test_cross:
     name: Test cross
     if: ${{ inputs.test_cross }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     needs: build
 

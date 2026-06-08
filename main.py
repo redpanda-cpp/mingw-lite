@@ -168,6 +168,8 @@ def main():
   if config.download_only:
     return
 
+  # https://bugs.archlinux.org/task/78702
+  os.environ['LIBMOUNT_FORCE_MOUNT2'] = 'always'
   os.environ['XMAKE_ROOT'] = 'y'
 
   if not config.no_cross:

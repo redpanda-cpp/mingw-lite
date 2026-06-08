@@ -19,6 +19,8 @@ jobs:
       exclude_profile_branch: ${{ steps.param.outputs.exclude_profile_branch }}
       alt_branch: ${{ steps.param.outputs.alt_branch }}
       alt_profile: ${{ steps.param.outputs.alt_profile }}
+      alt_osrel: ${{ steps.param.outputs.alt_osrel }}
+      alt_osrel_test_cross: ${{ steps.param.outputs.alt_osrel_test_cross }}
       release: ${{ steps.param.outputs.release }}
       prerelease: ${{ steps.param.outputs.prerelease }}
       sat_group: ${{ steps.param.outputs.sat_group }}
@@ -84,7 +86,7 @@ jobs:
         exclude: ${{ fromJson(needs.param.outputs.exclude_profile_branch) }}
     uses: ./.github/workflows/build_single.yml
     with:
-      build_arch: x86_64
+      buildenv: x86_64
       runner: ubuntu-24.04
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
@@ -100,12 +102,56 @@ jobs:
         profile: ${{ fromJson(needs.param.outputs.alt_profile) }}
     uses: ./.github/workflows/build_single.yml
     with:
-      build_arch: aarch64
+      buildenv: aarch64
       runner: ubuntu-24.04-arm
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
       test_cross: false
       upload_prefix: alt_build_arm-
+
+  build_container_osrel:
+    name: Build container (${{ matrix.osrel }})
+    needs: [param]
+    if: ${{ ! fromJson(needs.param.outputs.release) }}
+    strategy:
+      fail-fast: true
+      matrix:
+        osrel: ${{ fromJson(needs.param.outputs.alt_osrel) }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build container
+        run: |
+          podman build -t mingw-lite/buildenv support/buildenv/${{ matrix.osrel }}
+
+          mkdir assets
+          podman save mingw-lite/buildenv:latest | zstd -o assets/buildenv.tar.zst
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: buildenv-${{ matrix.osrel }}
+          path: assets/buildenv.tar.zst
+
+  alt_build_osrel:
+    name: Alternative build (${{ matrix.osrel }}, ${{ matrix.branch }}, ${{ matrix.profile }})
+    needs: [param, download_source, build_container_osrel]
+    if: ${{ ! fromJson(needs.param.outputs.release) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJson(needs.param.outputs.alt_branch) }}
+        profile: ${{ fromJson(needs.param.outputs.alt_profile) }}
+        osrel: ${{ fromJson(needs.param.outputs.alt_osrel) }}
+        include: ${{ fromJson(needs.param.outputs.alt_osrel_test_cross) }}
+    uses: ./.github/workflows/build_single.yml
+    with:
+      buildenv: ${{ matrix.osrel }}
+      runner: ubuntu-24.04
+      branch: ${{ matrix.branch }}
+      profile: ${{ matrix.profile }}
+      test_cross: ${{ matrix.test_cross }}
+      upload_prefix: alt_build_${{ matrix.osrel }}-
 
   build_container_wsl:
     name: Build container (WSL)

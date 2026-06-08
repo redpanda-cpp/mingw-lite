@@ -2,6 +2,11 @@
 
 import argparse
 import json
+from typing import List, TypedDict
+
+class AltBuildOsRelTestCross(TypedDict):
+  osrel: str
+  test_cross: bool
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--ref-type')
@@ -74,6 +79,20 @@ exclude_profile_branch = [
 
 alt_branch = ['current']
 alt_profile = ['64-mcf', '64-ucrt']
+alt_osrel = [
+  'archlinux',
+  'debian13', 'debian12', 'debian11',
+  'ubuntu2604', 'ubuntu2404', 'ubuntu2204',
+]
+alt_osrel_test_cross: List[AltBuildOsRelTestCross] = [
+  {'osrel': 'archlinux', 'test_cross': False},
+  {'osrel': 'debian13', 'test_cross': True},
+  {'osrel': 'debian12', 'test_cross': True},
+  {'osrel': 'debian11', 'test_cross': True},
+  {'osrel': 'ubuntu2604', 'test_cross': True},
+  {'osrel': 'ubuntu2404', 'test_cross': True},
+  {'osrel': 'ubuntu2204', 'test_cross': True},
+]
 
 sat_group = [
   {
@@ -174,6 +193,8 @@ print(f'profile={json.dumps(profile)}')
 print(f'exclude_profile_branch={json.dumps(exclude_profile_branch)}')
 print(f'alt_branch={json.dumps(alt_branch)}')
 print(f'alt_profile={json.dumps(alt_profile)}')
+print(f'alt_osrel={json.dumps(alt_osrel)}')
+print(f'alt_osrel_test_cross={json.dumps(alt_osrel_test_cross)}')
 print(f'release={json.dumps(release)}')
 print(f'prerelease={json.dumps(prerelease)}')
 print(f'sat_group={json.dumps(sat_group)}')
