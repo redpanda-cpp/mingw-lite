@@ -2,7 +2,7 @@ import argparse
 import logging
 import os
 from packaging.version import Version
-from shutil import copyfile
+import shutil
 import subprocess
 
 from module.debug import shell_here
@@ -148,6 +148,13 @@ def _meson(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--prefix=/usr/local',
     ], cwd = paths.src_dir.meson, check = True)
 
+def _wrapper(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  bin_dir = paths.layer_AAA.wrapper / 'usr/local/bin'
+  ensure(bin_dir)
+
+  shutil.copy(paths.in_tree_src_tree.wrapper / 'ar-wrapper', bin_dir / 'ar-wrapper')
+  shutil.copy(paths.in_tree_src_tree.wrapper / 'dlltool-wrapper', bin_dir / 'dlltool-wrapper')
+
 def _xmake(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   subprocess.run([
     './configure',
@@ -160,4 +167,5 @@ def build_AAA_tool(ver: BranchProfile, paths: ProjectPaths, config: argparse.Nam
   _python(ver, paths, config)
   _setuptools(ver, paths, config)
   _meson(ver, paths, config)
+  _wrapper(ver, paths, config)
   _xmake(ver, paths, config)

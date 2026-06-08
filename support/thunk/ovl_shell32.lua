@@ -1,7 +1,7 @@
 target('alias-short-shell32')
-  enable_if_x86_32()
+  set_enabled(has_config('short-alias') and is_arch('i386', 'i686'))
   set_kind('static')
-    on_build(build_short_import_library({'def/lib32/shell32.def'}))
+  on_build(build_short_import_library({'def/lib32/shell32.def'}))
 
 target('overlay-shell32')
   enable_thunk_options()

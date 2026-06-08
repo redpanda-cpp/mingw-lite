@@ -164,6 +164,7 @@ function add_msvcrt_sources(functions, prefix)
 end
 
 target('alias-short-msvcrt-os')
+  set_enabled(has_config('short-alias'))
   set_kind('static')
 
   if is_arch('i386', 'i686') then

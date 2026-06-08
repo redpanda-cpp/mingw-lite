@@ -325,6 +325,10 @@ def _mingw(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.mingw, paths.src_arx.mingw):
     v = Version(ver.mingw)
 
+    # CRT: Fix def typo
+    if v.major >= 14:
+      patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-def-typo.patch')
+
     # CRT: Fix import module name
     if v.major >= 12:
       patch(paths.src_dir.mingw, paths.patch_dir / 'crt' / 'fix-import-module-name_12.patch')

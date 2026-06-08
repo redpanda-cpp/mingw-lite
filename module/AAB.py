@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 from packaging.version import Version
 from pathlib import Path
 import shutil
@@ -10,7 +11,7 @@ from module.alt_crt import generate_thunk_revert_map, postprocess_crt_import_lib
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, ensure, extract_shared_libs, overlayfs_ro, touch
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, dt_sidecar_dir, ensure, extract_shared_libs, overlayfs_ro, touch
 from module.util import cflags_A, cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import cmake_build, cmake_config, cmake_flags_B, cmake_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
@@ -238,14 +239,18 @@ def _bootstrap(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespa
 
 def _crt_base(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = paths.src_dir.mingw / 'mingw-w64-crt' / 'build-AAB'
+  sidecar_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'lib'
+  ensure(build_dir)
+  ensure(sidecar_dir)
 
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.wrapper / 'usr/local',
+
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.bootstrap / 'usr/local',
     paths.layer_AAB.gcc / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
-  ]):
-    ensure(build_dir)
+  ]), dt_sidecar_dir(sidecar_dir):
 
     multilib_flags = [
       '--enable-lib64' if ver.arch == '64' else '--disable-lib64',
@@ -264,8 +269,8 @@ def _crt_base(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       *cflags_B(optimize_for_speed = ver.opt_speed),
       # create modern (short) import libraries
       # https://github.com/mingw-w64/mingw-w64/issues/149
-      'DLLTOOL=llvm-dlltool',
-      'AR=llvm-ar',
+      'DLLTOOL=dlltool-wrapper',
+      'AR=ar-wrapper',
       'RANLIB=llvm-ranlib',
     ])
     make_default(build_dir, config.jobs)
@@ -275,6 +280,7 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   v = Version(ver.mingw)
 
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.wrapper / 'usr/local',
     paths.layer_AAA.xmake / 'usr/local',
 
     paths.layer_AAB.binutils / 'usr/local',
@@ -298,17 +304,23 @@ def _crt_host(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
       '--mingw=/usr/local',
+      # our flags
       f'--mingw-version={v.major}',
+      '--short-alias=y',
       f'--thunk-level={ver.min_os}',
       *config_flags,
     ])
-    xmake_build(thunk_src_dir, config.jobs)
+
+    thunk_lib_dir = paths.layer_AAB.thunk_host / 'usr/local' / ver.target / 'lib'
+    ensure(thunk_lib_dir)
+    with dt_sidecar_dir(thunk_lib_dir):
+      xmake_build(thunk_src_dir, config.jobs)
+
     xmake_install(thunk_src_dir, paths.layer_AAB.thunk_host / 'usr/local' / ver.target)
 
     # Post-process import libraries to handle weak symbol aliases
     # llvm-dlltool uses weak symbols for aliases which binutils ld doesn't handle well
     # We split them into normal symbols (llvm-dlltool) and aliases (binutils dlltool)
-    thunk_lib_dir = paths.layer_AAB.thunk_host / 'usr/local' / ver.target / 'lib'
     crt0_lib_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'lib'
     crt_lib_dir = paths.layer_AAB.crt_host / 'usr/local' / ver.target / 'lib'
     postprocess_crt_import_libraries(
@@ -335,6 +347,7 @@ def _crt_target_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Name
   v = Version(ver.mingw)
 
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.wrapper / 'usr/local',
     paths.layer_AAA.xmake / 'usr/local',
 
     paths.layer_AAB.binutils / 'usr/local',
@@ -361,15 +374,21 @@ def _crt_target_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Name
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
       '--mingw=/usr/local',
+      # our flags
       f'--mingw-version={v.major}',
-      f'--thunk-level={ver.min_os}',
       '--profile=core',
+      '--short-alias=y',
+      f'--thunk-level={ver.min_os}',
       *config_flags,
     ])
-    xmake_build(thunk_src_dir, config.jobs)
-    xmake_install(thunk_src_dir, paths.layer_AAB.thunk_target / 'usr/local' / ver.target)
 
     thunk_lib_dir = paths.layer_AAB.thunk_target / 'usr/local' / ver.target / 'lib'
+    ensure(thunk_lib_dir)
+    with dt_sidecar_dir(thunk_lib_dir):
+      xmake_build(thunk_src_dir, config.jobs)
+
+    xmake_install(thunk_src_dir, paths.layer_AAB.thunk_target / 'usr/local' / ver.target)
+
     crt0_lib_dir = paths.layer_AAB.crt_base / 'usr/local' / ver.target / 'lib'
     crt_lib_dir = paths.layer_AAB.crt_target / 'usr/local' / ver.target / 'lib'
     ensure(crt_lib_dir)
@@ -378,6 +397,7 @@ def _crt_target_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Name
     if ver.utf8_user_crt:
       # trigger post-processing import libraries
       shutil.copy(crt0_lib_dir / 'libucrt.a', crt0_lib_dir / 'libutf8-ucrt.a')
+      shutil.copy(crt0_lib_dir / 'libucrt.a.import-info.json', crt0_lib_dir / 'libutf8-ucrt.a.import-info.json')
 
       # -mutf8 addition
       subprocess.run([

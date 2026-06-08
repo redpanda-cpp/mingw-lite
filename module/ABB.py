@@ -12,7 +12,7 @@ from module.alt_crt import generate_thunk_revert_map, postprocess_crt_import_lib
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, ensure, extract_shared_libs, overlayfs_ro, remove_info_main_menu
+from module.util import XMAKE_ARCH_MAP, add_objects_to_static_lib, common_cross_layers, dt_sidecar_dir, ensure, extract_shared_libs, overlayfs_ro, remove_info_main_menu
 from module.util import cflags_B, configure, make_custom, make_default, make_destdir_install
 from module.util import cmake_build, cmake_config, cmake_flags_B, cmake_install
 from module.util import meson_build, meson_config, meson_flags_B, meson_install
@@ -160,7 +160,14 @@ def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace
   shutil.copy(paths.src_dir.mingw / 'COPYING', license_dir / 'COPYING')
 
 def _crt0(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
-  with overlayfs_ro('/usr/local', common_cross_layers(paths)):
+  sidecar_dir = paths.layer_ABB.crt0 / 'lib'
+  ensure(sidecar_dir)
+
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.wrapper / 'usr/local',
+
+    *common_cross_layers(paths),
+  ]), dt_sidecar_dir(sidecar_dir):
     build_dir = paths.src_dir.mingw / 'mingw-w64-crt' / 'build-ABB'
     ensure(build_dir)
 
@@ -181,8 +188,8 @@ def _crt0(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       *cflags_B(optimize_for_speed = ver.opt_speed),
       # create modern (short) import libraries
       # https://github.com/mingw-w64/mingw-w64/issues/149
-      'DLLTOOL=llvm-dlltool',
-      'AR=llvm-ar',
+      'DLLTOOL=dlltool-wrapper',
+      'AR=ar-wrapper',
       'RANLIB=llvm-ranlib',
     ])
     make_default(build_dir, config.jobs)
@@ -192,6 +199,7 @@ def _crt_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   v = Version(ver.mingw)
 
   with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.wrapper / 'usr/local',
     paths.layer_AAA.xmake / 'usr/local',
 
     paths.layer_AAB.crt_base / 'usr/local',
@@ -215,15 +223,21 @@ def _crt_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--plat=mingw',
       f'--arch={XMAKE_ARCH_MAP[ver.arch]}',
       '--mingw=/usr/local',
+      # our flags
       f'--mingw-version={v.major}',
-      f'--thunk-level={ver.min_os}',
       '--profile=core',
+      '--short-alias=y',
+      f'--thunk-level={ver.min_os}',
       *config_flags,
     ])
-    xmake_build(thunk_src_dir, config.jobs)
-    xmake_install(thunk_src_dir, paths.layer_ABB.thunk)
 
     thunk_lib_dir = paths.layer_ABB.thunk / 'lib'
+    ensure(thunk_lib_dir)
+    with dt_sidecar_dir(thunk_lib_dir):
+      xmake_build(thunk_src_dir, config.jobs)
+
+    xmake_install(thunk_src_dir, paths.layer_ABB.thunk)
+
     crt0_lib_dir = paths.layer_ABB.crt0 / 'lib'
     crt_lib_dir = paths.layer_ABB.crt / 'lib'
     ensure(crt_lib_dir)
@@ -232,6 +246,7 @@ def _crt_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.utf8_user_crt:
       # trigger post-processing import libraries
       shutil.copy(crt0_lib_dir / 'libucrt.a', crt0_lib_dir / 'libutf8-ucrt.a')
+      shutil.copy(crt0_lib_dir / 'libucrt.a.import-info.json', crt0_lib_dir / 'libutf8-ucrt.a.import-info.json')
 
       # -mutf8 addition
       subprocess.run([

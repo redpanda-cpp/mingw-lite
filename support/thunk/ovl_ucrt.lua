@@ -92,6 +92,7 @@ end
 
 target('alias-short-ucrt')
   on_build(build_short_import_library(ucrt_def_files()))
+  set_enabled(has_config('short-alias'))
   set_kind('static')
 
 target('overlay-ucrt')
@@ -107,7 +108,7 @@ target('overlay-ucrt')
 
 target('alias-short-utf8-ucrt')
   on_build(build_short_import_library(ucrt_def_files()))
-  set_enabled(has_config('u8crt'))
+  set_enabled(has_config('short-alias') and has_config('u8crt'))
   set_kind('static')
 
 target('overlay-utf8-ucrt')

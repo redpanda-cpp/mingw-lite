@@ -1,0 +1,218 @@
+#!/usr/bin/python3
+
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+from typing import Dict, List, Optional, Tuple, TypedDict
+
+StaticObjects = Dict[str, List[str]]
+
+class _ExportEntryBase(TypedDict):
+    name: str
+
+class ExportEntry(_ExportEntryBase, total=False):
+    target: str
+    ordinal: int
+    constant: bool
+    data: bool
+    private: bool
+
+class DllExports(TypedDict):
+    exports: List[ExportEntry]
+
+class Sidecar(TypedDict):
+    imports: Dict[str, DllExports]
+    static_objects: StaticObjects
+
+
+def read_sidecar(sidecar_dir: str, archive_path: str) -> Optional[Sidecar]:
+  basename = Path(archive_path).name
+  sidecar_path = Path(sidecar_dir) / (basename + '.import-info.json')
+  if sidecar_path.is_file():
+    with open(sidecar_path) as f:
+      return json.load(f)
+  return None
+
+
+def _nm_imp_symbols(obj_path: str) -> List[str]:
+  prefix_force = '__force_override_mingw_emu__imp_'
+  result = subprocess.run(
+    ['llvm-nm', '-g', '--defined-only', obj_path],
+    capture_output=True,
+    text=True,
+  )
+  if result.returncode != 0:
+    return []
+  symbols: List[str] = []
+  for line in result.stdout.splitlines():
+    fields = line.split()
+    if len(fields) >= 3:
+      sym = fields[2]
+      if sym.startswith('__imp_') or sym.startswith(prefix_force):
+        symbols.append(sym)
+  return symbols
+
+
+def merge_sidecars(sidecar_list: List[Sidecar], static_objects: StaticObjects) -> Sidecar:
+  merged_imports: Dict[str, DllExports] = {}
+  merged_objects: StaticObjects = {}
+
+  for obj_name, syms in static_objects.items():
+    if obj_name in merged_objects:
+      raise Exception(f'Duplicate static object in call: {obj_name}')
+    merged_objects[obj_name] = syms
+
+  for sidecar in sidecar_list:
+    if not sidecar:
+      continue
+    for dll_name, dll_data in sidecar['imports'].items():
+      if dll_name not in merged_imports:
+        merged_imports[dll_name] = {'exports': []}
+      merged_imports[dll_name]['exports'].extend(dll_data['exports'])
+    for obj_name, syms in sidecar['static_objects'].items():
+      if obj_name in merged_objects:
+        raise Exception(f'Duplicate static object from sidecar: {obj_name}')
+      merged_objects[obj_name] = syms
+
+  return {
+    'imports': merged_imports,
+    'static_objects': merged_objects,
+  }
+
+
+def parse_mri(mri_text: str, sidecar_dir: str) -> Tuple[Optional[str], List[Sidecar], StaticObjects]:
+  output_file = None
+  addlib_sidecars: List[Sidecar] = []
+  static_objects: StaticObjects = {}
+
+  for line in mri_text.splitlines():
+    line = line.strip()
+    if not line:
+      continue
+
+    parts = line.split(None, 1)
+    cmd = parts[0].lower()
+
+    if cmd == 'create' and len(parts) > 1:
+      output_file = parts[1].strip()
+    elif cmd == 'addlib' and len(parts) > 1:
+      lib_path = parts[1].strip()
+      sc = read_sidecar(sidecar_dir, lib_path)
+      if sc:
+        addlib_sidecars.append(sc)
+    elif cmd == 'addmod' and len(parts) > 1:
+      mod_path = parts[1].strip()
+      obj_name = Path(mod_path).name
+      if obj_name in static_objects:
+        raise Exception(f'Duplicate static object in MRI ADDMOD: {obj_name}')
+      static_objects[obj_name] = _nm_imp_symbols(mod_path)
+
+  return output_file, addlib_sidecars, static_objects
+
+
+def handle_mri(sidecar_dir: Optional[str]) -> None:
+  mri_text = sys.stdin.read()
+
+  if not sidecar_dir:
+    result = subprocess.run(
+      ['llvm-ar', '-M'],
+      input=mri_text,
+      text=True,
+    )
+    sys.exit(result.returncode)
+    return
+
+  output_file, addlib_sidecars, static_objects = parse_mri(mri_text, sidecar_dir)
+
+  if output_file:
+    merged = merge_sidecars(addlib_sidecars, static_objects)
+    basename = Path(output_file).name
+    sidecar_path = Path(sidecar_dir) / (basename + '.import-info.json')
+    sidecar_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(sidecar_path, 'w') as f:
+      json.dump(merged, f, indent=2, sort_keys=True)
+      f.write('\n')
+
+  result = subprocess.run(
+    ['llvm-ar', '-M'],
+    input=mri_text,
+    text=True,
+  )
+  sys.exit(result.returncode)
+
+
+def _is_write_op(arg: str) -> bool:
+  op = arg.lstrip('-').lower()
+  return 'r' in op or 'q' in op or 's' in op
+
+def _parse_write_op(args: List[str]) -> Tuple[Optional[str], List[str]]:
+  output_file = None
+  input_files = []
+  for i, arg in enumerate(args):
+    clean = arg.lstrip('-')
+    if any(c in clean for c in 'rqsm'):
+      if i + 2 <= len(args):
+        output_file = args[i + 1] if i + 1 < len(args) else None
+        input_files = args[i + 2:] if i + 2 < len(args) else []
+      return output_file, input_files
+  return None, []
+
+def handle_create(sidecar_dir: Optional[str], args: List[str]) -> None:
+  output_file, input_files = _parse_write_op(args)
+
+  if sidecar_dir and output_file:
+    static_objects: StaticObjects = {}
+
+    for inp in input_files:
+      obj_name = Path(inp).name
+      if obj_name in static_objects:
+        raise Exception(f'Duplicate static object in input: {obj_name}')
+      static_objects[obj_name] = _nm_imp_symbols(inp)
+
+    existing = read_sidecar(sidecar_dir, output_file)
+    merged: Sidecar = {
+      'imports': existing['imports'] if existing else {},
+      'static_objects': {},
+    }
+    if existing:
+      for obj_name, syms in existing['static_objects'].items():
+        if obj_name not in static_objects:
+          merged['static_objects'][obj_name] = syms
+    merged['static_objects'].update(static_objects)
+
+    basename = Path(output_file).name
+    sidecar_path = Path(sidecar_dir) / (basename + '.import-info.json')
+    sidecar_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(sidecar_path, 'w') as f:
+      json.dump(merged, f, indent=2, sort_keys=True)
+      f.write('\n')
+
+  result = subprocess.run(['llvm-ar'] + args)
+  sys.exit(result.returncode)
+
+
+def main() -> None:
+  args = sys.argv[1:]
+  if not args:
+    result = subprocess.run(['llvm-ar'])
+    sys.exit(result.returncode)
+    return
+
+  sidecar_dir = os.environ.get('DT_SIDECAR_DIR')
+
+  if args[0] == '-M':
+    handle_mri(sidecar_dir)
+    return
+
+  if _is_write_op(args[0]):
+    handle_create(sidecar_dir, args)
+    return
+
+  result = subprocess.run(['llvm-ar'] + args)
+  sys.exit(result.returncode)
+
+
+if __name__ == '__main__':
+  main()

@@ -149,6 +149,14 @@ def configure(cwd: Path, args: List[str]):
     check = True,
   )
 
+@contextmanager
+def dt_sidecar_dir(path: Union[Path, str]):
+  os.environ['DT_SIDECAR_DIR'] = str(path)
+  try:
+    yield
+  finally:
+    del os.environ['DT_SIDECAR_DIR']
+
 def ensure(path: Path):
   path.mkdir(parents = True, exist_ok = True)
 

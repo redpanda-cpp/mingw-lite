@@ -1,4 +1,5 @@
 target('alias-short-kernel32')
+  set_enabled(has_config('short-alias'))
   set_kind('static')
 
   if is_arch('i386', 'i686') then

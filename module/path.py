@@ -32,6 +32,7 @@ class InTreeSourcePaths(NamedTuple):
   intl: Path
   sync: Path
   thunk: Path
+  wrapper: Path
 
 class LayerPathsAAA(NamedTuple):
   prefix: Path
@@ -44,6 +45,7 @@ class LayerPathsAAA(NamedTuple):
   meson: Path
   python: Path
   setuptools: Path
+  wrapper: Path
   xmake: Path
 
 class LayerPathsAAB(NamedTuple):
@@ -267,6 +269,7 @@ class ProjectPaths:
       intl = self.build_dir / 'intl',
       sync = self.build_dir / 'sync',
       thunk = self.build_dir / 'thunk',
+      wrapper = self.build_dir / 'wrapper',
     )
 
     self.in_tree_src_tree = InTreeSourcePaths(
@@ -274,6 +277,7 @@ class ProjectPaths:
       intl = self.root_dir / 'support/intl',
       sync = self.root_dir / 'support/sync',
       thunk = self.root_dir / 'support/thunk',
+      wrapper = self.root_dir / 'support/wrapper',
     )
 
     layer_AAA_prefix = self.layer_dir / 'AAA'
@@ -288,6 +292,7 @@ class ProjectPaths:
       meson = layer_AAA_prefix / 'meson',
       python = layer_AAA_prefix / 'python',
       setuptools = layer_AAA_prefix / 'setuptools',
+      wrapper = layer_AAA_prefix / 'wrapper',
       xmake = layer_AAA_prefix / 'xmake',
     )
 

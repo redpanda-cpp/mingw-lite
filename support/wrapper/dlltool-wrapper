@@ -1,0 +1,247 @@
+#!/usr/bin/python3
+
+import argparse
+from dataclasses import dataclass, field
+from enum import Enum, auto
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+from typing import Dict, List, Optional, Set, TypedDict
+
+StaticObjects = Dict[str, List[str]]
+
+class _ExportEntryBase(TypedDict):
+    name: str
+
+class ExportEntry(_ExportEntryBase, total=False):
+    target: str
+    ordinal: int
+    constant: bool
+    data: bool
+    private: bool
+
+class DllExports(TypedDict):
+    exports: List[ExportEntry]
+
+class Sidecar(TypedDict):
+    imports: Dict[str, DllExports]
+    static_objects: StaticObjects
+
+
+class ParseError(Exception):
+  pass
+
+
+def _tokenize_export(line: str) -> List[str]:
+  tokens: List[str] = []
+  for t in line.split():
+    if t.startswith('@') and len(t) > 1 and t[1:].isdigit():
+      tokens.append('@')
+      tokens.append(t[1:])
+    else:
+      tokens.append(t)
+  return tokens
+
+
+def _parse_qualifier(token: str) -> Optional[str]:
+  qu = token.upper()
+  if qu == 'DATA':
+    return 'data'
+  elif qu in ('CONSTANT', 'CONST'):
+    return 'constant'
+  elif qu == 'PRIVATE':
+    return 'private'
+  elif qu == 'NONAME':
+    return 'noname'
+  return None
+
+
+class ExSt(Enum):
+  NAME = auto()
+  POST_NAME = auto()
+  EQ = auto()
+  AT = auto()
+  TAIL = auto()
+
+
+@dataclass
+class ExportLine:
+  name: str
+  target: Optional[str] = None
+  ordinal: Optional[int] = None
+  constant: bool = False
+  data: bool = False
+  private: bool = False
+
+  def to_dict(self) -> ExportEntry:
+    d: ExportEntry = {'name': self.name}
+    if self.target is not None:
+      d['target'] = self.target
+    if self.ordinal is not None:
+      d['ordinal'] = self.ordinal
+    if self.constant:
+      d['constant'] = True
+    if self.data:
+      d['data'] = True
+    if self.private:
+      d['private'] = True
+    return d
+
+  @classmethod
+  def from_line(cls, line: str) -> 'ExportLine':
+    tokens = _tokenize_export(line)
+    if not tokens:
+      raise ParseError(f'Empty export entry')
+
+    name = None
+    target = None
+    ordinal = None
+    flags = {}
+    seen: Set[Optional[str]] = set()
+    state = ExSt.NAME
+    i = 0
+
+    while i < len(tokens):
+      tok = tokens[i]
+
+      if state is ExSt.NAME:
+        name = tok
+        state = ExSt.POST_NAME
+
+      elif state is ExSt.POST_NAME:
+        if tok in ('==', '='):
+          state = ExSt.EQ
+        elif tok == '@':
+          state = ExSt.AT
+        else:
+          q = _parse_qualifier(tok)
+          if q is None:
+            raise ParseError(f'Unexpected token {tok!r} after name {name!r}')
+          if q in seen:
+            raise ParseError(f'Duplicate qualifier {tok!r}')
+          seen.add(q)
+          if q != 'noname':
+            flags[q] = True
+          state = ExSt.TAIL
+
+      elif state is ExSt.EQ:
+        target = tok
+        state = ExSt.TAIL
+
+      elif state is ExSt.TAIL:
+        if tok in ('==', '='):
+          state = ExSt.EQ
+        elif tok == '@':
+          state = ExSt.AT
+        else:
+          q = _parse_qualifier(tok)
+          if q is None:
+            raise ParseError(f'Unexpected token {tok!r} in line: {line!r}')
+          if q in seen:
+            raise ParseError(f'Duplicate qualifier {tok!r}')
+          seen.add(q)
+          if q != 'noname':
+            flags[q] = True
+
+      elif state is ExSt.AT:
+        if not tok.isdigit():
+          raise ParseError(f'Expected ordinal after @, got {tok!r}')
+        ordinal = int(tok)
+        state = ExSt.TAIL
+
+      i += 1
+
+    if state is ExSt.EQ:
+      raise ParseError(f'Expected target after == in line: {line!r}')
+    if state is ExSt.AT:
+      raise ParseError(f'Expected ordinal after @ in line: {line!r}')
+
+    assert name is not None
+    return cls(
+      name = name,
+      target = target,
+      ordinal = ordinal,
+      constant = 'constant' in flags,
+      data = 'data' in flags,
+      private = 'private' in flags,
+    )
+
+
+class DefSt(Enum):
+  HEADER = auto()
+  EXPORTS = auto()
+
+
+@dataclass
+class DefFile:
+  dll_name: str
+  exports: List[ExportLine] = field(default_factory=List[ExportLine])
+
+  @classmethod
+  def from_file(cls, path: str) -> 'DefFile':
+    dll_name = None
+    exports: List[ExportLine] = []
+    state = DefSt.HEADER
+
+    with open(path) as f:
+      for line in f:
+        line = line.split(';')[0].strip()
+        if not line:
+          continue
+
+        if state == DefSt.HEADER:
+          keyword = line.upper().split()[0]
+          if keyword in ('LIBRARY', 'NAME'):
+            dll_name = line.split(None, 1)[1].strip().strip('"').lower()
+            if '.' not in dll_name:
+              dll_name += '.dll'
+          elif keyword == 'EXPORTS':
+            state = DefSt.EXPORTS
+          else:
+            raise ParseError(f'Unknown directive {keyword!r} in .def header')
+
+        elif state == DefSt.EXPORTS:
+          exports.append(ExportLine.from_line(line))
+
+    if dll_name is None:
+      raise ParseError('No library name specified')
+
+    return cls(dll_name=dll_name, exports=exports)
+
+
+def main() -> None:
+  sidecar_dir = os.environ.get('DT_SIDECAR_DIR')
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-d', '--input-def')
+  parser.add_argument('-l', '--output-lib')
+
+  args, _ = parser.parse_known_args()
+
+  if sidecar_dir and args.input_def and args.output_lib:
+    input_def = DefFile.from_file(args.input_def)
+
+    sidecar: Sidecar = {
+      'imports': {
+        input_def.dll_name: {
+          'exports': [e.to_dict() for e in input_def.exports],
+        }
+      },
+      'static_objects': {},
+    }
+
+    basename = Path(args.output_lib).name
+    sidecar_path = Path(sidecar_dir) / (basename + '.import-info.json')
+    sidecar_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(sidecar_path, 'w') as f:
+      json.dump(sidecar, f, indent=2, sort_keys=True)
+      f.write('\n')
+
+  result = subprocess.run(['llvm-dlltool'] + sys.argv[1:])
+  sys.exit(result.returncode)
+
+
+if __name__ == '__main__':
+  main()

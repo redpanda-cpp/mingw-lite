@@ -1,0 +1,15 @@
+diff --git a/mingw-w64-crt/lib32/msvcr80d.def.in b/mingw-w64-crt/lib32/msvcr80d.def.in
+index d39efa4d4..e5649c2ef 100644
+--- a/mingw-w64-crt/lib32/msvcr80d.def.in
++++ b/mingw-w64-crt/lib32/msvcr80d.def.in
+@@ -1476,8 +1476,8 @@ longjmp
+ malloc
+ mblen
+ ; mbrlen ; replaced, CRT version does not conform to C95
+-: mbrtowc ; replaced, CRT version does not conform to C95
+-: mbsrtowcs ; replaced, CRT version does not conform to C95
++; mbrtowc ; replaced, CRT version does not conform to C95
++; mbsrtowcs ; replaced, CRT version does not conform to C95
+ mbsrtowcs_s
+ mbstowcs
+ mbstowcs_s

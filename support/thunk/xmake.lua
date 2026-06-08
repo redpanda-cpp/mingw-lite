@@ -82,7 +82,7 @@ function build_short_import_library(sourcefiles)
       for _, sourcefile in ipairs(sourcefiles) do
         local temp_a = path.join(tmpdir, path.filename(sourcefile) .. '.a')
         mri_content = mri_content .. 'addlib ' .. temp_a .. '\n'
-        os.runv('llvm-dlltool', {
+        os.runv('dlltool-wrapper', {
           '-m', machine,
           '-k',
           '-l', temp_a,
@@ -92,9 +92,9 @@ function build_short_import_library(sourcefiles)
       local mri = path.join(tmpdir, 'mri')
       io.writefile(mri, mri_content)
 
-      os.execv('llvm-ar', {'-M'}, {stdin = mri})
+      os.execv('ar-wrapper', {'-M'}, {stdin = mri})
     else
-      os.runv('llvm-dlltool', {
+      os.runv('dlltool-wrapper', {
         '-m', machine,
         '-k',
         '-l', target:targetfile(),
@@ -184,7 +184,7 @@ option('profile')
     'toolchain',
     'toolchain-utf8')
 
-option('u8crt')
+option('short-alias')
   set_default(false)
   set_showmenu(true)
 
@@ -215,6 +215,10 @@ option('thunk-level')
 
 option('thunk-xp')
   set_default(true)
+  set_showmenu(true)
+
+option('u8crt')
+  set_default(false)
   set_showmenu(true)
 
 includes('dep/catch2')
