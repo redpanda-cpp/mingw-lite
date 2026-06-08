@@ -31,7 +31,7 @@ namespace mingw_thunk
     }
 
     d::w_str w_buffer;
-    if (!w_buffer.from_a(static_cast<const char *>(lpBuffer),
+    if (!w_buffer.from_u(static_cast<const char *>(lpBuffer),
                          nNumberOfBytesToWrite)) {
       SetLastError(ERROR_OUTOFMEMORY);
       return FALSE;
@@ -46,7 +46,7 @@ namespace mingw_thunk
         *lpNumberOfBytesWritten = nNumberOfBytesToWrite;
       else {
         d::u_str u_written;
-        if (!u_written.from_w(w_buffer.c_str())) {
+        if (!u_written.from_w(w_buffer.c_str(), w_written)) {
           SetLastError(ERROR_OUTOFMEMORY);
           return FALSE;
         }
