@@ -169,8 +169,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     zlib_net = '1.3.2',
   ),
   '15': BranchVersions(
-    gcc = '15.2.0',
-    rev = '8.1',
+    gcc = '15.3.0',
+    rev = '0.1',
 
     abi_frozen = True,
     branch_opt_speed = False,

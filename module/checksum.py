@@ -18,7 +18,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'gcc-13.4.0.tar.xz': '9c4ce6dbb040568fdc545588ac03c5cbc95a8dbf0c7aa490170843afb59ca8f5',
   'gcc-14.3.0.tar.xz': 'e0dc77297625631ac8e50fa92fffefe899a4eb702592da5c32ef04e2293aca3a',
-  'gcc-15.2.0.tar.xz': '438fd996826b0c82485a29da03a72d71d6e3541a83ec702df4271f6fe025d24e',
+  'gcc-15.3.0.tar.xz': 'fa59c1beef8995f27c4d71c1df227587189315d3e6faff1bb4306e61b0c530eb',
   'gcc-16.1.0.tar.xz': '50efb4d94c3397aff3b0d61a5abd748b4dd31d9d3f2ab7be05b171d36a510f79',
 
   'gcc-16-20260606.tar.xz': '4528011d0c7b55f12cb344ddf2929b7ea1a0cae2ee51e118acbab4b5090cefcc',
