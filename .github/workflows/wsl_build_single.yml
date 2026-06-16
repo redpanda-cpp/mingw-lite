@@ -24,15 +24,15 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.symlinks true
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download source
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: src-${{ inputs.branch }}
           path: assets
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: wsl-buildenv
           path: assets
@@ -57,7 +57,7 @@ jobs:
           wsl --shutdown
           wsl --unregister mingw-lite-buildenv
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: alt_build_wsl${{ inputs.wsl_version }}-mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist

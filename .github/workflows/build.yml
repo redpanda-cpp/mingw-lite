@@ -7,7 +7,7 @@ jobs:
     name: Determine parameter
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - id: param
         run: |
@@ -31,17 +31,17 @@ jobs:
     runs-on: ubuntu-slim
     needs: param
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         branch: ${{ fromJson(needs.param.outputs.branch) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download source
         run: |
           ./main.py --branch ${{ matrix.branch }} --profile 64-mcf --download-only
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: src-${{ matrix.branch }}
           path: |
@@ -50,7 +50,7 @@ jobs:
   build_container:
     name: Build container
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         build_arch: [x86_64, aarch64]
         include:
@@ -60,7 +60,7 @@ jobs:
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build container
         run: |
@@ -70,7 +70,7 @@ jobs:
           podman save mingw-lite/buildenv:latest | zstd -o assets/buildenv.tar.zst
 
       - name: Upload container
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: buildenv-${{ matrix.build_arch }}
           path: assets/buildenv.tar.zst
@@ -114,12 +114,12 @@ jobs:
     needs: [param]
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         osrel: ${{ fromJson(needs.param.outputs.alt_osrel) }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build container
         run: |
@@ -128,7 +128,7 @@ jobs:
           mkdir assets
           podman save mingw-lite/buildenv:latest | zstd -o assets/buildenv.tar.zst
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: buildenv-${{ matrix.osrel }}
           path: assets/buildenv.tar.zst
@@ -159,7 +159,7 @@ jobs:
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build container (WSL)
         run: |
@@ -186,7 +186,7 @@ jobs:
           mkdir assets
           wsl --export mingw-lite-buildenv - | zstd -9 -o assets/buildenv.tar.zst
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wsl-buildenv
           path: assets/buildenv.tar.zst
@@ -221,7 +221,7 @@ jobs:
         with:
           apt: 7zip jq libarchive-tools
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: mingw*
           path: dist
@@ -287,13 +287,13 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.param.outputs.sat_group) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ConorMacBride/install-package@v1
         with:
           apt: jq libarchive-tools
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: ${{ matrix.pattern }}
           path: dist
@@ -328,7 +328,7 @@ jobs:
             7z a -t7z -mx9 -ms=on -mqs -m0=LZMA:d=${{ matrix.dict }}:fb64 ../dist/sat${{ matrix.name }}.7z sat*
           )
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sat${{ matrix.name }}
           path: dist/sat${{ matrix.name }}.7z

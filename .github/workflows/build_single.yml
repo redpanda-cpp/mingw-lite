@@ -31,15 +31,15 @@ jobs:
     runs-on: ${{ inputs.runner }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download source
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: src-${{ inputs.branch }}
           path: assets
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: buildenv-${{ inputs.buildenv }}
           path: assets
@@ -50,7 +50,7 @@ jobs:
           podman run --rm --cap-add=sys_admin -v $PWD:/mnt -w /mnt mingw-lite/buildenv \
             ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
@@ -62,7 +62,7 @@ jobs:
     needs: build
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Enable multiarch
         run: |
@@ -77,7 +77,7 @@ jobs:
         run: |
           echo ':DOSWin:M::MZ::/usr/bin/wine:' | sudo tee /proc/sys/fs/binfmt_misc/register
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
@@ -104,9 +104,9 @@ jobs:
         run: |
           git config --global core.autocrlf false
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
@@ -129,7 +129,7 @@ jobs:
     needs: build
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Enable multiarch
         run: |
@@ -143,10 +143,17 @@ jobs:
         run: |
           echo ':DOSWin:M::MZ::/usr/bin/wine:' | sudo tee /proc/sys/fs/binfmt_misc/register
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
+
+      # avoid wine failures (possibly race condition)
+      #   wine: created the configuration directory '/root/.wine'
+      #   wine: chdir to /tmp/wine-wr755y/server-801-6f0401 : No such file or directory
+      - name: Initialize wine prefix
+        run: |
+          sudo wineboot --init
 
       - name: Test
         run: |
