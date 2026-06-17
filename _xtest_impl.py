@@ -56,7 +56,7 @@ def test_corss_compiler(ver: BranchProfile, paths: ProjectPaths, verbose: List[s
       'xmake', 'f', *verbose,
       '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
       '--mingw=/usr/local',
-      '--dlopen=n', '--lto=y', '--utf8=y',
+      '--dlopen=n', '--iconv-error=n', '--lto=y', '--utf8=y',
     ], cwd = paths.test_dir)
     subprocess.check_call(['xmake', 'b', *verbose], cwd = paths.test_dir)
     subprocess.check_call(['xmake', 'test', *verbose], cwd = paths.test_dir)
@@ -77,7 +77,7 @@ def test_cross_shared(ver: BranchProfile, paths: ProjectPaths, verbose: List[str
       '--builddir=build-shared',
       '-p', 'mingw', '-a', XMAKE_ARCH_MAP[ver.arch],
       '--mingw=/usr/local',
-      '--dlopen=y', '--lto=y', '--utf8=y',
+      '--dlopen=y', '--iconv-error=n', '--lto=y', '--utf8=y',
     ], cwd = paths.test_dir)
     subprocess.check_call(['xmake', 'b', *verbose], cwd = paths.test_dir)
     subprocess.check_call(

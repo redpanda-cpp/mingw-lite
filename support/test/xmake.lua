@@ -7,6 +7,10 @@ option("dlopen")
   set_default(true)
   set_showmenu(true)
 
+option("iconv-error")
+  set_default(true)
+  set_showmenu(true)
+
 option("lto")
   set_default(true)
   set_showmenu(true)

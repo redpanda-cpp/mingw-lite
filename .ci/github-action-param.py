@@ -83,6 +83,7 @@ alt_osrel = [
   'archlinux',
   'debian13', 'debian12', 'debian11',
   'ubuntu2604', 'ubuntu2404', 'ubuntu2204',
+  'alpine323',
 ]
 alt_osrel_test_cross: List[AltBuildOsRelTestCross] = [
   {'osrel': 'archlinux', 'test_cross': False},
@@ -92,6 +93,7 @@ alt_osrel_test_cross: List[AltBuildOsRelTestCross] = [
   {'osrel': 'ubuntu2604', 'test_cross': True},
   {'osrel': 'ubuntu2404', 'test_cross': True},
   {'osrel': 'ubuntu2204', 'test_cross': True},
+  {'osrel': 'alpine323', 'test_cross': True},
 ]
 
 sat_group = [
