@@ -11,6 +11,7 @@ class BranchVersions:
   abi_frozen: bool
   branch_opt_speed: bool
   iconv_win32: bool
+  lto_zstd: bool
   native_tls: bool
   short_import: bool
   thunk_free_os: Version
@@ -25,6 +26,7 @@ class BranchVersions:
   gdb: str
   gmp: str
   iconv: str
+  isl: str
   make: str
   mpc: str
   mpfr: str
@@ -32,6 +34,7 @@ class BranchVersions:
   pkgconf: str
   python: str
   zlib_net: str
+  zstd: str
 
   display_version: Optional[str] = None
 
@@ -87,6 +90,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     abi_frozen = False,
     branch_opt_speed = True,
     iconv_win32 = True,
+    lto_zstd = True,
     native_tls = True,
     short_import = True,
     thunk_free_os = Version('6.0'),
@@ -101,6 +105,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.19',
+    isl = '0.27',
     make = '4.4.1',
     mpc = '1.4.1',
     mpfr = '4.2.2',
@@ -108,6 +113,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pkgconf = '2.5.1',
     python = '3.14.4',
     zlib_net = '1.3.2',
+    zstd = '1.5.7',
   ),
   'current': BranchVersions(
     gcc = '16-20260613',
@@ -117,6 +123,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     abi_frozen = False,
     branch_opt_speed = True,
     iconv_win32 = True,
+    lto_zstd = True,
     native_tls = True,
     short_import = True,
     thunk_free_os = Version('6.0'),
@@ -131,6 +138,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.19',
+    isl = '0.27',
     make = '4.4.1',
     mpc = '1.4.1',
     mpfr = '4.2.2',
@@ -138,6 +146,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pkgconf = '2.5.1',
     python = '3.14.4',
     zlib_net = '1.3.2',
+    zstd = '1.5.7',
   ),
   '16': BranchVersions(
     gcc = '16.1.0',
@@ -146,6 +155,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     abi_frozen = False,
     branch_opt_speed = True,
     iconv_win32 = True,
+    lto_zstd = True,
     native_tls = True,
     short_import = True,
     thunk_free_os = Version('6.0'),
@@ -160,6 +170,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.19',
+    isl = '0.27',
     make = '4.4.1',
     mpc = '1.4.1',
     mpfr = '4.2.2',
@@ -167,6 +178,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pkgconf = '2.5.1',
     python = '3.14.4',
     zlib_net = '1.3.2',
+    zstd = '1.5.7',
   ),
   '15': BranchVersions(
     gcc = '15.3.0',
@@ -175,6 +187,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     abi_frozen = True,
     branch_opt_speed = False,
     iconv_win32 = False,
+    lto_zstd = False,
     native_tls = False,
     short_import = False,
     thunk_free_os = Version('5.1'),
@@ -191,6 +204,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gdb = '17.1',
     gmp = '6.3.0',
     iconv = '1.18',
+    isl = '0.27',
     make = '4.4.1',
     mpc = '1.3.1',
     mpfr = '4.2.2',
@@ -198,6 +212,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pkgconf = '2.5.1',
     python = '3.14.4',
     zlib_net = '1.3.2',
+    zstd = '1.5.7',
   ),
   '14': BranchVersions(
     gcc = '14.3.0',
@@ -206,6 +221,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     abi_frozen = True,
     branch_opt_speed = False,
     iconv_win32 = False,
+    lto_zstd = False,
     native_tls = False,
     short_import = False,
     thunk_free_os = Version('5.1'),
@@ -222,6 +238,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gdb = '15.2',
     gmp = '6.3.0',
     iconv = '1.18',
+    isl = '0.27',
     make = '4.4.1',
     mpc = '1.3.1',
     mpfr = '4.2.2',
@@ -229,6 +246,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pkgconf = '2.3.0',
     python = '3.13.13',
     zlib_net = '1.3.2',
+    zstd = '1.5.7',
   ),
   '13': BranchVersions(
     gcc = '13.4.0',
@@ -237,6 +255,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     abi_frozen = True,
     branch_opt_speed = False,
     iconv_win32 = False,
+    lto_zstd = False,
     native_tls = False,
     short_import = False,
     thunk_free_os = Version('5.1'),
@@ -248,6 +267,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     gdb = '14.2',
     gmp = '6.3.0',
     iconv = '1.17',
+    isl = '0.26',
     make = '4.4.1',
     # postponed until 1.8-ga.3 (2024-08-01)
     # - bootstrapping from scratch made easy
@@ -261,6 +281,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     pkgconf = '2.1.1',
     python = '3.12.13',
     zlib_net = '1.3.2',
+    zstd = '1.5.7',
   ),
 }
 

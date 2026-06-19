@@ -13,6 +13,7 @@ class SourcePaths(NamedTuple):
   gdb: Path
   gmp: Path
   iconv: Path
+  isl: Path
   make: Path
   mcfgthread: Path
   meson: Path
@@ -26,6 +27,7 @@ class SourcePaths(NamedTuple):
   setuptools: Path
   xmake: Path
   zlib_net: Path
+  zstd: Path
 
 class InTreeSourcePaths(NamedTuple):
   iconv: Path
@@ -38,9 +40,11 @@ class LayerPathsAAA(NamedTuple):
   prefix: Path
 
   gmp: Path
+  isl: Path
   mpc: Path
   mpfr: Path
   zlib: Path
+  zstd: Path
 
   meson: Path
   python: Path
@@ -69,11 +73,13 @@ class LayerPathsAAB(NamedTuple):
   winpthreads: Path
   winpthreads_shared: Path
   zlib: Path
+  zstd: Path
 
   expat: Path
   gmp: Path
   iconv: Path
   intl: Path
+  isl: Path
   mpc: Path
   mpfr: Path
   pdcurses: Path
@@ -201,6 +207,7 @@ class ProjectPaths:
       gdb = Path(f'gdb-{ver.gdb}'),
       gmp = Path(f'gmp-{ver.gmp}'),
       iconv = Path(f'libiconv-{ver.iconv}'),
+      isl = Path(f'isl-{ver.isl}'),
       make = Path(f'make-{ver.make}'),
       mcfgthread = Path(f'mcfgthread-{ver.mcfgthread}'),
       meson = Path(f'meson-{ver.meson}'),
@@ -214,6 +221,7 @@ class ProjectPaths:
       setuptools = Path(f'setuptools-{ver.setuptools}'),
       xmake = Path(f'xmake-{ver.xmake}'),
       zlib_net = Path(f'zlib-{ver.zlib_net}'),
+      zstd = Path(f'zstd-{ver.zstd}'),
     )
 
     self.src_dir = SourcePaths(
@@ -223,6 +231,7 @@ class ProjectPaths:
       gdb = self.build_dir / src_name.gdb,
       gmp = self.build_dir / src_name.gmp,
       iconv = self.build_dir / src_name.iconv,
+      isl = self.build_dir / src_name.isl,
       make = self.build_dir / src_name.make,
       mcfgthread = self.build_dir / src_name.mcfgthread,
       meson = self.build_dir / src_name.meson,
@@ -236,6 +245,7 @@ class ProjectPaths:
       setuptools = self.build_dir / src_name.setuptools,
       xmake = self.build_dir / src_name.xmake,
       zlib_net = self.build_dir / src_name.zlib_net,
+      zstd = self.build_dir / src_name.zstd,
     )
 
     self.src_arx = SourcePaths(
@@ -247,6 +257,7 @@ class ProjectPaths:
       gdb = self.assets_dir / f'{src_name.gdb}.tar.xz',
       gmp = self.assets_dir / f'{src_name.gmp}.tar.zst',
       iconv = self.assets_dir / f'{src_name.iconv}.tar.gz',
+      isl = self.assets_dir / f'{src_name.isl}.tar.xz',
       make = self.assets_dir / f'{src_name.make}.tar.lz',
       mcfgthread = self.assets_dir / f'{src_name.mcfgthread}.tar.gz',
       meson = self.assets_dir / f'{src_name.meson}.tar.gz',
@@ -262,6 +273,7 @@ class ProjectPaths:
       setuptools = self.assets_dir / f'{src_name.setuptools}.tar.gz',
       xmake = self.assets_dir / f'{src_name.xmake}.tar.gz',
       zlib_net = self.assets_dir / f'{src_name.zlib_net}.tar.gz',
+      zstd = self.assets_dir / f'{src_name.zstd}.tar.zst',
     )
 
     self.in_tree_src_dir = InTreeSourcePaths(
@@ -285,9 +297,11 @@ class ProjectPaths:
       prefix = layer_AAA_prefix,
 
       gmp = layer_AAA_prefix / 'gmp',
+      isl = layer_AAA_prefix / 'isl',
       mpc = layer_AAA_prefix / 'mpc',
       mpfr = layer_AAA_prefix / 'mpfr',
       zlib = layer_AAA_prefix / 'zlib',
+      zstd = layer_AAA_prefix / 'zstd',
 
       meson = layer_AAA_prefix / 'meson',
       python = layer_AAA_prefix / 'python',
@@ -318,11 +332,13 @@ class ProjectPaths:
       winpthreads = layer_AAB_prefix / 'winpthreads',
       winpthreads_shared = layer_AAB_prefix / 'winpthreads-shared',
       zlib = layer_AAB_prefix / 'zlib',
+      zstd = layer_AAB_prefix / 'zstd',
 
       expat = layer_AAB_prefix / 'expat',
       gmp = layer_AAB_prefix / 'gmp',
       iconv = layer_AAB_prefix / 'iconv',
       intl = layer_AAB_prefix / 'intl',
+      isl = layer_AAB_prefix / 'isl',
       mpc = layer_AAB_prefix / 'mpc',
       mpfr = layer_AAB_prefix / 'mpfr',
       pdcurses = layer_AAB_prefix / 'pdcurses',

@@ -36,10 +36,17 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       '--disable-multilib',
       '--disable-nls',
       # packages
+      '--without-debuginfod',
       '--with-system-zlib',
-      *cflags_A(),
+      '--without-zstd',
+      *cflags_A(
+        cpp_extra = ['-I/usr/local/include'],
+        ld_extra = ['-L/usr/local/lib'],
+      ),
     ])
-    make_default(build_dir, config.jobs)
+    # -lfl is added by configure when available (e.g. pacman)
+    # but actually it's not needed because of noyywrap
+    make_custom(build_dir, ['all', 'LEXLIB='], config.jobs)
     make_destdir_install(build_dir, paths.layer_AAB.binutils)
 
 def _headers(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
@@ -70,9 +77,11 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
 
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.gmp / 'usr/local',
+    paths.layer_AAA.isl / 'usr/local',
     paths.layer_AAA.mpc / 'usr/local',
     paths.layer_AAA.mpfr / 'usr/local',
     paths.layer_AAA.zlib / 'usr/local',
+    paths.layer_AAA.zstd / 'usr/local',
 
     paths.layer_AAB.binutils / 'usr/local',
     paths.layer_AAB.headers / 'usr/local',
@@ -114,7 +123,10 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--with-system-zlib',
       '--with-tune=generic',
       *config_flags,
-      *cflags_A(),
+      *cflags_A(
+        cpp_extra = ['-I/usr/local/include'],
+        ld_extra = ['-L/usr/local/lib'],
+      ),
       *cflags_B('_FOR_TARGET',
         # CPPFLAGS_FOR_TARGET is not passed
         common_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
@@ -699,6 +711,29 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAB.mpc)
 
+def _isl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.crt_host / 'usr/local',
+    *common_cross_layers(paths),
+
+    paths.layer_AAB.gmp / 'usr/local',
+  ]):
+    build_dir = paths.src_dir.isl / 'build-AAB'
+    ensure(build_dir)
+    configure(build_dir, [
+      f'--prefix=/usr/local/{ver.target}',
+      f'--host={ver.target}',
+      f'--build={config.build}',
+      '--enable-static',
+      '--disable-shared',
+      *cflags_B(
+        cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
+        optimize_for_speed = ver.opt_speed,
+      ),
+    ])
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAB.isl)
+
 def _expat(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAB.crt_host / 'usr/local',
@@ -838,6 +873,44 @@ def _zlib_net(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
   lib_dir = paths.layer_AAB.zlib / 'usr/local' / ver.target / 'lib'
   shutil.move(lib_dir / 'libzs.a', lib_dir / 'libz.a')
 
+def _zstd(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  if not ver.lto_zstd:
+    touch(paths.layer_AAB.zstd / 'usr/local' / '.keep')
+    return
+
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAB.crt_host / 'usr/local',
+    *common_cross_layers(paths),
+  ]):
+    build_dir = 'build-AAB'
+    cmake_config(
+      paths.src_dir.zstd / 'build/cmake',
+      extra_args = [
+        f'-DCMAKE_TOOLCHAIN_FILE={paths.cmake_cross_file}',
+        f'-DCMAKE_INSTALL_PREFIX=/usr/local/{ver.target}',
+        '-DZSTD_BUILD_STATIC=ON',
+        '-DZSTD_BUILD_SHARED=OFF',
+        '-DZSTD_BUILD_PROGRAMS=OFF',
+        '-DZSTD_BUILD_TESTS=OFF',
+        # avoid complexity of threading
+        '-DZSTD_MULTITHREAD_SUPPORT=OFF',
+        *cmake_flags_B(
+          optimize_for_speed = ver.opt_speed,
+        ),
+      ],
+      build_dir = build_dir,
+    )
+    cmake_build(
+      paths.src_dir.zstd / 'build/cmake',
+      jobs = config.jobs,
+      build_dir = build_dir,
+    )
+    cmake_install(
+      paths.src_dir.zstd / 'build/cmake',
+      destdir = paths.layer_AAB.zstd,
+      build_dir = build_dir,
+    )
+
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [
     paths.layer_AAA.python / 'usr/local',
@@ -890,6 +963,7 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
   _gmp(ver, paths, config)
   _mpfr(ver, paths, config)
   _mpc(ver, paths, config)
+  _isl(ver, paths, config)
   _expat(ver, paths, config)
   if ver.iconv_win32:
     _iconv_win32(ver, paths, config)
@@ -898,4 +972,5 @@ def build_AAB_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.
   _intl(ver, paths, config)
   _pdcurses(ver, paths, config)
   _zlib_net(ver, paths, config)
+  _zstd(ver, paths, config)
   _python(ver, paths, config)

@@ -30,6 +30,9 @@ CHECKSUMS: Dict[str, str] = {
 
   'gmp-6.3.0.tar.zst': '7f55d73f472c29cc14d7fa985f3654d48829415b649eaf61646b7b33f2a80e27',
 
+  'isl-0.26.tar.xz': 'a0b5cb06d24f9fa9e77b55fabbe9a3c94a336190345c2555f9915bb38e976504',
+  'isl-0.27.tar.xz': '6d8babb59e7b672e8cb7870e874f3f7b813b6e00e6af3f8b04f7579965643d5c',
+
   'libiconv-1.17.tar.gz': '8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313',
   'libiconv-1.18.tar.gz': '3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8',
   'libiconv-1.19.tar.gz': '88dd96a8c0464eca144fc791ae60cd31cd8ee78321e67397e25fc095c4a19aa6',
@@ -64,4 +67,6 @@ CHECKSUMS: Dict[str, str] = {
   'xmake-3.0.8.tar.gz': '73da077440d1327e24bc74da2888c418e589dc28966e6e6b5bd6e889721b2d07',
 
   'zlib-1.3.2.tar.gz': 'bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16',
+
+  'zstd-1.5.7.tar.zst': '5b331d961d6989dc21bb03397fc7a2a4d86bc65a14adc5ffbbce050354e30fd2',
 }

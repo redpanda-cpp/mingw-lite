@@ -114,6 +114,7 @@ def _binutils(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
       '--disable-multilib',
       '--enable-nls',
       # packages
+      '--without-debuginfod',
       '--with-system-zlib',
       *cflags_B(
         cpp_extra = [f'-D_WIN32_WINNT=0x{ver.min_winnt:04X}'],
@@ -498,11 +499,13 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     *common_cross_layers(paths),
 
     paths.layer_AAB.gmp / 'usr/local',
+    paths.layer_AAB.isl / 'usr/local',
     paths.layer_AAB.mpfr / 'usr/local',
     paths.layer_AAB.mpc / 'usr/local',
     paths.layer_AAB.iconv / 'usr/local',
     paths.layer_AAB.intl / 'usr/local',
     paths.layer_AAB.zlib / 'usr/local',
+    paths.layer_AAB.zstd / 'usr/local',
   ]):
     config_flags: List[str] = []
 
@@ -674,6 +677,7 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
       '--disable-nls',
       '--enable-tui',
       # packages
+      '--without-debuginfod',
       f'--with-python=/usr/local/{ver.target}/python-config.sh',
       '--with-system-gdbinit=/share/gdb/gdbinit',
       '--with-system-zlib',

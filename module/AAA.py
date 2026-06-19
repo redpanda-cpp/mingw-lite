@@ -8,7 +8,8 @@ import subprocess
 from module.debug import shell_here
 from module.path import ProjectPaths
 from module.profile import BranchProfile
-from module.util import cflags_A, configure, ensure, make_custom, make_default, make_destdir_install, overlayfs_ro
+from module.util import ensure, overlayfs_ro, touch
+from module.util import cflags_A, configure, make_custom, make_default, make_destdir_install
 from module.util import cmake_build, cmake_config, cmake_flags_A, cmake_install
 
 def _gmp(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
@@ -72,6 +73,23 @@ def _mpc(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     make_default(build_dir, config.jobs)
     make_destdir_install(build_dir, paths.layer_AAA.mpc)
 
+def _isl(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  with overlayfs_ro('/usr/local', [
+    paths.layer_AAA.gmp / 'usr/local',
+  ]):
+    build_dir = paths.src_dir.isl / 'build-AAA'
+    ensure(build_dir)
+    configure(build_dir, [
+      f'--prefix=/usr/local',
+      f'--host={config.build}',
+      f'--build={config.build}',
+      '--enable-static',
+      '--disable-shared',
+      *cflags_A(),
+    ])
+    make_default(build_dir, config.jobs)
+    make_destdir_install(build_dir, paths.layer_AAA.isl)
+
 def _zlib_net(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   build_dir = 'build-AAA'
   cmake_config(
@@ -95,11 +113,44 @@ def _zlib_net(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespac
     build_dir = build_dir,
   )
 
+def _zstd(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
+  if not ver.lto_zstd:
+    touch(paths.layer_AAA.zstd / 'usr/local/.keep')
+    return
+
+  build_dir = 'build-AAA'
+  cmake_config(
+    paths.src_dir.zstd / 'build/cmake',
+    extra_args = [
+      '-DCMAKE_INSTALL_PREFIX=/usr/local',
+      '-DZSTD_BUILD_STATIC=ON',
+      '-DZSTD_BUILD_SHARED=OFF',
+      '-DZSTD_BUILD_PROGRAMS=OFF',
+      '-DZSTD_BUILD_TESTS=OFF',
+      # old OS needs `-lpthread`, which breaks gcc's configure detection
+      '-DZSTD_MULTITHREAD_SUPPORT=OFF',
+      *cmake_flags_A(),
+    ],
+    build_dir = build_dir,
+  )
+  cmake_build(
+    paths.src_dir.zstd / 'build/cmake',
+    jobs = config.jobs,
+    build_dir = build_dir,
+  )
+  cmake_install(
+    paths.src_dir.zstd / 'build/cmake',
+    destdir = paths.layer_AAA.zstd,
+    build_dir = build_dir,
+  )
+
 def build_AAA_library(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   _gmp(ver, paths, config)
   _mpfr(ver, paths, config)
   _mpc(ver, paths, config)
+  _isl(ver, paths, config)
   _zlib_net(ver, paths, config)
+  _zstd(ver, paths, config)
 
 def _python(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
   with overlayfs_ro('/usr/local', [

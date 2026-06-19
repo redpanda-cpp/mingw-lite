@@ -283,6 +283,15 @@ def _intl(ver: BranchProfile, paths: ProjectPaths):
     dirs_exist_ok = True,
   )
 
+def _isl(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://libisl.sourceforge.io/{paths.src_arx.isl.name}'
+  validate_and_download(paths.src_arx.isl, url)
+  if download_only:
+    return
+
+  check_and_extract(paths.src_dir.isl, paths.src_arx.isl)
+  patch_done(paths.src_dir.isl)
+
 def _make(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   url = f'https://ftpmirror.gnu.org/gnu/make/{paths.src_arx.make.name}'
   validate_and_download(paths.src_arx.make, url)
@@ -524,6 +533,15 @@ def _zlib_net(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   check_and_extract(paths.src_dir.zlib_net, paths.src_arx.zlib_net)
   patch_done(paths.src_dir.zlib_net)
 
+def _zstd(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
+  url = f'https://github.com/facebook/zstd/releases/download/v{ver.zstd}/{paths.src_arx.zstd.name}'
+  validate_and_download(paths.src_arx.zstd, url)
+  if download_only:
+    return
+
+  check_and_extract(paths.src_dir.zstd, paths.src_arx.zstd)
+  patch_done(paths.src_dir.zstd)
+
 def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   _binutils(ver, paths, download_only)
   _expat(ver, paths, download_only)
@@ -536,6 +554,7 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   else:
     _iconv_gnu(ver, paths, download_only)
   _intl(ver, paths)
+  _isl(ver, paths, download_only)
   _make(ver, paths, download_only)
   _mcfgthread(ver, paths, download_only)
   _meson(ver, paths, download_only)
@@ -550,3 +569,4 @@ def prepare_source(ver: BranchProfile, paths: ProjectPaths, download_only: bool)
   _thunk(ver, paths)
   _xmake(ver, paths, download_only)
   _zlib_net(ver, paths, download_only)
+  _zstd(ver, paths, download_only)
