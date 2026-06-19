@@ -20,7 +20,6 @@ jobs:
       alt_branch: ${{ steps.param.outputs.alt_branch }}
       alt_profile: ${{ steps.param.outputs.alt_profile }}
       alt_osrel: ${{ steps.param.outputs.alt_osrel }}
-      alt_osrel_test_cross: ${{ steps.param.outputs.alt_osrel_test_cross }}
       release: ${{ steps.param.outputs.release }}
       prerelease: ${{ steps.param.outputs.prerelease }}
       sat_group: ${{ steps.param.outputs.sat_group }}
@@ -46,6 +45,25 @@ jobs:
           name: src-${{ matrix.branch }}
           path: |
             assets
+
+  build_container_xtest:
+    name: Build container for cross test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build container
+        run: |
+          podman build -t mingw-lite/x-test-env .ci/x-test-env
+
+          mkdir assets
+          podman save mingw-lite/x-test-env:latest | zstd -o assets/x-test-env.tar.zst
+
+      - name: Upload container
+        uses: actions/upload-artifact@v7
+        with:
+          name: x-test-env
+          path: assets/x-test-env.tar.zst
 
   build_container:
     name: Build container
@@ -77,7 +95,7 @@ jobs:
 
   build:
     name: Build
-    needs: [param, download_source, build_container]
+    needs: [param, download_source, build_container, build_container_xtest]
     strategy:
       fail-fast: false
       matrix:
@@ -93,7 +111,7 @@ jobs:
 
   alt_build_arm:
     name: Alternative build (ARM)
-    needs: [param, download_source, build_container]
+    needs: [param, download_source, build_container, build_container_xtest]
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     strategy:
       fail-fast: false
@@ -135,7 +153,7 @@ jobs:
 
   alt_build_osrel:
     name: Alternative build (${{ matrix.osrel }}, ${{ matrix.branch }}, ${{ matrix.profile }})
-    needs: [param, download_source, build_container_osrel]
+    needs: [param, download_source, build_container_osrel, build_container_xtest]
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     strategy:
       fail-fast: false
@@ -143,14 +161,12 @@ jobs:
         branch: ${{ fromJson(needs.param.outputs.alt_branch) }}
         profile: ${{ fromJson(needs.param.outputs.alt_profile) }}
         osrel: ${{ fromJson(needs.param.outputs.alt_osrel) }}
-        include: ${{ fromJson(needs.param.outputs.alt_osrel_test_cross) }}
     uses: ./.github/workflows/build_single.yml
     with:
       buildenv: ${{ matrix.osrel }}
       runner: ubuntu-24.04
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
-      test_cross: ${{ matrix.test_cross }}
       upload_prefix: alt_build_${{ matrix.osrel }}-
 
   build_container_wsl:

@@ -64,15 +64,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Enable multiarch
-        run: |
-          sudo dpkg --add-architecture i386
-
-      - uses: ConorMacBride/install-package@v1
+      - uses: actions/download-artifact@v8
         with:
-          apt: libarchive-tools wine
+          name: x-test-env
+          path: assets
 
-      # apt install wine-binfmt seems not work
       - name: Register wine binfmt
         run: |
           echo ':DOSWin:M::MZ::/usr/bin/wine:' | sudo tee /proc/sys/fs/binfmt_misc/register
@@ -84,7 +80,9 @@ jobs:
 
       - name: Test
         run: |
-          ./test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --verbose
+          zstdcat assets/x-test-env.tar.zst | podman load
+          podman run --rm --cap-add=sys_admin -v $PWD:/mnt -w /mnt mingw-lite/x-test-env \
+            ./test.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --verbose
 
   test_on_windows:
     name: Test on Windows
@@ -131,13 +129,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Enable multiarch
-        run: |
-          sudo dpkg --add-architecture i386
-
-      - uses: ConorMacBride/install-package@v1
+      - uses: actions/download-artifact@v8
         with:
-          apt: libarchive-tools musl wine
+          name: x-test-env
+          path: assets
 
       - name: Register wine binfmt
         run: |
@@ -148,13 +143,8 @@ jobs:
           name: ${{ inputs.upload_prefix }}mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
-      # avoid wine failures (possibly race condition)
-      #   wine: created the configuration directory '/root/.wine'
-      #   wine: chdir to /tmp/wine-wr755y/server-801-6f0401 : No such file or directory
-      - name: Initialize wine prefix
-        run: |
-          sudo wineboot --init
-
       - name: Test
         run: |
-          sudo ./xtest.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --verbose
+          zstdcat assets/x-test-env.tar.zst | podman load
+          podman run --rm --cap-add=sys_admin -v $PWD:/mnt -w /mnt mingw-lite/x-test-env \
+            ./xtest.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }} --verbose
