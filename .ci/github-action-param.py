@@ -73,7 +73,7 @@ exclude_profile_branch = [
 ]
 
 alt_branch = ['current']
-alt_profile = ['64-mcf', '64-ucrt']
+alt_profile = ['64-mcf']
 alt_osrel = [
   'archlinux',
   'debian13', 'debian12', 'debian11',
