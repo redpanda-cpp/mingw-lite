@@ -3,6 +3,12 @@ name: Build single (WSL)
 on:
   workflow_call:
     inputs:
+      build_arch:
+        required: true
+        type: string
+      runner:
+        required: true
+        type: string
       profile:
         required: true
         type: string
@@ -16,12 +22,11 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-2025
+    runs-on: ${{ inputs.runner }}
 
     steps:
       - name: Configure Git
         run: |
-          git config --global core.autocrlf false
           git config --global core.symlinks true
 
       - uses: actions/checkout@v6
@@ -34,7 +39,7 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: wsl-buildenv
+          name: wsl-buildenv-${{ inputs.build_arch }}
           path: assets
 
       - uses: ./.github/setup-bsdtar
@@ -45,21 +50,21 @@ jobs:
 
       - name: Build
         run: |
-          Copy-Item -Path support/wsl/.wslconfig -Destination "$env:USERPROFILE/.wslconfig"
+          Copy-Item -Path .ci/wsl/.wslconfig -Destination "$env:USERPROFILE/.wslconfig"
 
           zstd -d assets/buildenv.tar.zst -o assets/buildenv.tar
-          wsl --import mingw-lite-buildenv . assets/buildenv.tar --version ${{ inputs.wsl_version }}
+          wsl --import mlenv env assets/buildenv.tar --version ${{ inputs.wsl_version }}
           Remove-Item -Path assets/buildenv.tar , assets/buildenv.tar.zst
 
-          wsl --distribution mingw-lite-buildenv --exec `
+          wsl --distribution mlenv --exec `
             ./main.py --branch ${{ inputs.branch }} --profile ${{ inputs.profile }}
 
           wsl --shutdown
-          wsl --unregister mingw-lite-buildenv
+          wsl --unregister mlenv
 
       - uses: actions/upload-artifact@v7
         with:
-          name: alt_build_wsl${{ inputs.wsl_version }}-mingw${{ inputs.profile }}-${{ inputs.branch }}
+          name: alt_build_wsl${{ inputs.wsl_version }}_${{ inputs.build_arch }}-mingw${{ inputs.profile }}-${{ inputs.branch }}
           path: dist
 
       - name: Test

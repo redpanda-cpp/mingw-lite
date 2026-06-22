@@ -27,12 +27,32 @@
 
 ## Build
 
-1. Prepare build environment. Linux:
+There are several options for build environment:
+
+| Host OS | Technology | Build OS |
+| ------- | ---------- | -------- |
+| Linux | Rootless container (podman) | Ubuntu 20.04 (default)<br>Alpine Linux 3.23<br>Arch Linux<br>Debian ≥ 11<br>Ubuntu ≥ 20.04 |
+| Windows | WSL | Ubuntu 20.04 |
+
+Steps:
+
+0. Special note for Windows host: symbolic link required.
+   - Windows privilege: enable “Developer Mode”.
+   - Git: `git config --global core.symlinks true`, or `git clone --config core.symlinks=true`.
+1. Prepare build environment. Linux rootless container:
    ```bash
    podman build -t mingw-lite/buildenv support/buildenv
    ```
-   For Windows host, [create an exclusive WSL distro for mingw-lite](doc/wsl-buildenv.md).
-2. Launch build environment. Linux:
+   Windows WSL:
+   ```powershell
+   ./support/buildenv/wsl/setup.ps1
+
+   # options:
+   #   -Distro: WSL distro name (default: mlenv)
+   #   -Root: WSL install location (default: ./env)
+   #   -Version: WSL version (default: 2)
+   ```
+2. Launch build environment. Linux rootless container:
    ```bash
    podman run -it --rm \
      --cap-add=sys_admin \
@@ -48,7 +68,10 @@
      -v $PWD/layer:/tmp/layer \
      mingw-lite/buildenv
    ```
-   Windows: in “Terminal”, select “mingw-lite-buildenv” from the dropdown list.
+   Windows WSL:
+   ```powershell
+   wsl -d mlenv
+   ```
 3. In the build environment, run:
    ```bash
    ./main.py -b <branch> -p <profile>

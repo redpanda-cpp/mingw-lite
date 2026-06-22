@@ -17,6 +17,7 @@ from typing import Dict, List, Union
 
 from module.args import parse_args
 from module.path import ProjectPaths
+from module.platform import is_win32, win32_set_utf8_pipe
 from module.profile import BranchProfile, resolve_profile
 from module.util import XMAKE_ARCH_MAP, ensure
 
@@ -37,7 +38,7 @@ def prepare_dirs(paths: ProjectPaths):
   )
 
 def extract(path: Path, arx: Path):
-  if platform.system() == 'Windows':
+  if is_win32():
     # Windows `tar.exe` does not support Unicode path
     # (WTF? it's a system component distributed by Microsoft!)
     with TemporaryDirectory() as tmp:
@@ -167,8 +168,7 @@ def test_mingw_make_gdb(ver: BranchProfile, paths: ProjectPaths):
 
 def main():
   # We want UTF-8 pipe in CI (console not affected)
-  if platform.system() == 'Windows':
-    sys.stdout.reconfigure(encoding = 'UTF-8')
+  win32_set_utf8_pipe()
 
   config = parse_args()
 

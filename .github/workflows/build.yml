@@ -170,45 +170,36 @@ jobs:
       upload_prefix: alt_build_${{ matrix.osrel }}-
 
   build_container_wsl:
-    name: Build container (WSL)
+    name: Build container (WSL, ${{ matrix.build_arch }})
     needs: [param]
     if: ${{ ! fromJson(needs.param.outputs.release) }}
-    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        build_arch: [x86_64]
+        include:
+          - build_arch: x86_64
+            runner: windows-2025
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
 
       - name: Build container (WSL)
         run: |
-          Copy-Item -Path support/wsl/.wslconfig -Destination "$env:USERPROFILE/.wslconfig"
+          ./support/buildenv/wsl/setup.ps1 -Version 1
 
-          Invoke-WebRequest `
-            -Uri https://cdimages.ubuntu.com/ubuntu-wsl/noble/daily-live/current/noble-wsl-amd64.wsl `
-            -OutFile noble-wsl-amd64.wsl
-
-          wsl --import mingw-lite-buildenv . noble-wsl-amd64.wsl
-
-          wsl --distribution mingw-lite-buildenv --exec `
-            apt update
-          wsl --distribution mingw-lite-buildenv --exec `
-            env DEBIAN_FRONTEND=noninteractive `
-              apt-get install --no-install-recommends -y `
-                autoconf automake build-essential cmake flex gettext libtool llvm ninja-build texinfo `
-                7zip ca-certificates curl file gawk libarchive-tools python3 python3-packaging zstd
-
-          wsl --distribution mingw-lite-buildenv --exec `
-            sync
           wsl --shutdown
 
-          mkdir assets
-          wsl --export mingw-lite-buildenv - | zstd -9 -o assets/buildenv.tar.zst
+          New-Item -ItemType Directory -Path assets -Force
+          wsl --export mlenv - | zstd -9 -o assets/buildenv.tar.zst
 
       - uses: actions/upload-artifact@v7
         with:
-          name: wsl-buildenv
+          name: wsl-buildenv-${{ matrix.build_arch }}
           path: assets/buildenv.tar.zst
 
   alt_build_wsl:
-    name: Alternative build (WSL)
+    name: Alternative build (WSL, ${{ matrix.build_arch }}, ${{ matrix.wsl_version }})
     needs: [param, download_source, build_container_wsl]
     if: ${{ ! fromJson(needs.param.outputs.release) }}
     strategy:
@@ -216,9 +207,15 @@ jobs:
       matrix:
         branch: ${{ fromJson(needs.param.outputs.alt_branch) }}
         profile: ${{ fromJson(needs.param.outputs.alt_profile) }}
+        build_arch: [x86_64]
         wsl_version: [1, 2]
+        include:
+          - build_arch: x86_64
+            runner: windows-2025
     uses: ./.github/workflows/wsl_build_single.yml
     with:
+      build_arch: ${{ matrix.build_arch }}
+      runner: ${{ matrix.runner }}
       branch: ${{ matrix.branch }}
       profile: ${{ matrix.profile }}
       wsl_version: ${{ matrix.wsl_version }}
