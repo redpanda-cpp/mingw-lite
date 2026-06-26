@@ -357,7 +357,9 @@ def postprocess_crt_import_libraries(
       assert(imp0.is_file())
       file_name = imp0.name
 
-      if file_name.startswith('lib') and file_name.endswith('.a'):
+      if file_name.endswith('.import-info.json'):
+        continue
+      elif file_name.startswith('lib') and file_name.endswith('.a'):
         if file_name == 'libmsvcrt.a':
           continue
         overlay = None
