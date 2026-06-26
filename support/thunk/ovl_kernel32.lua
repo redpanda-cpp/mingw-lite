@@ -230,6 +230,7 @@ target('overlay-kernel32')
       add_files(
         'kernel32/a/4.0/MoveFileExA.cc')
       add_files(
+        'kernel32/w/CopyFileW.cc',
         'kernel32/w/CreateFileW.cc',
         'kernel32/w/DeleteFileW.cc',
         'kernel32/w/FindFirstFileW.cc',
