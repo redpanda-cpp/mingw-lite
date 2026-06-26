@@ -514,7 +514,9 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.utf8_thunk:
       config_flags.append('--disable-win32-utf8-manifest')
     if ver.native_tls:
-      config_flags.append('--enable-tls')
+      config_flags.append('--enable-tls=yes')
+    else:
+      config_flags.append('--enable-tls=no')
 
     configure(build_dir, [
       '--prefix=',

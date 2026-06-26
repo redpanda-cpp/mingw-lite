@@ -85,7 +85,9 @@ def _gcc_1(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namespace):
     if ver.fpmath:
       config_flags.append(f'--with-fpmath={ver.fpmath}')
     if ver.native_tls:
-      config_flags.append('--enable-tls')
+      config_flags.append('--enable-tls=yes')
+    else:
+      config_flags.append('--enable-tls=no')
 
     configure(build_dir, [
       f'--prefix=/usr/local',
