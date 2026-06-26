@@ -215,8 +215,8 @@ BRANCHES: Dict[str, BranchVersions] = {
     zstd = '1.5.7',
   ),
   '14': BranchVersions(
-    gcc = '14.3.0',
-    rev = '7.1',
+    gcc = '14.4.0',
+    rev = '0.1',
 
     abi_frozen = True,
     branch_opt_speed = False,
