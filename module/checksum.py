@@ -41,7 +41,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'mcfgthread-1.8-ga.4.tar.gz': 'd2318ef761927860b7a8963308145065047d8ad2102313b26e6eb2d88d9ef1e3',
   'mcfgthread-2.1-ga.1.tar.gz': '73d4ea39e8eee30738ed3f4a35f6cc4e5c6cba62570908ee37d1fc0bf5a7d722',
-  'mcfgthread-2.3-ga.1.tar.gz': '78b91557e87c70f0915ef147ec01c2e64fbe887efddfd02f5d0196cd1c9e47e2',
+  'mcfgthread-2.4-ga.1.tar.gz': '3f889741c99520deafa63a42ffa8eed3df81754ed5c9f5dbd408a0815eea0fb8',
 
   'meson-1.10.2.tar.gz': '7890287d911dd4ee1ebd0efb61ed0321bfcd87c725df923a837cf90c6508f96b',
 

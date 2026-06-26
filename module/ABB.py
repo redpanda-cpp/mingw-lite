@@ -406,7 +406,10 @@ def _mcfgthread(ver: BranchProfile, paths: ProjectPaths, config: argparse.Namesp
 
   license_dir = paths.layer_AAB.gcc / 'share/licenses/mcfgthread'
   ensure(license_dir)
-  shutil.copy(paths.src_dir.mcfgthread / 'LICENSE.TXT', license_dir / 'LICENSE.TXT')
+  if v > Version('2.4'):
+    shutil.copy(paths.src_dir.mcfgthread / 'LICENSE.md', license_dir / 'LICENSE.md')
+  else:
+    shutil.copy(paths.src_dir.mcfgthread / 'LICENSE.TXT', license_dir / 'LICENSE.TXT')
   for file in ['gcc-exception-3.1.txt', 'gpl-3.0.txt', 'lgpl-3.0.txt']:
     shutil.copy(paths.src_dir.mcfgthread / 'licenses' / file, license_dir / file)
 

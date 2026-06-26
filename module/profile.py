@@ -96,7 +96,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     thunk_free_os = Version('6.0'),
     utf8_thunk = True,
 
-    mcfgthread = '2.3-ga.1',
+    mcfgthread = '2.4-ga.1',
     mingw = '14.0.0',
     nowide = '11.3.1',
 
@@ -129,7 +129,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     thunk_free_os = Version('6.0'),
     utf8_thunk = True,
 
-    mcfgthread = '2.3-ga.1',
+    mcfgthread = '2.4-ga.1',
     mingw = '14.0.0',
     nowide = '11.3.1',
 
@@ -161,7 +161,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     thunk_free_os = Version('6.0'),
     utf8_thunk = True,
 
-    mcfgthread = '2.3-ga.1',
+    mcfgthread = '2.4-ga.1',
     mingw = '14.0.0',
     nowide = '11.3.1',
 
