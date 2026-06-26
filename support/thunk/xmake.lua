@@ -229,6 +229,7 @@ includes('utf8-musl.lua')
 
 includes('ovl_advapi32.lua')
 includes('ovl_bcrypt.lua')
+includes('ovl_crypt32.lua')
 includes('ovl_kernel32.lua')
 includes('ovl_msvcrt.lua')
 includes('ovl_pathcch.lua')
