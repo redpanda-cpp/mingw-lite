@@ -450,6 +450,10 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
       patch(paths.src_dir.python, paths.patch_dir / 'python/fix-mingw-build_3.12.patch')
     shutil.copy(paths.patch_dir / 'python/python-config.sh', paths.src_dir.python / 'python-config.sh')
 
+    # Fix CPUID use
+    if v >= Version('3.13'):
+      patch(paths.src_dir.python, paths.patch_dir / 'python/mimalloc-cpuid-check.patch')
+
     patch_done(paths.src_dir.python)
 
 def _setuptools(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
