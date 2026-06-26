@@ -213,10 +213,6 @@ def _gdb(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if not ver.utf8_thunk:
       patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-pythondir.patch')
 
-    # Fix 'skip gfile' `fnmatch`
-    if v.major == 17:
-      patch(paths.src_dir.gdb, paths.patch_dir / 'gdb' / 'fix-skip-gfile-fnmatch.patch')
-
     # Ignore long path
     if v.major >= 15:
       if ver.min_os.major < 4:

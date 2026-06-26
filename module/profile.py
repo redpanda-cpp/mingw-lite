@@ -102,7 +102,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     binutils = '2.46.1',
     expat = '2.7.5',
-    gdb = '17.1',
+    gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
     isl = '0.27',
@@ -135,7 +135,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     binutils = '2.46.1',
     expat = '2.7.5',
-    gdb = '17.1',
+    gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
     isl = '0.27',
@@ -167,7 +167,7 @@ BRANCHES: Dict[str, BranchVersions] = {
 
     binutils = '2.46.1',
     expat = '2.7.5',
-    gdb = '17.1',
+    gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
     isl = '0.27',
@@ -201,7 +201,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     # freeze: 2025-12-21
     binutils = '2.45.1',
     expat = '2.7.5',
-    gdb = '17.1',
+    gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.18',
     isl = '0.27',
