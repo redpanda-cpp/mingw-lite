@@ -1,0 +1,46 @@
+diff --git a/gcc/config/i386/cpuid.h b/gcc/config/i386/cpuid.h
+index e1d6d2ff77c..b699bc1295d 100644
+--- a/gcc/config/i386/cpuid.h
++++ b/gcc/config/i386/cpuid.h
+@@ -256,8 +256,39 @@ __get_cpuid_max (unsigned int __ext, unsigned int *__sig)
+ {
+   unsigned int __eax, __ebx, __ecx, __edx;
+ 
+-#ifndef __x86_64__
+-  /* See if we can use cpuid.  On AMD64 we always can.  */
++  /*
++    By executing the command:
++      diff <(gcc -m32 -dM -E -march=i486 - </dev/null | sort) <(gcc -m32 -dM -E -march=i586 - </dev/null | sort)
++    we get:
++      205c205
++      < #define __GCC_ATOMIC_LLONG_LOCK_FREE 1
++      ---
++      > #define __GCC_ATOMIC_LLONG_LOCK_FREE 2
++      216a217
++      > #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8 1
++      231,232c232,233
++      < #define __i486 1
++      < #define __i486__ 1
++      ---
++      > #define __i586 1
++      > #define __i586__ 1
++      307a309,310
++      > #define __pentium 1
++      > #define __pentium__ 1
++      359c362,363
++      < #define __tune_i486__ 1
++      ---
++      > #define __tune_i586__ 1
++      > #define __tune_pentium__ 1
++
++    The only way to detect target >= i586 (pentium) is to check for
++      __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
++    or
++      __GCC_ATOMIC_LLONG_LOCK_FREE
++  */
++#if !(defined(__x86_64__) || (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) && \
++                              __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8))
++  /* See if we can use cpuid.  On AMD64 or i586+ we always can.  */
+ #if __GNUC__ >= 3
+   __asm__ ("pushf{l|d}\n\t"
+ 	   "pushf{l|d}\n\t"

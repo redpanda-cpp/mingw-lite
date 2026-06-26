@@ -125,6 +125,10 @@ def _gcc(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
     if ver.march == 'i386':
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'migrate-i386-sync-builtin.patch')
 
+    # Skip CPUID availability check
+    if ver.arch == '32':
+      patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'skip-cpuid-availability-check.patch')
+
     # Allow UTF-8 module name
     if v.major < 17:
       patch(paths.src_dir.gcc, paths.patch_dir / 'gcc' / 'allow-utf8-module-name.patch')
