@@ -38,9 +38,9 @@ class BranchVersions:
 
   display_version: Optional[str] = None
 
-  meson: str = '1.10.2'
+  meson: str = '1.11.1'
   setuptools: str = '82.0.1'
-  xmake: str = '3.0.8'
+  xmake: str = '3.0.9'
 
 @dataclass
 class ProfileInfo:
@@ -101,7 +101,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     nowide = '11.3.1',
 
     binutils = '2.46.1',
-    expat = '2.7.5',
+    expat = '2.8.2',
     gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
@@ -111,7 +111,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.4',
+    python = '3.14.6',
     zlib_net = '1.3.2',
     zstd = '1.5.7',
   ),
@@ -134,7 +134,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     nowide = '11.3.1',
 
     binutils = '2.46.1',
-    expat = '2.7.5',
+    expat = '2.8.2',
     gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
@@ -144,7 +144,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.4',
+    python = '3.14.6',
     zlib_net = '1.3.2',
     zstd = '1.5.7',
   ),
@@ -166,7 +166,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     nowide = '11.3.1',
 
     binutils = '2.46.1',
-    expat = '2.7.5',
+    expat = '2.8.2',
     gdb = '17.2',
     gmp = '6.3.0',
     iconv = '1.19',
@@ -176,7 +176,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.4',
+    python = '3.14.6',
     zlib_net = '1.3.2',
     zstd = '1.5.7',
   ),
@@ -210,7 +210,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.5.1',
-    python = '3.14.4',
+    python = '3.14.6',
     zlib_net = '1.3.2',
     zstd = '1.5.7',
   ),
@@ -244,7 +244,7 @@ BRANCHES: Dict[str, BranchVersions] = {
     mpfr = '4.2.2',
     pdcurses = '3.9',
     pkgconf = '2.3.0',
-    python = '3.13.13',
+    python = '3.13.14',
     zlib_net = '1.3.2',
     zstd = '1.5.7',
   ),

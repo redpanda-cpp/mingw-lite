@@ -4,8 +4,8 @@ CHECKSUMS: Dict[str, str] = {
   'PDCurses-3.9.tar.gz': '590dbe0f5835f66992df096d3602d0271103f90cf8557a5d124f693c2b40d7ec',
 
   'Python-3.12.13.tar.xz': 'c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684',
-  'Python-3.13.13.tar.xz': '2ab91ff401783ccca64f75d10c882e957bdfd60e2bf5a72f8421793729b78a71',
-  'Python-3.14.4.tar.xz': 'd923c51303e38e249136fc1bdf3568d56ecb03214efdef48516176d3d7faaef8',
+  'Python-3.13.14.tar.xz': '639e43243c620a308f968213df9e00f2f8f62332f7adbaa7a7eeb9783057c690',
+  'Python-3.14.6.tar.xz': '143b1dddefaec3bd2e21e3b839b34a2b7fb9842272883c576420d605e9f30c63',
 
   'binutils-2.41.tar.xz': 'ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450',
   'binutils-2.43.1.tar.zst': 'ad1b625031099c8ac09c7864bf9d352f908510de4bd25cf50ff21022bc66f7ca',
@@ -15,6 +15,7 @@ CHECKSUMS: Dict[str, str] = {
   'expat-2.5.0.tar.xz': 'ef2420f0232c087801abf705e89ae65f6257df6b7931d37846a193ef2e8cdcbe',
   'expat-2.6.4.tar.xz': 'a695629dae047055b37d50a0ff4776d1d45d0a4c842cf4ccee158441f55ff7ee',
   'expat-2.7.5.tar.xz': '1032dfef4ff17f70464827daa28369b20f6584d108bc36f17ab1676e1edd2f91',
+  'expat-2.8.2.tar.xz': '3ad89b8588e6644bd4e49981480d48b21289eebbcd4f0a1a4afb1c29f99b6ab4',
 
   'gcc-13.4.0.tar.xz': '9c4ce6dbb040568fdc545588ac03c5cbc95a8dbf0c7aa490170843afb59ca8f5',
   'gcc-14.4.0.tar.xz': '752b6f567beac83159c77a7680b1316bdd784738bff9a9d070112c09da90f6d9',
@@ -43,7 +44,7 @@ CHECKSUMS: Dict[str, str] = {
   'mcfgthread-2.1-ga.1.tar.gz': '73d4ea39e8eee30738ed3f4a35f6cc4e5c6cba62570908ee37d1fc0bf5a7d722',
   'mcfgthread-2.4-ga.1.tar.gz': '3f889741c99520deafa63a42ffa8eed3df81754ed5c9f5dbd408a0815eea0fb8',
 
-  'meson-1.10.2.tar.gz': '7890287d911dd4ee1ebd0efb61ed0321bfcd87c725df923a837cf90c6508f96b',
+  'meson-1.11.1.tar.gz': '6788ae299979643f8d841bcaf64352558436cae45a0355148a3aeeccf7913866',
 
   'mingw-w64-v11.0.1.tar.bz2': '3f66bce069ee8bed7439a1a13da7cb91a5e67ea6170f21317ac7f5794625ee10',
   'mingw-w64-v12.0.0.tar.bz2': 'cc41898aac4b6e8dd5cffd7331b9d9515b912df4420a3a612b5ea2955bbeed2f',
@@ -64,7 +65,7 @@ CHECKSUMS: Dict[str, str] = {
 
   'setuptools-82.0.1.tar.gz': 'c2e2bc8ab0d2bad5b3cebdf61d071334acc087335ff26406a2ce063c370d8bbd',
 
-  'xmake-3.0.8.tar.gz': '73da077440d1327e24bc74da2888c418e589dc28966e6e6b5bd6e889721b2d07',
+  'xmake-3.0.9.tar.gz': '45335220e83cee7ab9ad9e50900f9e751f32510e204719f89c5866c143ef3a5a',
 
   'zlib-1.3.2.tar.gz': 'bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16',
 

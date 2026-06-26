@@ -434,10 +434,6 @@ def _python(ver: BranchProfile, paths: ProjectPaths, download_only: bool):
   if check_and_extract(paths.src_dir.python, paths.src_arx.python):
     v = Version(ver.python)
 
-    # Fix static build
-    if v >= Version('3.14'):
-      patch(paths.src_dir.python, paths.patch_dir / 'python/fix-static-build.patch')
-
     # Fix thread touch last error
     # https://github.com/python/cpython/pull/104531
     if v >= Version('3.12') and v < Version('3.13'):
