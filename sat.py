@@ -40,6 +40,12 @@ def prepare_test_binary(ver: BranchProfile, paths: ProjectPaths):
   extract(paths.sat_dir, paths.mingw_pkg)
   extract(paths.sat_dir, paths.xmake_pkg)
 
+  if ver.min_os.major < 4:
+    shutil.copy(
+      paths.root_dir / 'support/cmd/5.00.1852.1/Win95Cmd.exe',
+      paths.sat_dir / 'win95cmd.exe',
+    )
+
 def write_gdb_commands(ver: BranchProfile, paths: ProjectPaths):
   xmake_arch = XMAKE_ARCH_MAP[ver.arch]
   build_dir = f'build/mingw/{xmake_arch}/debug'
