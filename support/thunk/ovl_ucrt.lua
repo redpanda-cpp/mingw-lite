@@ -2,6 +2,7 @@ function ucrt_utf8_files()
   return {
     'ucrt/environment/__p__environ.cc',
     'ucrt/environment/_putenv.cc',
+    'ucrt/environment/_wputenv.cc',
     'ucrt/environment/getenv.cc',
     'ucrt/environment/putenv.cc',
     'ucrt/filesystem/_chmod.cc',
@@ -90,6 +91,13 @@ function ucrt_def_files()
   return result
 end
 
+function add_ucrt_test_links(thunk)
+  add_linkgroups(
+    'catch2', 'stdc++', 'pthread',
+    'mingw32', 'gcc', 'mingwex',
+    thunk, 'ucrt')
+end
+
 target('alias-short-ucrt')
   on_build(build_short_import_library(ucrt_def_files()))
   set_enabled(has_config('short-alias'))
@@ -136,9 +144,8 @@ target('test-ucrt-u')
   add_files(
     'ucrt/stdio/_open.test.cc',
     'ucrt/stdio/fopen.test.cc')
-  add_linkorders('thunk-ucrt-u', 'ucrt')
-  add_links('ucrt')
   add_tests('default')
+  add_ucrt_test_links('thunk-ucrt-u')
   enable_test_options()
   skip_install()
 
@@ -147,8 +154,7 @@ target('console-ucrt')
   add_defines('_UCRT')
   add_deps('thunk-ucrt-u')
   add_files('test/console.c')
-  add_linkorders('thunk-ucrt-u', 'ucrt')
-  add_links('ucrt')
+  add_ucrt_test_links('thunk-ucrt-u')
   enable_test_options()
   skip_install()
 
@@ -158,11 +164,11 @@ target('argv-ucrt')
   add_deps('thunk-ucrt-u')
   add_files('test/argv.c')
   add_files(table.unpack(ucrt_utf8_startup_deps()))
-  add_links('ucrt')
   add_tests('default', {
     runargs = {"你好", "世界"},
     pass_outputs = "argv[1] = 你好\nargv[2] = 世界\n",
     plain = true,
   })
+  add_ucrt_test_links('thunk-ucrt-u')
   enable_test_options()
   skip_install()

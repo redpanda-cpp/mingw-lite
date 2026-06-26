@@ -3,6 +3,7 @@ function msvcrt_utf8_files()
     'msvcrt/u/environment/__initenv.cc',
     'msvcrt/u/environment/__p__environ.cc',
     'msvcrt/u/environment/_putenv.cc',
+    'msvcrt/u/environment/_wputenv.cc',
     'msvcrt/u/environment/getenv.cc',
     'msvcrt/u/environment/putenv.cc',
     'msvcrt/u/filesystem/_chmod.cc',
@@ -161,6 +162,13 @@ function add_msvcrt_sources(functions, prefix)
       add_files(prefix .. '/' .. func_name .. '.cc')
     end
   end
+end
+
+function add_msvcrt_test_links(thunk)
+  add_linkgroups(
+    'catch2', 'stdc++', 'pthread',
+    'mingw32', 'gcc', 'mingwex',
+    thunk, 'msvcrt-os')
 end
 
 target('alias-short-msvcrt-os')
@@ -329,7 +337,6 @@ target('thunk-msvcrt')
   end
 
 target('test-msvcrt')
-  add_tests('default')
   add_deps('thunk-msvcrt')
   add_files(
     'msvcrt/6.0/_wputenv_s.test.cc',
@@ -337,8 +344,8 @@ target('test-msvcrt')
     'msvcrt/6.0/wcscpy_s.test.cc',
     'msvcrt/6.0/wcsncat_s.test.cc',
     'msvcrt/6.0/wcsncpy_s.test.cc')
-  add_linkorders('thunk-msvcrt', 'msvcrt-os')
-  add_links('msvcrt-os')
+  add_msvcrt_test_links('thunk-msvcrt')
+  add_tests('default')
   enable_if_x86()
   enable_test_options()
   skip_install()
@@ -369,13 +376,12 @@ target('thunk-msvcrt-a')
   skip_install()
 
 target('test-msvcrt-a')
-  add_tests('default')
   add_deps('thunk-msvcrt-a')
   add_files(
     'msvcrt/a/5.0/_findfirst64.test.cc',
     'msvcrt/a/5.0/_utime64.test.cc')
-  add_linkorders('thunk-msvcrt-a', 'msvcrt-os')
-  add_links('msvcrt-os')
+  add_msvcrt_test_links('thunk-msvcrt-a')
+  add_tests('default')
   enable_if_x86_32()
   enable_test_options()
   skip_install()
@@ -394,8 +400,7 @@ target('test-msvcrt-u')
   add_files(
     'msvcrt/u/stdio/_open.test.cc',
     'msvcrt/u/stdio/fopen.test.cc')
-  add_linkorders('thunk-msvcrt-u', 'msvcrt-os')
-  add_links('msvcrt-os')
+  add_msvcrt_test_links('thunk-msvcrt-u')
   enable_test_options()
   skip_install()
 
@@ -404,8 +409,7 @@ target('console-msvcrt')
   add_defines('__MSVCRT_VERSION__=0x0600')
   add_deps('thunk-msvcrt-u')
   add_files('test/console.c')
-  add_linkorders('thunk-msvcrt-u', 'msvcrt-os')
-  add_links('msvcrt-os')
+  add_msvcrt_test_links('thunk-msvcrt-u')
   enable_test_options()
   skip_install()
 
@@ -415,7 +419,7 @@ target('argv-msvcrt')
   add_deps('thunk-msvcrt-u')
   add_files('test/argv.c')
   add_files(table.unpack(msvcrt_utf8_startup_deps()))
-  add_links('msvcrt-os')
+  add_msvcrt_test_links('thunk-msvcrt-u')
   add_tests('default', {
     runargs = {"你好", "世界"},
     pass_outputs = "argv[1] = 你好\nargv[2] = 世界\n",

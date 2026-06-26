@@ -1,5 +1,10 @@
 LIBRARY msvcrt.dll
 EXPORTS
+  ; environment
+  __ms__putenv == _putenv
+  __ms__wputenv == _wputenv
+
+  ; stdio
   __ms__read == _read
   __ms__write == _write
   __ms_fflush == fflush

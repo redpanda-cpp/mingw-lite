@@ -141,7 +141,9 @@ namespace mingw_thunk
   __DECLARE_MS_IMPORT(SHGetPathFromIDListW)
 
   // crt: environment
+  __DECLARE_MS_IMPORT(_putenv)
   __DECLARE_MS_IMPORT(_wgetcwd)
+  __DECLARE_MS_IMPORT(_wputenv)
 
   // crt: filesystem
   __DECLARE_MS_IMPORT(_chdir)

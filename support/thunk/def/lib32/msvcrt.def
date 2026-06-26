@@ -1,7 +1,9 @@
 LIBRARY msvcrt.dll
 EXPORTS
   ; environment
+  __ms__putenv == _putenv
   __ms__wgetcwd == _wgetcwd
+  __ms__wputenv == _wputenv
 
   ; filesystem
   __ms__chdir == _chdir

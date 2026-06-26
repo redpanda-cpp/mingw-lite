@@ -2,6 +2,7 @@
 
 #include <thunk/_common.h>
 #include <thunk/wntcrt/errno.h>
+#include <thunk/string.h>
 
 #include <errno.h>
 #include <wchar.h>
@@ -36,8 +37,23 @@ namespace mingw_thunk
         return EINVAL;
       }
 
-      if (!SetEnvironmentVariableW(varname, value_string))
-        return internal::dosmaperr();
+      size_t name_len = wcslen(varname);
+      size_t value_len = wcslen(value_string);
+
+      d::w_str envstring;
+      if (!envstring.resize(name_len + 1 + value_len)) {
+        _set_errno(ENOMEM);
+        return ENOMEM;
+      }
+
+      wmemcpy(envstring.data(), varname, name_len);
+      envstring[name_len] = L'=';
+      wmemcpy(envstring.data() + name_len + 1, value_string, value_len);
+
+      int ret = _wputenv(envstring.c_str());
+      if (ret == -1) {
+        return errno;
+      }
 
       return 0;
     }

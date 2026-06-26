@@ -15,6 +15,11 @@ TEST_CASE("_wputenv_s")
     errno_t err = mingw_thunk::f::fallback__wputenv_s(name, value);
 
     REQUIRE(err == 0);
+
+    const wchar_t *env = _wgetenv(name);
+
+    REQUIRE(env != nullptr);
+    REQUIRE(wcscmp(env, value) == 0);
   }
 
   SECTION("error: null name")
